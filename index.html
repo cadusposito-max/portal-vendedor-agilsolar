@@ -768,12 +768,23 @@
     let list = state.data.filter(k => k.categoria === state.pbCategory);
 
     if (state.pbSearch) {
+      // Tenta transformar o texto da busca em um número inteiro
+      const searchNum = parseInt(state.pbSearch, 10);
+
       list = list.filter(item => {
-        const estGeneration = (item.power * 120).toFixed(0);
-        return item.name.toLowerCase().includes(state.pbSearch) ||
+        // Mantém a geração como número para fazer a conta
+        const estGeneration = item.power * 120;
+
+        // 1. Verifica se bate com o texto (nome, marca ou potência)
+        const textMatch = item.name.toLowerCase().includes(state.pbSearch) ||
                 item.brand.toLowerCase().includes(state.pbSearch) ||
-                item.power.toString().includes(state.pbSearch) ||
-                estGeneration.includes(state.pbSearch);
+                item.power.toString().includes(state.pbSearch);
+
+        // 2. Verifica se a geração está na margem de +/- 50 kWh (só se a busca for um número válido)
+        const generationMatch = !isNaN(searchNum) && Math.abs(estGeneration - searchNum) <= 50;
+
+        // Retorna o kit se ele passar no teste de texto OU no teste de geração aproximada
+        return textMatch || generationMatch;
       });
     }
 
