@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposta - Ágil Solar</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        orange: { 500: '#f97316', 600: '#ea580c' },
+                        yellow: { 400: '#facc15', 500: '#eab308' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #050505; color: #e5e5e5; padding-bottom: 100px; }
+        .gradient-border { position: relative; background: #050505; background-clip: padding-box; border: solid 2px transparent; border-radius: 1rem; }
+        .gradient-border:before { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: -1; margin: -2px; border-radius: inherit; background: linear-gradient(to right, #ea580c, #eab308); }
+    </style>
+</head>
+<body class="selection:bg-orange-500 selection:text-white min-h-screen flex flex-col items-center">
+
+<!-- Loading State -->
+<div id="loading" class="fixed inset-0 z-50 bg-[#050505] flex flex-col items-center justify-center">
+    <i data-lucide="sun" class="w-12 h-12 text-orange-500 animate-[spin_3s_linear_infinite] mb-4"></i>
+    <p class="text-neutral-500 font-bold uppercase tracking-widest text-sm animate-pulse">A calcular o seu projeto...</p>
+</div>
+
+<!-- Error State -->
+<div id="error-state" class="hidden flex-col items-center justify-center min-h-screen p-4 text-center">
+    <i data-lucide="file-warning" class="w-16 h-16 text-red-500 mb-4"></i>
+    <h1 class="text-2xl font-black text-white uppercase mb-2">Proposta indisponível</h1>
+    <p class="text-neutral-500 max-w-md">Este link é inválido ou a proposta já expirou. Por favor, contacte o seu vendedor.</p>
+</div>
+
+<!-- Main Proposal Content -->
+<div id="proposal-content" class="hidden w-full max-w-3xl px-4 py-8 md:py-12 flex flex-col gap-8">
+
+    <!-- Header / Logo -->
+    <div class="flex justify-center mb-4">
+        <img src="logo.png" alt="Mega Feirão Ágil Solar" class="w-48 md:w-64 h-auto drop-shadow-[0_0_20px_rgba(249,115,22,0.3)]" onerror="this.style.display='none'">
+    </div>
+
+    <!-- Greeting -->
+    <div class="text-center">
+        <p class="text-orange-500 font-black uppercase tracking-widest text-xs md:text-sm mb-2">PROPOSTA ÁGIL SOLAR</p>
+        <h1 class="text-3xl md:text-4xl font-black text-white leading-tight">
+            Olá, <span id="client-name" class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400">...</span>!
+        </h1>
+        <p class="text-neutral-400 mt-3 text-sm md:text-base max-w-lg mx-auto">Preparámos um dimensionamento ideal para si com as condições exclusivas do Mega Feirão.</p>
+    </div>
+
+    <!-- 1. O KIT PRINCIPAL (Preço e Especificações) -->
+    <div class="gradient-border overflow-hidden shadow-[0_0_40px_rgba(234,88,12,0.15)] relative">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-orange-900/30 via-transparent to-transparent pointer-events-none"></div>
+        <div class="p-6 md:p-8 relative z-10">
+            <div class="inline-block bg-orange-600/20 border border-orange-500/30 text-orange-500 px-3 py-1 text-[10px] font-black uppercase tracking-widest mb-4">
+                <span id="kit-brand">...</span>
+            </div>
+
+            <h2 id="kit-name" class="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-6 leading-none">...</h2>
+
+            <div class="grid grid-cols-2 gap-3 mb-8">
+                <div class="bg-black/80 border border-neutral-800 p-4 rounded-xl flex flex-col items-center justify-center text-center">
+                    <i data-lucide="zap" class="w-6 h-6 text-orange-500 mb-2"></i>
+                    <span class="text-[10px] text-neutral-500 font-bold uppercase tracking-widest">Potência do Sistema</span>
+                    <span id="kit-power" class="text-white font-black text-lg md:text-xl mt-1">... kWp</span>
+                </div>
+                <div class="bg-yellow-900/20 border border-yellow-900/40 p-4 rounded-xl flex flex-col items-center justify-center text-center">
+                    <i data-lucide="sun" class="w-6 h-6 text-yellow-400 mb-2"></i>
+                    <span class="text-[10px] text-yellow-400/80 font-bold uppercase tracking-widest">Geração Estimada</span>
+                    <span id="kit-generation" class="text-yellow-400 font-black text-lg md:text-xl mt-1">... kWh/mês</span>
+                </div>
+            </div>
+
+            <div class="bg-black/90 p-6 rounded-xl border border-neutral-800 text-center relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 bg-red-600 text-white text-[10px] font-black px-8 py-1 rotate-45 shadow-lg hidden md:block" id="badge-discount">DESCONTO ATIVO</div>
+                <p class="text-neutral-500 text-xs font-bold uppercase tracking-widest mb-2 line-through decoration-red-500" id="kit-list-price">De: ...</p>
+                <p class="text-[10px] text-orange-500 font-black uppercase tracking-widest mb-1">Investimento à Vista</p>
+                <div class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 tracking-tighter" id="kit-price">
+                    ...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. PROJEÇÃO DE ECONOMIA FINANCEIRA (ROI) -->
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-lg">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="bg-green-600/20 p-2 rounded-lg"><i data-lucide="trending-up" class="w-6 h-6 text-green-500"></i></div>
+            <h3 class="text-xl font-black text-white uppercase tracking-tight">Projeção de Economia</h3>
+        </div>
+        <p class="text-neutral-400 text-sm mb-6">Baseado numa tarifa média estimada de <span class="text-white font-bold">R$ 0,95/kWh</span>, veja o quanto deixará de pagar à companhia elétrica:</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-black border border-neutral-800 p-4 rounded-xl text-center">
+                <p class="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Em 1 Mês</p>
+                <p class="text-xl font-black text-green-500" id="eco-month">...</p>
+            </div>
+            <div class="bg-black border border-neutral-800 p-4 rounded-xl text-center">
+                <p class="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Em 1 Ano</p>
+                <p class="text-2xl font-black text-green-500" id="eco-year">...</p>
+            </div>
+            <div class="bg-green-900/10 border border-green-900/50 p-4 rounded-xl text-center ring-1 ring-green-500/20 shadow-[inset_0_0_20px_rgba(34,197,94,0.05)]">
+                <p class="text-[10px] text-green-500 font-bold uppercase tracking-widest mb-1">Em 25 Anos (Vida Útil)</p>
+                <p class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300" id="eco-25years">...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. O QUE ESTÁ INCLUSO (Chave na mão) -->
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-lg">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="bg-orange-600/20 p-2 rounded-lg"><i data-lucide="package-check" class="w-6 h-6 text-orange-500"></i></div>
+            <h3 class="text-xl font-black text-white uppercase tracking-tight">Projeto Chave na Mão</h3>
+        </div>
+        <p class="text-neutral-400 text-sm mb-6">Não se preocupe com nada. Nós tratamos de todas as etapas do processo para si:</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex items-start gap-3 bg-black/50 p-3 rounded-lg border border-neutral-800/50">
+                <i data-lucide="check-circle-2" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
+                <div>
+                    <p class="text-white font-bold text-sm">Equipamentos Premium</p>
+                    <p class="text-neutral-500 text-xs mt-1">Painéis, Inversores e Estruturas de fixação das melhores marcas.</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-3 bg-black/50 p-3 rounded-lg border border-neutral-800/50">
+                <i data-lucide="check-circle-2" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
+                <div>
+                    <p class="text-white font-bold text-sm">Instalação Especializada</p>
+                    <p class="text-neutral-500 text-xs mt-1">Equipa técnica própria e qualificada seguindo normas de segurança.</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-3 bg-black/50 p-3 rounded-lg border border-neutral-800/50">
+                <i data-lucide="check-circle-2" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
+                <div>
+                    <p class="text-white font-bold text-sm">Homologação</p>
+                    <p class="text-neutral-500 text-xs mt-1">Tratamos de toda a burocracia do projeto com a distribuidora de energia.</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-3 bg-black/50 p-3 rounded-lg border border-neutral-800/50">
+                <i data-lucide="check-circle-2" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
+                <div>
+                    <p class="text-white font-bold text-sm">Aplicação de Monitorização</p>
+                    <p class="text-neutral-500 text-xs mt-1">Acompanhe a geração de energia em tempo real no seu telemóvel.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. IMPACTO AMBIENTAL -->
+    <div class="flex flex-col md:flex-row items-center justify-between bg-[url('https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center border border-neutral-800 rounded-2xl p-6 shadow-lg relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm z-0"></div>
+        <div class="relative z-10 text-center md:text-left mb-6 md:mb-0">
+            <h3 class="text-xl font-black text-white uppercase tracking-tight">Impacto Ambiental</h3>
+            <p class="text-neutral-300 text-sm mt-1 max-w-sm">Ao gerar a sua própria energia limpa, ajuda a preservar o planeta e reduz a emissão de CO2.</p>
+        </div>
+        <div class="relative z-10 flex gap-6">
+            <div class="text-center">
+                <div class="bg-emerald-500/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto border border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                    <i data-lucide="tree-deciduous" class="w-8 h-8 text-emerald-400"></i>
+                </div>
+                <p class="text-white font-black text-xl mt-3" id="env-trees">...</p>
+                <p class="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">Árvores Salvas</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ==========================================
+    // CONFIGURAÇÃO SUPABASE
+    // ==========================================
+    const SUPABASE_URL = 'https://tzwjxgprhorqrmpqudgg.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6d2p4Z3ByaG9ycXJtcHF1ZGdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMjczNTksImV4cCI6MjA4NzcwMzM1OX0.hwfzCb9FGVXX7Uf0pY7zFS6SZHrh0pzWk1gKFVq2DX4';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    lucide.createIcons();
+
+    // CORREÇÃO AQUI: Estava 'newSearchParams', o correto é 'new URLSearchParams'
+    const urlParams = new URLSearchParams(window.location.search);
+    const propostaId = urlParams.get('id');
+
+    async function carregarProposta() {
+        if (!propostaId) {
+            showError();
+            return;
+        }
+
+        try {
+            const { data, error } = await supabaseClient.from('propostas').select('*').eq('id', propostaId).single();
+
+            if (error || !data) {
+                showError();
+                return;
+            }
+
+            renderData(data);
+
+        } catch (err) {
+            showError();
+        }
+    }
+
+    function renderData(data) {
+        const formatter = new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL'});
+
+        // CÁLCULOS MATEMÁTICOS PARA GERAR VALOR
+        const TARIFA_MEDIA = 0.95; // Valor médio de R$ 0.95 por kWh (Pode ajustar se quiser)
+        const estGeneration = (data.kit_power * 120); // ~120kWh gerados por mês por cada 1kWp
+
+        const economiaMensal = estGeneration * TARIFA_MEDIA;
+        const economiaAnual = economiaMensal * 12;
+        const economia25Anos = economiaAnual * 25; // Vida útil
+        const arvoresPlantadas = Math.round(data.kit_power * 3); // Média de equivalência ambiental
+
+        // Injeção de Dados do Kit
+        document.getElementById('client-name').innerText = data.cliente_nome; // Pega só o 1º nome para ficar mais íntimo
+        document.getElementById('kit-brand').innerText = data.kit_brand;
+        document.getElementById('kit-name').innerText = data.kit_nome;
+        document.getElementById('kit-power').innerText = data.kit_power + ' kWp';
+        document.getElementById('kit-generation').innerText = '~' + estGeneration.toFixed(0) + ' kWh/mês';
+        document.getElementById('kit-list-price').innerText = 'De: ' + formatter.format(data.kit_list_price);
+
+        // Preço com Estilo
+        const priceParts = formatter.format(data.kit_price).split(',');
+        document.getElementById('kit-price').innerHTML = `
+                <span class="text-xl align-top text-neutral-500 mr-1">R$</span>${priceParts[0].replace('R$', '').trim()}<span class="text-xl align-top text-neutral-500">,${priceParts[1]}</span>
+            `;
+
+        // Injeção dos Cálculos de Economia e Ambiente
+        document.getElementById('eco-month').innerText = formatter.format(economiaMensal);
+        document.getElementById('eco-year').innerText = formatter.format(economiaAnual);
+        document.getElementById('eco-25years').innerText = formatter.format(economia25Anos);
+        document.getElementById('env-trees').innerText = '+' + arvoresPlantadas;
+
+
+        // Troca de Telas
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('proposal-content').classList.remove('hidden');
+    }
+
+    function showError() {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('error-state').classList.remove('hidden');
+        document.getElementById('error-state').classList.add('flex');
+    }
+
+    // Iniciar
+    carregarProposta();
+</script>
+</body>
+</html>
