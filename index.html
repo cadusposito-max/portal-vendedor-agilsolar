@@ -443,7 +443,12 @@
   // 3. BUSCAR DADOS
   // ==========================================
   async function fetchProducts() {
-    const { data, error } = await supabaseClient.from('produtos').select('*');
+    // Adicionamos o .order('power', { ascending: true }) para ordenar da menor para a maior potência
+    const { data, error } = await supabaseClient
+            .from('produtos')
+            .select('*')
+            .order('power', { ascending: true });
+
     if (!error) state.data = data || [];
   }
 
