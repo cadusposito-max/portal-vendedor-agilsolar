@@ -824,9 +824,8 @@
       lucide.createIcons();
     }
   }
-
   // ==========================================
-  // 7. GERAR LINK NO SUPABASE E COPIAR
+  // 7. GERAR LINK NO SUPABASE E COPIAR/COMPARTILHAR
   // ==========================================
   async function copyProposalLink(kit, event) {
     const client = state.pbActiveClient;
@@ -837,8 +836,10 @@
     btnCopiar.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> GERANDO...';
     lucide.createIcons();
 
+    let linkProposta = '';
+
+    // PARTE 1: SALVAR NO SUPABASE (Isolado)
     try {
-      // 1. Inserir Proposta no Supabase
       const { data, error } = await supabaseClient.from('propostas').insert([{
         vendedor_email: state.currentUser.email,
         cliente_nome: client.nome,
@@ -854,77 +855,89 @@
       if (error) throw error;
 
       const propostaId = data[0].id;
-
-      // 2. Criar Link (Pega o domínio atual onde o index.html está hospedado)
       const baseUrl = window.location.href.split('index.html')[0].replace(/\/$/, "");
-      const linkProposta = `${baseUrl}/proposta.html?id=${propostaId}`;
+      linkProposta = `${baseUrl}/proposta.html?id=${propostaId}`;
 
-      // 3. Copiar o link para a Área de Transferência
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(linkProposta);
-      } else {
-        // Fallback melhorado para iOS antigo ou ambientes sem HTTPS
-        const tempInput = document.createElement("textarea");
-        tempInput.value = linkProposta;
-
-        // O iOS ignora elementos com display:none, então jogamos para fora da tela
-        tempInput.style.position = 'fixed';
-        tempInput.style.left = '-9999px';
-        tempInput.style.top = '0';
-
-        document.body.appendChild(tempInput);
-
-        // setSelectionRange é obrigatório para funcionar no iOS antigo
-        if (navigator.userAgent.match(/ipad|iphone/i)) {
-          let range = document.createRange();
-          range.selectNodeContents(tempInput);
-          let selection = window.getSelection();
-          selection.removeAllRanges();
-          selection.addRange(range);
-          tempInput.setSelectionRange(0, 999999);
-        } else {
-          tempInput.select();
-        }
-
-        try {
-          document.execCommand("copy");
-        } catch (err) {
-          console.error("Erro no fallback de cópia: ", err);
-        }
-
-        document.body.removeChild(tempInput);
-      }
-
-      // 4. Gravar Analytics Extra
+      // Gravar Analytics
       supabaseClient.from('logs_propostas').insert([{
         vendedor_email: state.currentUser.email,
         kit_nome: kit.name,
         valor_kit: kit.price,
-        acao: 'LINK_COPIADO'
+        acao: 'LINK_GERADO'
       }]);
 
-      // Feedback Visual do Botão
-      btnCopiar.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> COPIADO!';
+    } catch (err) {
+      console.error("Erro no Supabase:", err);
+      alert("Erro ao conectar com o banco de dados. Tente novamente.");
+      btnCopiar.innerHTML = originalText;
+      lucide.createIcons();
+      return; // Para a execução se o banco falhar
+    }
+
+    // PARTE 2: ÁREA DE TRANSFERÊNCIA E COMPARTILHAMENTO
+    try {
+      // Se for celular (iPhone/Android), abre a aba nativa de compartilhamento (ótimo para WhatsApp)
+      if (navigator.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        await navigator.share({
+          title: 'Proposta Ágil Solar',
+          text: `Olá ${client.nome}, aqui está a sua proposta da Ágil Solar:`,
+          url: linkProposta
+        });
+      }
+      // Se for PC moderno com HTTPS
+      else if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(linkProposta);
+      }
+      // Fallback para navegadores antigos
+      else {
+        fallbackCopyTextToClipboard(linkProposta);
+      }
+
+      // Feedback Visual de Sucesso
+      btnCopiar.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> PRONTO!';
       btnCopiar.classList.remove('bg-blue-600', 'hover:bg-blue-500');
       btnCopiar.classList.add('bg-green-600', 'hover:bg-green-500');
       lucide.createIcons();
-
-      showToast('LINK DA PROPOSTA COPIADO!');
-
-      // Restaura o botão original após 3 segundos
-      setTimeout(() => {
-        btnCopiar.innerHTML = originalText;
-        btnCopiar.classList.remove('bg-green-600', 'hover:bg-green-500');
-        btnCopiar.classList.add('bg-blue-600', 'hover:bg-blue-500');
-        lucide.createIcons();
-      }, 3000);
+      showToast('PROPOSTA PRONTA!');
 
     } catch (err) {
-      console.error("Erro ao gerar link:", err);
-      alert("Ocorreu um erro ao gerar a proposta. Verifique o console ou se criou a tabela 'propostas'.");
-      btnCopiar.innerHTML = originalText;
+      console.error("Erro no clipboard/share: ", err);
+      // Se o iPhone bloquear tudo por segurança, exibe um prompt garantido para o vendedor copiar manualmente
+      prompt("Proposta gerada com sucesso! Copie o link abaixo:", linkProposta);
+
+      btnCopiar.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> GERADO';
       lucide.createIcons();
     }
+
+    // Restaura o botão original após 3 segundos
+    setTimeout(() => {
+      btnCopiar.innerHTML = originalText;
+      btnCopiar.classList.remove('bg-green-600', 'hover:bg-green-500');
+      btnCopiar.classList.add('bg-blue-600', 'hover:bg-blue-500');
+      lucide.createIcons();
+    }, 3000);
+  }
+
+  // Função auxiliar para navegadores difíceis
+  function fallbackCopyTextToClipboard(text) {
+    const tempInput = document.createElement("textarea");
+    tempInput.value = text;
+    tempInput.style.position = 'fixed';
+    tempInput.style.left = '-9999px';
+    document.body.appendChild(tempInput);
+
+    if (navigator.userAgent.match(/ipad|iphone/i)) {
+      let range = document.createRange();
+      range.selectNodeContents(tempInput);
+      let selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      tempInput.setSelectionRange(0, 999999);
+    } else {
+      tempInput.select();
+    }
+    document.execCommand("copy");
+    document.body.removeChild(tempInput);
   }
 
   // ==========================================
