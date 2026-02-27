@@ -827,6 +827,9 @@
   // ==========================================
   // 7. GERAR LINK NO SUPABASE E COPIAR/COMPARTILHAR
   // ==========================================
+  // ==========================================
+  // 7. GERAR LINK NO SUPABASE E COPIAR (SILENCIOSO PARA IOS/PC)
+  // ==========================================
   async function copyProposalLink(kit, event) {
     const client = state.pbActiveClient;
     if(!client) return alert('Nenhum cliente em atendimento!');
@@ -836,108 +839,86 @@
     btnCopiar.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> GERANDO...';
     lucide.createIcons();
 
-    let linkProposta = '';
-
-    // PARTE 1: SALVAR NO SUPABASE (Isolado)
     try {
-      const { data, error } = await supabaseClient.from('propostas').insert([{
-        vendedor_email: state.currentUser.email,
-        cliente_nome: client.nome,
-        cliente_telefone: client.telefone,
-        cliente_cidade: client.cidade,
-        kit_nome: kit.name,
-        kit_brand: kit.brand,
-        kit_power: kit.power,
-        kit_price: kit.price,
-        kit_list_price: kit.list_price
-      }]).select();
+      // No Safari/iOS, para copiar DEPOIS de um "await", exigem o uso do ClipboardItem com uma Promise
+      if (navigator.clipboard && window.ClipboardItem) {
+        const linkPromise = new Promise(async (resolve, reject) => {
+          try {
+            const { data, error } = await supabaseClient.from('propostas').insert([{
+              vendedor_email: state.currentUser.email,
+              cliente_nome: client.nome,
+              cliente_telefone: client.telefone,
+              cliente_cidade: client.cidade,
+              kit_nome: kit.name,
+              kit_brand: kit.brand,
+              kit_power: kit.power,
+              kit_price: kit.price,
+              kit_list_price: kit.list_price
+            }]).select();
 
-      if (error) throw error;
+            if (error) throw error;
 
-      const propostaId = data[0].id;
-      const baseUrl = window.location.href.split('index.html')[0].replace(/\/$/, "");
-      linkProposta = `${baseUrl}/proposta.html?id=${propostaId}`;
+            const propostaId = data[0].id;
+            const baseUrl = window.location.href.split('index.html')[0].replace(/\/$/, "");
+            const linkProposta = `${baseUrl}/proposta.html?id=${propostaId}`;
 
-      // Gravar Analytics
-      supabaseClient.from('logs_propostas').insert([{
-        vendedor_email: state.currentUser.email,
-        kit_nome: kit.name,
-        valor_kit: kit.price,
-        acao: 'LINK_GERADO'
-      }]);
+            // Salva o log em segundo plano
+            supabaseClient.from('logs_propostas').insert([{ vendedor_email: state.currentUser.email, kit_nome: kit.name, valor_kit: kit.price, acao: 'LINK_COPIADO' }]);
 
-    } catch (err) {
-      console.error("Erro no Supabase:", err);
-      alert("Erro ao conectar com o banco de dados. Tente novamente.");
-      btnCopiar.innerHTML = originalText;
-      lucide.createIcons();
-      return; // Para a execução se o banco falhar
-    }
-
-    // PARTE 2: ÁREA DE TRANSFERÊNCIA E COMPARTILHAMENTO
-    try {
-      // Se for celular (iPhone/Android), abre a aba nativa de compartilhamento (ótimo para WhatsApp)
-      if (navigator.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
-        await navigator.share({
-          title: 'Proposta Ágil Solar',
-          text: `Olá ${client.nome}, aqui está a sua proposta da Ágil Solar:`,
-          url: linkProposta
+            resolve(new Blob([linkProposta], { type: 'text/plain' }));
+          } catch (err) {
+            reject(err);
+          }
         });
-      }
-      // Se for PC moderno com HTTPS
-      else if (navigator.clipboard && window.isSecureContext) {
+
+        // Executa a cópia silenciosa
+        await navigator.clipboard.write([new ClipboardItem({ 'text/plain': linkPromise })]);
+
+      } else {
+        // Método tradicional para Android e PC
+        const { data, error } = await supabaseClient.from('propostas').insert([{
+          vendedor_email: state.currentUser.email,
+          cliente_nome: client.nome,
+          cliente_telefone: client.telefone,
+          cliente_cidade: client.cidade,
+          kit_nome: kit.name,
+          kit_brand: kit.brand,
+          kit_power: kit.power,
+          kit_price: kit.price,
+          kit_list_price: kit.list_price
+        }]).select();
+
+        if (error) throw error;
+
+        const propostaId = data[0].id;
+        const baseUrl = window.location.href.split('index.html')[0].replace(/\/$/, "");
+        const linkProposta = `${baseUrl}/proposta.html?id=${propostaId}`;
+
         await navigator.clipboard.writeText(linkProposta);
-      }
-      // Fallback para navegadores antigos
-      else {
-        fallbackCopyTextToClipboard(linkProposta);
+        supabaseClient.from('logs_propostas').insert([{ vendedor_email: state.currentUser.email, kit_nome: kit.name, valor_kit: kit.price, acao: 'LINK_COPIADO' }]);
       }
 
-      // Feedback Visual de Sucesso
-      btnCopiar.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> PRONTO!';
+      // Feedback Visual no botão
+      btnCopiar.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> COPIADO!';
       btnCopiar.classList.remove('bg-blue-600', 'hover:bg-blue-500');
       btnCopiar.classList.add('bg-green-600', 'hover:bg-green-500');
       lucide.createIcons();
-      showToast('PROPOSTA PRONTA!');
+      showToast('LINK DA PROPOSTA COPIADO!');
+
+      // Restaura o botão após 3 segundos
+      setTimeout(() => {
+        btnCopiar.innerHTML = originalText;
+        btnCopiar.classList.remove('bg-green-600', 'hover:bg-green-500');
+        btnCopiar.classList.add('bg-blue-600', 'hover:bg-blue-500');
+        lucide.createIcons();
+      }, 3000);
 
     } catch (err) {
-      console.error("Erro no clipboard/share: ", err);
-      // Se o iPhone bloquear tudo por segurança, exibe um prompt garantido para o vendedor copiar manualmente
-      prompt("Proposta gerada com sucesso! Copie o link abaixo:", linkProposta);
-
-      btnCopiar.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> GERADO';
-      lucide.createIcons();
-    }
-
-    // Restaura o botão original após 3 segundos
-    setTimeout(() => {
+      console.error("Erro ao gerar link:", err);
+      alert("Erro ao gerar link da proposta. Tente novamente.");
       btnCopiar.innerHTML = originalText;
-      btnCopiar.classList.remove('bg-green-600', 'hover:bg-green-500');
-      btnCopiar.classList.add('bg-blue-600', 'hover:bg-blue-500');
       lucide.createIcons();
-    }, 3000);
-  }
-
-  // Função auxiliar para navegadores difíceis
-  function fallbackCopyTextToClipboard(text) {
-    const tempInput = document.createElement("textarea");
-    tempInput.value = text;
-    tempInput.style.position = 'fixed';
-    tempInput.style.left = '-9999px';
-    document.body.appendChild(tempInput);
-
-    if (navigator.userAgent.match(/ipad|iphone/i)) {
-      let range = document.createRange();
-      range.selectNodeContents(tempInput);
-      let selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
-      tempInput.setSelectionRange(0, 999999);
-    } else {
-      tempInput.select();
     }
-    document.execCommand("copy");
-    document.body.removeChild(tempInput);
   }
 
   // ==========================================
