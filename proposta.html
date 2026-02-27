@@ -265,7 +265,7 @@
         document.getElementById('kit-brand').innerText = data.kit_brand;
         document.getElementById('kit-name').innerText = data.kit_nome;
         document.getElementById('kit-power').innerText = data.kit_power + ' kWp';
-        document.getElementById('kit-generation').innerText = '~' + estGeneration.toFixed(0) + ' kWh/mês';
+        document.getElementById('kit-generation').innerText = estGeneration.toFixed(0) + ' kWh/mês';
         document.getElementById('kit-list-price').innerText = 'De: ' + formatter.format(data.kit_list_price);
 
         // NOVO: Injeção do valor ideal da conta (A linha que faltava!)
