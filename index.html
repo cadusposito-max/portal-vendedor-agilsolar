@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ágil Solar - Portal Vendedor</title>
+  <title>Ágil Solar - Portal Parceiros</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -74,7 +74,7 @@
 
     <div class="bg-neutral-900/80 backdrop-blur-md border border-neutral-800 p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
       <div class="mb-8 text-center">
-        <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 tracking-tighter uppercase mb-1 pb-1 pr-1 inline-block">Acesso Restrito</h2>
+        <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 tracking-tighter uppercase mb-1 pb-1 pr-1 inline-block">Portal Parceiros</h2>
         <p class="text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em]">Insira as suas credenciais</p>
       </div>
 
@@ -133,7 +133,7 @@
         <div class="flex items-center gap-4 group cursor-pointer" onclick="window.scrollTo(0,0)">
           <img src="assets/img/logo.png" alt="Ágil Solar" onerror="this.src='https://placehold.co/150x50?text=Agil+Solar'" class="h-8 md:h-8 w-auto object-contain hover:scale-105 transition-transform drop-shadow-[0_0_10px_rgba(249,115,22,0.3)]">
           <div class="hidden sm:block border-l-2 border-orange-500/50 pl-3">
-            <p class="text-white text-[10px] font-black uppercase tracking-[0.3em]">Portal<br>Vendedor</p>
+            <p class="text-white text-[10px] font-black uppercase tracking-[0.3em]">Portal<br>Parceiros</p>
           </div>
         </div>
 
@@ -860,12 +860,40 @@
       const linkProposta = `${baseUrl}/proposta.html?id=${propostaId}`;
 
       // 3. Copiar o link para a Área de Transferência
-      const tempInput = document.createElement("textarea");
-      tempInput.value = linkProposta;
-      document.body.appendChild(tempInput);
-      tempInput.select();
-      document.execCommand("copy"); // Metódo compatível para copiar
-      document.body.removeChild(tempInput);
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(linkProposta);
+      } else {
+        // Fallback melhorado para iOS antigo ou ambientes sem HTTPS
+        const tempInput = document.createElement("textarea");
+        tempInput.value = linkProposta;
+
+        // O iOS ignora elementos com display:none, então jogamos para fora da tela
+        tempInput.style.position = 'fixed';
+        tempInput.style.left = '-9999px';
+        tempInput.style.top = '0';
+
+        document.body.appendChild(tempInput);
+
+        // setSelectionRange é obrigatório para funcionar no iOS antigo
+        if (navigator.userAgent.match(/ipad|iphone/i)) {
+          let range = document.createRange();
+          range.selectNodeContents(tempInput);
+          let selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+          tempInput.setSelectionRange(0, 999999);
+        } else {
+          tempInput.select();
+        }
+
+        try {
+          document.execCommand("copy");
+        } catch (err) {
+          console.error("Erro no fallback de cópia: ", err);
+        }
+
+        document.body.removeChild(tempInput);
+      }
 
       // 4. Gravar Analytics Extra
       supabaseClient.from('logs_propostas').insert([{
