@@ -5,6 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Proposta - Ágil Solar</title>
 
+    <!-- ========================================== -->
+    <!-- META TAGS DE COMPARTILHAMENTO (WHATSAPP/TELEGRAM) -->
+    <!-- ========================================== -->
+    <meta name="title" content="Proposta Exclusiva - Ágil Solar">
+    <meta name="description" content="Confira o dimensionamento ideal para a sua casa e veja o quanto você pode economizar.">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Proposta Exclusiva - Ágil Solar">
+    <meta property="og:description" content="Confira o dimensionamento ideal para a sua casa e veja o quanto você pode economizar.">
+    <!-- Imagem genérica e bonita de painel solar (já hospedada na nuvem em tamanho perfeito 1200x630) -->
+    <meta property="og:image" content="https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?q=80&w=1200&auto=format&fit=crop">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="Proposta Exclusiva - Ágil Solar">
+    <meta property="twitter:description" content="Confira o dimensionamento ideal para a sua casa e veja o quanto você pode economizar.">
+    <meta property="twitter:image" content="https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?q=80&w=1200&auto=format&fit=crop">
+    <!-- ========================================== -->
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -530,7 +550,8 @@
         let textoPayback = '';
         if (anosPayback > 0) textoPayback += `${anosPayback} ano${anosPayback > 1 ? 's' : ''}`;
         if (anosPayback > 0 && mesesRestantes > 0) textoPayback += ' e ';
-        if (mesesRestantes > 0) textoPayback += `${mesesRestantes} mês${mesesRestantes > 1 ? 'es' : ''}`;
+        // CORREÇÃO: "meses" escrito sem acento
+        if (mesesRestantes > 0) textoPayback += `${mesesRestantes} ${mesesRestantes > 1 ? 'meses' : 'mês'}`;
         if (textoPayback === '') textoPayback = 'Menos de 1 mês';
         // =========================================================
 
