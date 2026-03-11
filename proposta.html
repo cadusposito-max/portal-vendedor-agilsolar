@@ -1,8 +1,19 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src  'self' 'unsafe-inline' cdn.tailwindcss.com unpkg.com cdn.jsdelivr.net;
+      style-src   'self' 'unsafe-inline' fonts.googleapis.com;
+      font-src    fonts.gstatic.com;
+      img-src     'self' data: placehold.co https: images.unsplash.com;
+      connect-src 'self' https://unpkg.com https://tzwjxgprhorqrmpqudgg.supabase.co wss://tzwjxgprhorqrmpqudgg.supabase.co;
+      frame-src   https://www.youtube.com;
+      object-src  'none';
+    ">
     <title>Proposta - Ágil Solar</title>
 
     <!-- Tailwind CSS -->
@@ -23,22 +34,22 @@
                     colors: {
                         orange: { 500: '#f97316', 600: '#ea580c' },
                         yellow: { 400: '#facc15', 500: '#eab308' },
-                        blue: { 600: '#2563eb', 700: '#1d4ed8' }
+                        blue:   { 600: '#2563eb', 700: '#1d4ed8' }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4,0,0.6,1) infinite',
+                        'float':      'float 6s ease-in-out infinite',
+                        'slide-up':   'slideUp 0.5s ease-out both',
+                    },
+                    keyframes: {
+                        float:   { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-6px)' } },
+                        slideUp: { '0%': { opacity:'0', transform:'translateY(20px)' }, '100%': { opacity:'1', transform:'translateY(0)' } },
                     }
                 }
             }
         }
     </script>
-    <style>
-        body { background-color: #050505; color: #e5e5e5; }
-        .gradient-border { position: relative; background: #050505; background-clip: padding-box; border: solid 2px transparent; border-radius: 1rem; }
-        .gradient-border:before { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: -1; margin: -2px; border-radius: inherit; background: linear-gradient(to right, #ea580c, #eab308); }
-
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #171717; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #f97316; }
-    </style>
+    <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body class="selection:bg-orange-500 selection:text-white min-h-screen flex flex-col items-center relative">
 
@@ -58,6 +69,8 @@
 <!-- Modal de Parcelamento -->
 <div id="modal-parcelamento" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-opacity">
     <div class="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md md:max-w-2xl overflow-hidden shadow-2xl transform transition-all shadow-[0_0_40px_rgba(234,88,12,0.1)]">
+
+        <!-- Header do Modal -->
         <div class="p-5 border-b border-neutral-800 flex justify-between items-center bg-black/50">
             <div class="flex items-center gap-3">
                 <div class="bg-orange-500/20 p-2 rounded-lg">
@@ -69,15 +82,24 @@
                 <i data-lucide="x" class="w-6 h-6"></i>
             </button>
         </div>
+
+        <!-- Lista de Parcelas -->
         <div class="p-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
+            <!-- Aviso Importante sobre +12x -->
             <div class="mb-4 bg-yellow-500/10 border border-yellow-500/20 p-3 rounded-xl flex items-start gap-3 shadow-[0_0_15px_rgba(234,179,8,0.05)]">
                 <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-500 shrink-0 mt-0.5"></i>
                 <p class="text-xs text-yellow-500/90 leading-relaxed">
                     <strong class="text-yellow-500 font-bold">Atenção:</strong> Nem todos os cartões de crédito autorizam parcelamentos acima de 12x. Verifique com o seu banco a disponibilidade de dividir em até 18 vezes no seu cartão.
                 </p>
             </div>
-            <div id="installments-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+
+            <!-- Grid em 2 colunas para o Desktop, 1 coluna no Mobile -->
+            <div id="installments-list" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <!-- Javascript vai preencher aqui -->
+            </div>
         </div>
+
+        <!-- Footer do Modal -->
         <div class="p-4 bg-neutral-950 border-t border-neutral-800 text-xs text-neutral-500 text-center flex items-center justify-center gap-2">
             <i data-lucide="info" class="w-4 h-4"></i>
             Valores sujeitos a taxas da operadora do cartão.
@@ -86,12 +108,14 @@
 </div>
 
 <!-- Main Proposal Content -->
-<div id="proposal-content" class="hidden w-full max-w-3xl px-4 py-8 md:py-12 flex flex-col gap-8">
+<div id="proposal-content" class="hidden w-full max-w-3xl px-4 py-8 md:py-12 pb-12 flex flex-col gap-8">
 
+    <!-- Header / Logo -->
     <div class="flex justify-center mb-4">
-        <img src="logo.png" alt="Ágil Solar" class="w-48 md:w-64 h-auto drop-shadow-[0_0_20px_rgba(249,115,22,0.3)]" onerror="this.style.display='none'">
+        <img src="assets/img/logo.png" alt="Ágil Solar" class="w-48 md:w-64 h-auto drop-shadow-[0_0_20px_rgba(249,115,22,0.3)]" onerror="this.style.display='none'">
     </div>
 
+    <!-- Greeting -->
     <div class="text-center">
         <p class="text-orange-500 font-black uppercase tracking-widest text-xs md:text-sm mb-2">PROPOSTA ÁGIL SOLAR</p>
         <h1 class="text-3xl md:text-4xl font-black text-white leading-tight">
@@ -100,11 +124,24 @@
         <p class="text-neutral-400 mt-3 text-sm md:text-base max-w-lg mx-auto">Aqui está o dimensionamento ideal para a sua casa com as nossas melhores condições.</p>
     </div>
 
-    <!-- 1. O KIT PRINCIPAL -->
+    <!-- VALIDADE DA PROPOSTA -->
+    <div id="urgency-banner" class="hidden bg-neutral-900/80 border border-neutral-700/60 rounded-xl p-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-neutral-700/40 p-2 rounded-lg shrink-0">
+                <i data-lucide="calendar-check" class="w-5 h-5 text-neutral-400"></i>
+            </div>
+            <div>
+                <p class="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-0.5">Validade da proposta</p>
+                <p class="text-neutral-300 text-sm">Esta proposta é válida até <span id="expiry-date" class="text-white font-bold"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. O KIT PRINCIPAL (Preço e Especificações) -->
     <div class="gradient-border overflow-hidden shadow-[0_0_40px_rgba(234,88,12,0.15)] relative">
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-orange-900/30 via-transparent to-transparent pointer-events-none"></div>
         <div class="p-6 md:p-8 relative z-10">
-            <div class="inline-block bg-orange-600/20 border border-orange-500/30 text-orange-500 px-3 py-1 text-[10px] font-black uppercase tracking-widest mb-4">
+            <div id="kit-brand-wrapper" class="inline-block bg-orange-600/20 border border-orange-500/30 text-orange-500 px-3 py-1 text-[10px] font-black uppercase tracking-widest mb-4">
                 <span id="kit-brand">...</span>
             </div>
 
@@ -128,11 +165,24 @@
                 <span class="text-xs md:text-sm font-bold text-neutral-300 uppercase tracking-wide">Ideal para faturas em torno de <span id="kit-ideal-bill" class="text-orange-400 font-black text-base">...</span> /mês</span>
             </div>
 
-            <div class="bg-black/90 p-6 md:p-10 rounded-xl border border-neutral-800 text-center relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 bg-red-600 text-white text-[10px] font-black px-8 py-1 rotate-45 shadow-lg hidden md:block" id="badge-discount">DESCONTO ATIVO</div>
+            <!-- Breakdown equip + frete (só modo EQUIPAMENTOS, preenchido via JS) -->
+            <div id="equip-breakdown-row" class="hidden mb-4 bg-neutral-900/60 border border-neutral-800 p-4 space-y-2">
+              <p class="text-[10px] text-orange-500/70 font-black uppercase tracking-widest mb-3">Composição do Valor</p>
+              <div class="flex justify-between text-sm">
+                <span class="text-neutral-400 font-medium">Equipamentos</span>
+                <span id="equip-breakdown-equip" class="text-white font-black font-mono">—</span>
+              </div>
+              <div id="equip-breakdown-frete-row" class="hidden flex justify-between text-sm">
+                <span class="text-neutral-400 font-medium">Frete</span>
+                <span id="equip-breakdown-frete" class="text-neutral-300 font-black font-mono">—</span>
+              </div>
+            </div>
+
+            <div class="bg-black/90 p-6 rounded-xl border border-neutral-800 text-center relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 bg-red-600 text-white text-[10px] font-black px-8 py-1 rotate-45 shadow-lg hidden" id="badge-discount">DESCONTO ATIVO</div>
                 <p class="text-neutral-500 text-xs font-bold uppercase tracking-widest mb-2 line-through decoration-red-500" id="kit-list-price">De: ...</p>
                 <p class="text-[15px] text-orange-500 font-black uppercase tracking-widest mb-1">Investimento</p>
-                <div class="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 tracking-tighter" id="kit-price">
+                <div class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 tracking-tighter" id="kit-price">
                     ...
                 </div>
             </div>
@@ -145,28 +195,40 @@
                 </div>
 
                 <div class="flex flex-col gap-4">
-                    <div class="flex items-start gap-3">
-                        <i data-lucide="credit-card" class="w-5 h-5 text-neutral-400 shrink-0 mt-0.5"></i>
-                        <div class="flex flex-col items-start gap-1">
-                            <p class="text-neutral-300 text-sm"><span class="text-white font-bold">Cartão de Crédito:</span> Parcele o seu sistema no cartão.</p>
-                            <button id="btn-show-installments" class="text-xs font-bold text-orange-500 hover:text-orange-400 transition-colors flex items-center gap-1.5 mt-1 bg-orange-500/10 hover:bg-orange-500/20 py-1.5 px-3 rounded-lg border border-orange-500/20">
-                                <i data-lucide="calculator" class="w-3.5 h-3.5"></i> Ver opções de parcelas
-                            </button>
+                    <!-- Cartão de Crédito com Botão de Modal -->
+                    <button id="btn-show-installments" class="w-full flex items-center justify-between gap-4 bg-black/40 hover:bg-black/60 border border-orange-500/30 hover:border-orange-500/60 rounded-xl p-4 transition-all active:scale-[0.98] group text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-orange-500/15 p-2.5 rounded-lg shrink-0">
+                                <i data-lucide="credit-card" class="w-5 h-5 text-orange-400"></i>
+                            </div>
+                            <div>
+                                <p class="text-white font-bold text-sm">Cartão de Crédito</p>
+                                <p class="text-neutral-400 text-xs mt-0.5">Parcele em até <span class="text-orange-400 font-bold">18x</span> sem burocracia</p>
+                            </div>
                         </div>
-                    </div>
+                        <div class="shrink-0 flex items-center gap-1.5 bg-gradient-to-r from-orange-600 to-yellow-500 group-hover:from-orange-500 group-hover:to-yellow-400 text-black font-black py-2 px-3 rounded-lg text-xs whitespace-nowrap shadow-[0_0_12px_rgba(234,88,12,0.3)]">
+                            <i data-lucide="calculator" class="w-3.5 h-3.5 stroke-[3px]"></i> Ver parcelas
+                        </div>
+                    </button>
+
+                    <!-- Financiamento -->
                     <div class="flex items-start gap-3">
                         <i data-lucide="landmark" class="w-5 h-5 text-neutral-400 shrink-0 mt-0.5"></i>
                         <p class="text-neutral-300 text-sm"><span class="text-white font-bold">Financiamento (Boleto):</span> Consulte opções de financiamento de <span class="text-orange-400 font-bold">100%</span> em até <span class="text-orange-400 font-bold">84 meses</span> com carência de <span class="text-orange-400 font-bold">90 dias</span>.</p>
                     </div>
-                </div>
-            </div>
 
-            <!-- RODAPÉ DA PROPOSTA (NOVO LOCAL MAIS DISCRETO) -->
-            <div class="mt-6 pt-4 border-t border-neutral-800 text-center">
-                <p class="text-[10px] text-neutral-500 font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-2">
-                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-                    Condições válidas por 5 dias • Até <span id="expiration-date" class="text-neutral-400">...</span>
-                </p>
+                    <!-- Condições de pagamento personalizadas (só PERSONALIZADA, preenchido via JS) -->
+                    <div id="custom-payment-note-row" class="hidden flex items-start gap-3">
+                        <i data-lucide="file-text" class="w-5 h-5 text-orange-400 shrink-0 mt-0.5"></i>
+                        <p class="text-neutral-300 text-sm"><span class="text-white font-bold">Condições de Pagamento:</span> <span id="custom-payment-note-text"></span></p>
+                    </div>
+
+                    <!-- Nota comercial (só PERSONALIZADA, preenchido via JS) -->
+                    <div id="custom-commercial-note-row" class="hidden flex items-start gap-3 bg-yellow-500/5 border border-yellow-500/10 rounded-lg p-3">
+                        <i data-lucide="star" class="w-5 h-5 text-yellow-400 shrink-0 mt-0.5"></i>
+                        <p class="text-neutral-300 text-sm"><span class="text-yellow-400 font-bold">Observação:</span> <span id="custom-commercial-note-text"></span></p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -205,7 +267,49 @@
         </div>
     </div>
 
-    <!-- 3. QUEM SOMOS -->
+    <!-- 3. PRÓXIMOS PASSOS: O QUE ACONTECE DEPOIS DO SIM? -->
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-lg">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="bg-orange-600/20 p-2 rounded-lg"><i data-lucide="map" class="w-6 h-6 text-orange-500"></i></div>
+            <h3 class="text-xl font-black text-white uppercase tracking-tight">O que acontece depois do SIM?</h3>
+        </div>
+        <p class="text-neutral-400 text-sm mb-6">Zero burocracia, zero dor de cabeça. Nós cuidamos de tudo enquanto a sua conta de luz já começa a cair:</p>
+        <div class="relative">
+            <div class="absolute left-[22px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-orange-500 via-orange-500/30 to-transparent"></div>
+            <div class="space-y-5">
+                <div class="flex gap-4 items-start">
+                    <div class="shrink-0 w-11 h-11 rounded-full bg-gradient-to-br from-orange-600 to-yellow-500 flex items-center justify-center text-black font-black text-sm shadow-[0_0_12px_rgba(249,115,22,0.3)] z-10">1</div>
+                    <div class="pt-1.5">
+                        <p class="text-white font-black text-sm uppercase tracking-wide">Assinatura do Contrato</p>
+                        <p class="text-neutral-500 text-xs mt-0.5">Em até <span class="text-orange-400 font-bold">24 horas</span> após o aceite, o contrato chega no seu e-mail para assinar digitalmente.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start">
+                    <div class="shrink-0 w-11 h-11 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-300 font-black text-sm z-10">2</div>
+                    <div class="pt-1.5">
+                        <p class="text-white font-black text-sm uppercase tracking-wide">Engenharia e Projeto</p>
+                        <p class="text-neutral-500 text-xs mt-0.5">Nossa equipe técnica elabora o projeto completo em <span class="text-yellow-400 font-bold">3 a 7 dias úteis</span>, com memória de cálculo e layout dos painéis.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start">
+                    <div class="shrink-0 w-11 h-11 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-300 font-black text-sm z-10">3</div>
+                    <div class="pt-1.5">
+                        <p class="text-white font-black text-sm uppercase tracking-wide">Instalação no seu Imóvel</p>
+                        <p class="text-neutral-500 text-xs mt-0.5">Equipe técnica própria instala o sistema em <span class="text-yellow-400 font-bold">1 a 2 dias</span>. Ambiente limpo, equipamentos de ponta, sem surpresas.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start">
+                    <div class="shrink-0 w-11 h-11 rounded-full bg-green-900/50 border border-green-700/50 flex items-center justify-center text-green-400 font-black text-sm z-10">4</div>
+                    <div class="pt-1.5">
+                        <p class="text-white font-black text-sm uppercase tracking-wide">Homologação e Sistema Ligado 🎉</p>
+                        <p class="text-neutral-500 text-xs mt-0.5">Cuidamos de toda a burocracia junto à distribuidora. Em <span class="text-green-400 font-bold">7 a 30 dias</span> o seu sistema está ativo e gerando economia.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. QUEM SOMOS E VALIDAÇÃO DA EMPRESA -->
     <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-lg">
         <div class="p-6 md:p-8 text-center border-b border-neutral-800 bg-neutral-950 relative overflow-hidden">
             <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent pointer-events-none"></div>
@@ -217,28 +321,28 @@
         <div class="bg-[#0a0a0a] p-6 md:p-8">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4 text-center">
                 <div class="flex flex-col items-center">
-                    <div class="bg-yellow-500 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 text-black">
+                    <div class="bg-yellow-500 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 text-black shadow-[0_0_20px_rgba(234,179,8,0.2)]">
                         <i data-lucide="map-pin" class="w-7 h-7 md:w-8 md:h-8"></i>
                     </div>
                     <p class="text-neutral-400 font-bold uppercase text-[10px] md:text-xs">Presente em</p>
                     <p class="text-white font-black uppercase text-sm md:text-base mt-0.5">8 Estados</p>
                 </div>
                 <div class="flex flex-col items-center">
-                    <div class="bg-yellow-500 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 text-black">
+                    <div class="bg-yellow-500 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 text-black shadow-[0_0_20px_rgba(234,179,8,0.2)]">
                         <i data-lucide="store" class="w-7 h-7 md:w-8 md:h-8"></i>
                     </div>
                     <p class="text-white font-black uppercase text-sm md:text-base mt-0.5">+35</p>
                     <p class="text-neutral-400 font-bold uppercase text-[10px] md:text-xs">Unidades</p>
                 </div>
                 <div class="flex flex-col items-center">
-                    <div class="bg-yellow-500 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 text-black">
+                    <div class="bg-yellow-500 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 text-black shadow-[0_0_20px_rgba(234,179,8,0.2)]">
                         <i data-lucide="hard-hat" class="w-7 h-7 md:w-8 md:h-8"></i>
                     </div>
                     <p class="text-white font-black uppercase text-sm md:text-base mt-0.5">+ de 4.000</p>
                     <p class="text-neutral-400 font-bold uppercase text-[10px] md:text-xs">Projetos Instalados</p>
                 </div>
                 <div class="flex flex-col items-center">
-                    <div class="bg-yellow-500 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 text-black">
+                    <div class="bg-yellow-500 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 text-black shadow-[0_0_20px_rgba(234,179,8,0.2)]">
                         <i data-lucide="globe" class="w-7 h-7 md:w-8 md:h-8"></i>
                     </div>
                     <p class="text-white font-black uppercase text-sm md:text-base mt-0.5">+ de 150</p>
@@ -248,14 +352,20 @@
         </div>
     </div>
 
-    <!-- 4. VÍDEO DAS NOSSAS OBRAS -->
+    <!-- 4. VÍDEO DAS NOSSAS OBRAS (CARROSSEL YOUTUBE) -->
     <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-lg">
         <div class="flex items-center gap-3 mb-6">
             <div class="bg-red-600/20 p-2 rounded-lg"><i data-lucide="youtube" class="w-6 h-6 text-red-500"></i></div>
             <h3 class="text-xl font-black text-white uppercase tracking-tight">Conheça o nosso trabalho</h3>
         </div>
+
+        <!-- Área do Vídeo -->
         <div class="relative w-full group">
-            <div class="relative w-full overflow-hidden rounded-xl pt-[56.25%] bg-black border border-neutral-800 shadow-[0_0_20px_rgba(0,0,0,0.5)]" id="video-wrapper"></div>
+            <div class="relative w-full overflow-hidden rounded-xl pt-[56.25%] bg-black border border-neutral-800 shadow-[0_0_20px_rgba(0,0,0,0.5)]" id="video-wrapper">
+                <!-- Iframes serão injetados aqui pelo Javascript para pré-carregamento imediato -->
+            </div>
+
+            <!-- Setas de Navegação (Aparecem no hover ou em mobile) -->
             <button id="btn-prev-vid" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-orange-600 text-white p-2 rounded-full backdrop-blur-sm transition-all shadow-lg md:opacity-0 group-hover:opacity-100 z-10 border border-neutral-700">
                 <i data-lucide="chevron-left" class="w-6 h-6"></i>
             </button>
@@ -263,54 +373,108 @@
                 <i data-lucide="chevron-right" class="w-6 h-6"></i>
             </button>
         </div>
-        <div class="flex items-center justify-center gap-2 mt-4" id="video-dots"></div>
+
+        <!-- Bolinhas Indicadoras (Dots) -->
+        <div class="flex items-center justify-center gap-2 mt-4" id="video-dots">
+            <!-- Injetado pelo JS -->
+        </div>
     </div>
 
-    <!-- 5. O QUE ESTÁ INCLUSO -->
+    <!-- 5. O QUE ESTÁ INCLUSO (Chave na mão) -->
     <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-lg">
         <div class="flex items-center gap-3 mb-6">
             <div class="bg-orange-600/20 p-2 rounded-lg"><i data-lucide="package-check" class="w-6 h-6 text-orange-500"></i></div>
             <h3 class="text-xl font-black text-white uppercase tracking-tight">Projeto Chave na Mão</h3>
         </div>
         <p class="text-neutral-400 text-sm mb-6">Não se preocupe com nada. Nós cuidamos de todas as etapas do processo para você:</p>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="flex items-start gap-3 bg-black/50 p-3 rounded-lg border border-neutral-800/50">
                 <i data-lucide="check-circle-2" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
                 <div>
                     <p class="text-white font-bold text-sm">Equipamentos Premium</p>
-                    <p class="text-neutral-500 text-xs mt-1">Painéis e Inversores das melhores marcas globais.</p>
+                    <p class="text-neutral-500 text-xs mt-1">Painéis, Inversores e Estruturas de fixação das melhores marcas globais.</p>
                 </div>
             </div>
             <div class="flex items-start gap-3 bg-black/50 p-3 rounded-lg border border-neutral-800/50">
                 <i data-lucide="check-circle-2" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
                 <div>
                     <p class="text-white font-bold text-sm">Instalação Especializada</p>
-                    <p class="text-neutral-500 text-xs mt-1">Equipe técnica própria e qualificada.</p>
+                    <p class="text-neutral-500 text-xs mt-1">Equipe técnica própria e qualificada seguindo rigorosas normas de segurança.</p>
                 </div>
             </div>
             <div class="flex items-start gap-3 bg-black/50 p-3 rounded-lg border border-neutral-800/50">
                 <i data-lucide="check-circle-2" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
                 <div>
                     <p class="text-white font-bold text-sm">Homologação</p>
-                    <p class="text-neutral-500 text-xs mt-1">Toda a burocracia junto à distribuidora de energia.</p>
+                    <p class="text-neutral-500 text-xs mt-1">Tratamos de toda a burocracia do projeto junto à distribuidora de energia.</p>
                 </div>
             </div>
             <div class="flex items-start gap-3 bg-black/50 p-3 rounded-lg border border-neutral-800/50">
                 <i data-lucide="check-circle-2" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
                 <div>
-                    <p class="text-white font-bold text-sm">Monitoramento</p>
-                    <p class="text-neutral-500 text-xs mt-1">Acompanhe a geração em tempo real pelo celular.</p>
+                    <p class="text-white font-bold text-sm">Aplicativo de Monitoramento</p>
+                    <p class="text-neutral-500 text-xs mt-1">Acompanhe a geração de energia em tempo real direto do seu celular.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 6. IMPACTO AMBIENTAL -->
-    <div class="flex flex-col md:flex-row items-center justify-between bg-[url('https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center border border-neutral-800 rounded-2xl p-6 shadow-lg relative overflow-hidden mb-12">
+    <!-- GARANTIAS — Risco zero para o cliente -->
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-lg">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="bg-green-600/20 p-2 rounded-lg"><i data-lucide="shield-check" class="w-6 h-6 text-green-500"></i></div>
+            <h3 class="text-xl font-black text-white uppercase tracking-tight">Invista com Total Segurança</h3>
+        </div>
+        <p class="text-neutral-400 text-sm mb-6">Oferecemos uma das melhores coberturas do mercado para que você tenha tranquilidade nos próximos anos:</p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-gradient-to-b from-orange-900/20 to-transparent border border-orange-500/20 rounded-xl p-5 text-center">
+                <div class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-orange-500 to-yellow-400 mb-1">25</div>
+                <p class="text-white font-black text-sm uppercase tracking-wide">Anos</p>
+                <p class="text-neutral-400 text-xs mt-2">Garantia de performance dos painéis solares</p>
+            </div>
+            <div class="bg-gradient-to-b from-blue-900/20 to-transparent border border-blue-500/20 rounded-xl p-5 text-center">
+                <div class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-400 to-blue-300 mb-1">10</div>
+                <p class="text-white font-black text-sm uppercase tracking-wide">Anos</p>
+                <p class="text-neutral-400 text-xs mt-2">Garantia do inversor / microinversor</p>
+            </div>
+            <div class="bg-gradient-to-b from-green-900/20 to-transparent border border-green-500/20 rounded-xl p-5 text-center">
+                <div class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-green-400 to-emerald-300 mb-1">5</div>
+                <p class="text-white font-black text-sm uppercase tracking-wide">Anos</p>
+                <p class="text-neutral-400 text-xs mt-2">Garantia de mão de obra da instalação</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONSULTOR: card de contato -->
+    <div id="vendor-card" class="hidden bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-lg">
+        <div class="flex items-center gap-3 mb-5">
+            <div class="bg-orange-600/20 p-2 rounded-lg"><i data-lucide="user-check" class="w-6 h-6 text-orange-500"></i></div>
+            <h3 class="text-xl font-black text-white uppercase tracking-tight">Seu Consultor de Energia Solar</h3>
+        </div>
+        <div class="flex items-center gap-4">
+            <div id="vendor-avatar" class="shrink-0 w-14 h-14 rounded-full bg-gradient-to-br from-orange-600 to-yellow-500 flex items-center justify-center text-black font-black text-2xl shadow-[0_0_20px_rgba(249,115,22,0.25)]">?</div>
+            <div>
+                <p id="vendor-name" class="text-white font-black text-lg uppercase tracking-wide">...</p>
+                <p class="text-neutral-500 text-xs font-bold uppercase tracking-widest mt-0.5">Especialista Ágil Solar</p>
+                <p id="vendor-email-text" class="text-neutral-600 text-xs font-mono mt-1"></p>
+            </div>
+        </div>
+        <div class="mt-5 flex flex-col sm:flex-row gap-3">
+            <a id="vendor-whatsapp-btn" href="#" target="_blank" rel="noopener noreferrer"
+                class="flex items-center justify-center gap-2 bg-green-950/40 border border-green-900/40 hover:border-green-600 hover:bg-green-950/60 text-green-400 px-5 py-3 font-black uppercase tracking-wider transition-all active:scale-95 text-sm rounded-xl">
+                <i data-lucide="message-circle" class="w-5 h-5"></i> WhatsApp
+            </a>
+            <p class="text-neutral-600 text-xs self-center">Dúvidas? Fale diretamente com o seu consultor — respondemos em minutos.</p>
+        </div>
+    </div>
+
+    <!-- IMPACTO AMBIENTAL -->
+    <div class="flex flex-col md:flex-row items-center justify-between bg-[url('https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center border border-neutral-800 rounded-2xl p-6 shadow-lg relative overflow-hidden">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm z-0"></div>
         <div class="relative z-10 text-center md:text-left mb-6 md:mb-0">
             <h3 class="text-xl font-black text-white uppercase tracking-tight">Impacto Ambiental</h3>
-            <p class="text-neutral-300 text-sm mt-1 max-w-sm">Ao gerar a sua própria energia limpa, você ajuda a preservar o planeta.</p>
+            <p class="text-neutral-300 text-sm mt-1 max-w-sm">Ao gerar a sua própria energia limpa, você ajuda a preservar o planeta e reduz a emissão de CO2.</p>
         </div>
         <div class="relative z-10 flex gap-6">
             <div class="text-center">
@@ -323,171 +487,36 @@
         </div>
     </div>
 
+    <!-- FINAL CTA — Fechar negócio -->
+    <div class="relative overflow-hidden rounded-2xl border border-orange-500/30 shadow-[0_0_60px_rgba(234,88,12,0.15)] bg-grid-sm">
+        <div class="absolute inset-0 bg-gradient-to-br from-orange-900/60 via-black/80 to-yellow-900/30 pointer-events-none"></div>
+        <div class="absolute -top-10 -right-10 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10 p-8 md:p-10 text-center">
+            <p class="text-orange-400 text-[10px] font-black uppercase tracking-[0.35em] mb-3">
+                <i data-lucide="zap" class="inline w-3 h-3 mr-1"></i>PRONTO PARA ECONOMIZAR?
+            </p>
+            <h3 class="text-2xl md:text-4xl font-black text-white uppercase leading-tight tracking-tighter mb-3">
+                Dê o primeiro passo<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400">rumo à independência energética</span>
+            </h3>
+            <p class="text-neutral-400 text-sm md:text-base max-w-lg mx-auto mb-8">Clique abaixo, fale com o seu consultor e garanta esta proposta especial. Resposta em minutos.</p>
+            <a id="final-cta-btn" href="#"
+                class="inline-flex items-center gap-3 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black px-10 py-5 font-black uppercase tracking-widest transition-all shadow-[0_0_40px_rgba(234,88,12,0.4)] hover:shadow-[0_0_60px_rgba(234,88,12,0.6)] active:scale-95 text-base md:text-lg rounded-xl">
+                <i data-lucide="message-circle" class="w-6 h-6 stroke-[3px]"></i>
+                QUERO ESTE SISTEMA
+            </a>
+            <p class="text-neutral-600 text-[10px] font-bold uppercase tracking-wider mt-5">
+                <i data-lucide="lock" class="inline w-3 h-3 mr-1"></i>Sem compromisso &middot; Sem burocracia &middot; Resposta imediata
+            </p>
+        </div>
+    </div>
+
 </div>
 
-<script>
-    const SUPABASE_URL = 'https://tzwjxgprhorqrmpqudgg.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6d2p4Z3ByaG9ycXJtcHF1ZGdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMjczNTksImV4cCI6MjA4NzcwMzM1OX0.hwfzCb9FGVXX7Uf0pY7zFS6SZHrh0pzWk1gKFVq2DX4';
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<script src="assets/js/config.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/proposta.js"></script>
 
-    const VIDEOS_YOUTUBE = [
-        "https://www.youtube.com/embed/a-3d90O2u60?si=3F89_VFQmDptzcxp",
-        "https://www.youtube.com/embed/YvyIMNlm0q8?si=hJw5gToEMUEYU2LQ",
-        "https://www.youtube.com/embed/SOotdCvJAkc?si=KHc78sgr9qrvwHDp"
-    ];
 
-    const TAXAS_CARTAO = {
-        1: 2.99, 2: 4.09, 3: 4.78, 4: 5.47, 5: 6.14, 6: 6.81,
-        7: 7.67, 8: 8.33, 9: 8.98, 10: 9.63, 11: 10.26, 12: 10.90,
-        13: 12.32, 14: 12.94, 15: 13.56, 16: 14.17, 17: 14.77, 18: 15.37
-    };
-    const MAX_PARCELAS = 18;
-
-    lucide.createIcons();
-
-    let videoAtual = 0;
-    const playerContainer = document.getElementById('video-wrapper');
-    const dotsContainer = document.getElementById('video-dots');
-
-    VIDEOS_YOUTUBE.forEach((link, index) => {
-        const finalUrl = link + (link.includes('?') ? '&' : '?') + 'enablejsapi=1';
-        const iframe = document.createElement('iframe');
-        iframe.className = `absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out ${index === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`;
-        iframe.src = finalUrl;
-        iframe.setAttribute('frameborder', '0');
-        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
-        iframe.setAttribute('allowfullscreen', '');
-        iframe.id = `yt-iframe-${index}`;
-        playerContainer.appendChild(iframe);
-    });
-
-    function atualizarCarrossel() {
-        VIDEOS_YOUTUBE.forEach((_, index) => {
-            const iframe = document.getElementById(`yt-iframe-${index}`);
-            if (index === videoAtual) {
-                iframe.classList.remove('opacity-0', 'z-0', 'pointer-events-none');
-                iframe.classList.add('opacity-100', 'z-10');
-            } else {
-                iframe.classList.remove('opacity-100', 'z-10');
-                iframe.classList.add('opacity-0', 'z-0', 'pointer-events-none');
-                if (iframe.contentWindow) iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-            }
-        });
-        dotsContainer.innerHTML = '';
-        VIDEOS_YOUTUBE.forEach((_, index) => {
-            const dot = document.createElement('button');
-            const isActive = index === videoAtual;
-            dot.className = `h-2.5 rounded-full transition-all duration-300 ${isActive ? 'bg-orange-500 w-8' : 'bg-neutral-600 hover:bg-neutral-400 w-2.5'}`;
-            dot.onclick = () => { videoAtual = index; atualizarCarrossel(); };
-            dotsContainer.appendChild(dot);
-        });
-    }
-
-    document.getElementById('btn-prev-vid').addEventListener('click', () => {
-        videoAtual = (videoAtual - 1 + VIDEOS_YOUTUBE.length) % VIDEOS_YOUTUBE.length;
-        atualizarCarrossel();
-    });
-    document.getElementById('btn-next-vid').addEventListener('click', () => {
-        videoAtual = (videoAtual + 1) % VIDEOS_YOUTUBE.length;
-        atualizarCarrossel();
-    });
-    atualizarCarrossel();
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const propostaId = urlParams.get('id');
-    const modalParcelamento = document.getElementById('modal-parcelamento');
-    const btnShowInstallments = document.getElementById('btn-show-installments');
-    const btnCloseModal = document.getElementById('btn-close-modal');
-
-    function openModal() { modalParcelamento.classList.remove('hidden'); modalParcelamento.classList.add('flex'); document.body.classList.add('overflow-hidden'); }
-    function closeModal() { modalParcelamento.classList.add('hidden'); modalParcelamento.classList.remove('flex'); document.body.classList.remove('overflow-hidden'); }
-    btnShowInstallments.addEventListener('click', openModal);
-    btnCloseModal.addEventListener('click', closeModal);
-    modalParcelamento.addEventListener('click', (e) => { if (e.target === modalParcelamento) closeModal(); });
-
-    async function carregarProposta() {
-        if (!propostaId) { showError(); return; }
-        try {
-            const { data, error } = await supabaseClient.from('propostas').select('*').eq('id', propostaId).single();
-            if (error || !data) { showError(); return; }
-            renderData(data);
-            gerarOpcoesParcelamento(data.kit_price);
-        } catch (err) { showError(); }
-    }
-
-    function gerarOpcoesParcelamento(valorBase) {
-        const formatter = new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL'});
-        const installmentsContainer = document.getElementById('installments-list');
-        installmentsContainer.innerHTML = '';
-        for (let i = 1; i <= MAX_PARCELAS; i++) {
-            const taxa = TAXAS_CARTAO[i] || 0;
-            const valorTotalComRepasse = valorBase / (1 - (taxa / 100));
-            const valorParcela = valorTotalComRepasse / i;
-            const row = document.createElement('div');
-            row.className = 'flex justify-center items-center p-3 rounded-lg border border-neutral-800 bg-black/40 hover:bg-neutral-800/80 transition-colors';
-            row.innerHTML = `<span class="text-white font-bold text-sm md:text-base">${i}x de ${formatter.format(valorParcela)}</span>`;
-            installmentsContainer.appendChild(row);
-        }
-    }
-
-    function renderData(data) {
-        const formatter = new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL'});
-        const TARIFA_MEDIA = 0.95;
-        const estGeneration = (data.kit_power * 120);
-        const valorFaturaIdeal = estGeneration * TARIFA_MEDIA;
-        const economiaMensal = valorFaturaIdeal * 0.85;
-        const economiaAnual = economiaMensal * 12;
-        const economia25Anos = economiaAnual * 25;
-        const arvoresPlantadas = Math.round(data.kit_power * 3);
-        const mesesTotaisPayback = Math.ceil(data.kit_price / economiaMensal);
-        const anosPayback = Math.floor(mesesTotaisPayback / 12);
-        const mesesRestantes = mesesTotaisPayback % 12;
-
-        let textoPayback = '';
-        if (anosPayback > 0) textoPayback += `${anosPayback} ano${anosPayback > 1 ? 's' : ''}`;
-        if (anosPayback > 0 && mesesRestantes > 0) textoPayback += ' e ';
-        if (mesesRestantes > 0) textoPayback += `${mesesRestantes} ${mesesRestantes > 1 ? 'meses' : 'mês'}`;
-        if (textoPayback === '') textoPayback = 'Menos de 1 mês';
-
-        // Lógica de validade (5 dias a partir da criação)
-        const dataCriacao = data.created_at ? new Date(data.created_at) : new Date();
-        const dataExpiracao = new Date(dataCriacao);
-        dataExpiracao.setDate(dataExpiracao.getDate() + 5);
-        const formatExpiracao = dataExpiracao.toLocaleDateString('pt-BR');
-
-        document.getElementById('client-name').innerText = data.cliente_nome.split(' ')[0];
-        document.getElementById('kit-brand').innerText = data.kit_brand;
-        document.getElementById('kit-name').innerText = data.kit_nome;
-        document.getElementById('kit-power').innerText = data.kit_power + ' kWp';
-        document.getElementById('kit-generation').innerText = estGeneration.toFixed(0) + ' kWh/mês';
-        document.getElementById('kit-list-price').innerText = 'De: ' + formatter.format(data.kit_list_price);
-        document.getElementById('kit-ideal-bill').innerText = formatter.format(valorFaturaIdeal);
-        document.getElementById('expiration-date').innerText = formatExpiracao;
-
-        const priceParts = formatter.format(data.kit_price).split(',');
-        document.getElementById('kit-price').innerHTML = `
-                <span class="text-xl align-top text-neutral-500 mr-1">R$</span>${priceParts[0].replace('R$', '').trim()}<span class="text-xl align-top text-neutral-500">,${priceParts[1]}</span>
-            `;
-
-        document.getElementById('eco-month').innerText = formatter.format(economiaMensal);
-        document.getElementById('eco-year').innerText = formatter.format(economiaAnual);
-        document.getElementById('eco-25years').innerText = formatter.format(economia25Anos);
-        document.getElementById('env-trees').innerText = '+' + arvoresPlantadas;
-        document.getElementById('eco-payback').innerText = textoPayback;
-
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('proposal-content').classList.remove('hidden');
-        lucide.createIcons();
-    }
-
-    function showError() {
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('error-state').classList.remove('hidden');
-        document.getElementById('error-state').classList.add('flex');
-        lucide.createIcons();
-    }
-
-    carregarProposta();
-</script>
 </body>
 </html>
