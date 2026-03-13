@@ -290,7 +290,13 @@ img[data-theme-logo="true"] {
   .bar-animated,
   .funnel-bar,
   .number-pop,
-  .avatar-pulse,
+  .avatar-pulse {
+    animation: none !important;
+  }
+}
+
+/* animated-stripe: desativa só para reduced-motion, NÃO no mobile */
+@media (prefers-reduced-motion: reduce) {
   .animated-stripe {
     animation: none !important;
   }

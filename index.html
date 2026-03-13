@@ -223,6 +223,12 @@
             <i data-lucide="settings" class="w-4 h-4"></i>
           </button>
 
+          <!-- Refresh (PWA standalone only) -->
+          <button id="pwa-refresh-btn" onclick="window.location.reload()" title="Atualizar"
+            class="hidden p-2.5 border transition-all duration-300 bg-black border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 shrink-0">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          </button>
+
           <!-- User pill -->
           <div id="header-user" class="hidden items-center gap-2.5 pl-2 md:pl-3 border-l border-neutral-800 shrink-0">
             <div id="header-user-avatar"
@@ -848,7 +854,37 @@
 <script src="assets/js/admin.js"></script>
 <script src="assets/js/profile.js"></script>
 <script src="assets/js/app.js"></script>
-</body>
+<script>
+(function () {
+  const isPwa = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+  if (isPwa) {
+    // Mostra só para vendedores comuns (admin e gestor já têm botões extras no header)
+    const checkAndShow = () => {
+      if (typeof state !== 'undefined') {
+        if (!state.isAdmin && !state.isGestor) {
+          const btn = document.getElementById('pwa-refresh-btn');
+          if (btn) btn.classList.remove('hidden');
+        }
+      } else {
+        setTimeout(checkAndShow, 300);
+      }
+    };
+    checkAndShow();
+  }
+  // Giro do ícone ao clicar
+  const refreshBtn = document.getElementById('pwa-refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', function () {
+      const icon = this.querySelector('[data-lucide]');
+      if (icon) {
+        icon.style.transition = 'transform 0.4s ease';
+        icon.style.transform  = 'rotate(360deg)';
+      }
+    });
+  }
+})();
+</script>
 </html>
 
 

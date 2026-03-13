@@ -184,20 +184,20 @@ function renderDashboard(container) {
     <!-- ════════════════════════════════════════
          CARDS DE MÉTRICAS
          ════════════════════════════════════════ -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
 
       <!-- Clientes -->
-      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-5 md:p-6 flex flex-col gap-4 relative overflow-hidden group cursor-default">
+      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-blue-500 opacity-[0.05] rounded-full blur-2xl group-hover:opacity-[0.1] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
-          <span class="text-[9px] text-neutral-600 font-black uppercase tracking-widest">Meus Clientes</span>
-          <div class="p-2 bg-blue-500/10 border border-blue-500/20 group-hover:border-blue-500/40 transition-colors">
-            <i data-lucide="users" class="w-3.5 h-3.5 text-blue-400"></i>
+          <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">Meus Clientes</span>
+          <div class="p-1.5 md:p-2 bg-blue-500/10 border border-blue-500/20 group-hover:border-blue-500/40 transition-colors shrink-0">
+            <i data-lucide="users" class="w-3 h-3 md:w-3.5 md:h-3.5 text-blue-400"></i>
           </div>
         </div>
         <div class="relative z-10">
-          <div class="text-4xl md:text-5xl font-black text-white tabular-nums leading-none" data-count="${totalClientes}">0</div>
-          <div class="text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1.5">na carteira</div>
+          <div class="text-3xl md:text-5xl font-black text-white tabular-nums leading-none" data-count="${totalClientes}">0</div>
+          <div class="text-[8px] md:text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1">na carteira</div>
         </div>
         <div class="relative z-10 space-y-1.5">
           <div class="flex justify-between text-[8px] text-neutral-700 font-bold uppercase tracking-widest">
@@ -210,17 +210,17 @@ function renderDashboard(container) {
       </div>
 
       <!-- Propostas -->
-      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-5 md:p-6 flex flex-col gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 80ms">
+      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 80ms">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-orange-500 opacity-[0.05] rounded-full blur-2xl group-hover:opacity-[0.1] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
-          <span class="text-[9px] text-neutral-600 font-black uppercase tracking-widest">Propostas</span>
-          <div class="p-2 bg-orange-500/10 border border-orange-500/20 group-hover:border-orange-500/40 transition-colors">
-            <i data-lucide="file-text" class="w-3.5 h-3.5 text-orange-400"></i>
+          <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">Propostas</span>
+          <div class="p-1.5 md:p-2 bg-orange-500/10 border border-orange-500/20 group-hover:border-orange-500/40 transition-colors shrink-0">
+            <i data-lucide="file-text" class="w-3 h-3 md:w-3.5 md:h-3.5 text-orange-400"></i>
           </div>
         </div>
         <div class="relative z-10">
-          <div class="text-4xl md:text-5xl font-black text-white tabular-nums leading-none" data-count="${propostasReais}">0</div>
-          <div class="text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1.5">orçamentos gerados</div>
+          <div class="text-3xl md:text-5xl font-black text-white tabular-nums leading-none" data-count="${propostasReais}">0</div>
+          <div class="text-[8px] md:text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1">orçamentos gerados</div>
         </div>
         <div class="relative z-10 space-y-1.5">
           <div class="flex justify-between text-[8px] text-neutral-700 font-bold uppercase tracking-widest">
@@ -233,17 +233,17 @@ function renderDashboard(container) {
       </div>
 
       <!-- Fechados -->
-      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-5 md:p-6 flex flex-col gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 160ms">
+      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 160ms">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-green-500 opacity-[0.05] rounded-full blur-2xl group-hover:opacity-[0.1] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
-          <span class="text-[9px] text-neutral-600 font-black uppercase tracking-widest">Negócios Fechados</span>
-          <div class="p-2 bg-green-500/10 border border-green-500/20 group-hover:border-green-500/40 transition-colors">
-            <i data-lucide="trophy" class="w-3.5 h-3.5 text-green-400"></i>
+          <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">Negócios Fechados</span>
+          <div class="p-1.5 md:p-2 bg-green-500/10 border border-green-500/20 group-hover:border-green-500/40 transition-colors shrink-0">
+            <i data-lucide="trophy" class="w-3 h-3 md:w-3.5 md:h-3.5 text-green-400"></i>
           </div>
         </div>
         <div class="relative z-10">
-          <div class="text-4xl md:text-5xl font-black text-white tabular-nums leading-none neon-green" data-count="${qtdVendas}">0</div>
-          <div class="text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1.5">${qtdVendas > 0 ? `${qtdVendas} venda${qtdVendas > 1 ? 's' : ''} confirmada${qtdVendas > 1 ? 's' : ''}` : 'nenhuma venda registrada'}</div>
+          <div class="text-3xl md:text-5xl font-black text-white tabular-nums leading-none neon-green" data-count="${qtdVendas}">0</div>
+          <div class="text-[8px] md:text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1">${qtdVendas > 0 ? `${qtdVendas} venda${qtdVendas > 1 ? 's' : ''} confirmada${qtdVendas > 1 ? 's' : ''}` : 'nenhuma venda registrada'}</div>
         </div>
         <div class="relative z-10 space-y-1.5">
           <div class="flex justify-between text-[8px] text-neutral-700 font-bold uppercase tracking-widest">
@@ -256,21 +256,21 @@ function renderDashboard(container) {
       </div>
 
       <!-- Ticket Médio -->
-      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-5 md:p-6 flex flex-col gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 240ms">
+      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 240ms">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-blue-400 opacity-[0.04] rounded-full blur-2xl group-hover:opacity-[0.08] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
-          <span class="text-[9px] text-neutral-600 font-black uppercase tracking-widest">Ticket Médio</span>
-          <div class="p-2 bg-blue-400/10 border border-blue-400/20 group-hover:border-blue-400/40 transition-colors">
-            <i data-lucide="trending-up" class="w-3.5 h-3.5 text-blue-400"></i>
+          <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">Ticket Médio</span>
+          <div class="p-1.5 md:p-2 bg-blue-400/10 border border-blue-400/20 group-hover:border-blue-400/40 transition-colors shrink-0">
+            <i data-lucide="trending-up" class="w-3 h-3 md:w-3.5 md:h-3.5 text-blue-400"></i>
           </div>
         </div>
-        <div class="relative z-10">
-          <div class="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 tabular-nums leading-none pb-0.5" data-count="${ticketMedio}" data-count-currency="true">R$ 0</div>
-          <div class="text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1.5">${qtdVendas > 0 ? `${qtdVendas} venda${qtdVendas > 1 ? 's' : ''} no período` : 'nenhuma venda registrada'}</div>
+        <div class="relative z-10 min-w-0">
+          <div class="text-xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 tabular-nums leading-none pb-0.5 break-all" data-count="${ticketMedio}" data-count-currency="true">R$ 0</div>
+          <div class="text-[8px] md:text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1">${qtdVendas > 0 ? `${qtdVendas} venda${qtdVendas > 1 ? 's' : ''} no período` : 'nenhuma venda registrada'}</div>
         </div>
         <div class="relative z-10 space-y-1.5">
-          <div class="flex justify-between text-[8px] text-neutral-700 font-bold uppercase tracking-widest">
-            <span>Total vendido</span><span class="text-blue-500">${formatCurrency(totalVendido)}</span>
+          <div class="flex justify-between text-[8px] text-neutral-700 font-bold uppercase tracking-widest gap-1 min-w-0">
+            <span class="shrink-0">Total vendido</span><span class="text-blue-500 truncate text-right">${formatCurrency(totalVendido)}</span>
           </div>
           <div class="w-full h-px bg-neutral-900 rounded-full">
             <div class="h-full bg-gradient-to-r from-blue-600 to-cyan-400 bar-animated rounded-full" style="width: ${Math.min(qtdVendas * 20, 100)}%"></div>
