@@ -86,8 +86,8 @@ function renderHeaderUser() {
     btn.onclick = toggleAdminViewMode;
     btn.title = state.adminViewAll ? 'Clique para ver só sua franquia' : 'Clique para ver todas as franquias';
     btn.className = state.adminViewAll
-      ? 'view-scope-toggle is-consolidated p-3 border transition-all duration-300 bg-purple-600/20 border-purple-500/50 text-purple-400 hover:bg-purple-600 hover:text-white flex items-center gap-2 text-[9px] font-black uppercase tracking-widest'
-      : 'view-scope-toggle is-unit p-3 border transition-all duration-300 bg-orange-600/20 border-orange-500/50 text-orange-400 hover:bg-orange-600 hover:text-white flex items-center gap-2 text-[9px] font-black uppercase tracking-widest';
+      ? 'view-scope-toggle is-consolidated p-3 border transition-all duration-300 bg-purple-600 border-purple-500 text-white hover:bg-purple-700 hover:border-purple-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest'
+      : 'view-scope-toggle is-unit p-3 border transition-all duration-300 bg-blue-600 border-blue-500 text-white hover:bg-blue-700 hover:border-blue-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest';
     btn.innerHTML = state.adminViewAll
       ? '<i data-lucide="layers" class="w-4 h-4"></i><span class="hidden sm:inline">CONSOLIDADO</span>'
       : '<i data-lucide="user" class="w-4 h-4"></i><span class="hidden sm:inline">MINHA UNIDADE</span>';
@@ -104,8 +104,8 @@ function renderHeaderUser() {
     btn.onclick = toggleGestorViewMode;
     btn.title = state.gestorViewAll ? 'Clique para ver só os seus clientes' : 'Clique para ver toda a unidade';
     btn.className = state.gestorViewAll
-      ? 'view-scope-toggle is-gestor-all p-3 border transition-all duration-300 bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600 hover:text-white flex items-center gap-2 text-[9px] font-black uppercase tracking-widest'
-      : 'view-scope-toggle is-gestor-own p-3 border transition-all duration-300 bg-orange-600/20 border-orange-500/50 text-orange-400 hover:bg-orange-600 hover:text-white flex items-center gap-2 text-[9px] font-black uppercase tracking-widest';
+      ? 'view-scope-toggle is-gestor-all p-3 border transition-all duration-300 bg-blue-600 border-blue-500 text-white hover:bg-blue-700 hover:border-blue-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest'
+      : 'view-scope-toggle is-gestor-own p-3 border transition-all duration-300 bg-blue-600 border-blue-500 text-white hover:bg-blue-700 hover:border-blue-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest';
     btn.innerHTML = state.gestorViewAll
       ? '<i data-lucide="users" class="w-4 h-4"></i><span class="hidden sm:inline">MINHA UNIDADE</span>'
       : '<i data-lucide="user" class="w-4 h-4"></i><span class="hidden sm:inline">APENAS MEUS</span>';

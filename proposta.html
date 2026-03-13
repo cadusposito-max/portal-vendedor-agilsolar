@@ -119,8 +119,13 @@
 <div id="proposal-content" class="hidden w-full max-w-3xl px-4 py-8 md:py-12 pb-12 flex flex-col gap-8">
 
     <!-- Header / Logo -->
-    <div class="flex justify-center mb-4">
-        <img src="assets/img/logo.png" alt="Ágil Solar" data-theme-logo="true" data-logo-dark="assets/img/logo.png" data-logo-light="assets/img/logo-light.png" class="w-48 md:w-64 h-auto drop-shadow-[0_0_20px_rgba(249,115,22,0.3)]" onerror="this.style.display='none'">
+    <div class="flex justify-center items-center mb-4 relative">
+        <img src="assets/img/logo.png" alt="Ágil Solar" data-theme-logo="true" data-logo-dark="assets/img/logo.png" data-logo-light="assets/img/logo-light.png" class="w-48 md:w-64 h-auto" onerror="this.style.display='none'">
+        <button id="proposta-theme-btn" onclick="togglePropostaTheme()"
+            title="Alternar modo claro/escuro"
+            class="absolute right-0 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white transition-all">
+            <i data-lucide="sun" id="proposta-theme-icon" class="w-4 h-4"></i>
+        </button>
     </div>
 
     <!-- Greeting -->
@@ -204,7 +209,7 @@
 
                 <div class="flex flex-col gap-4">
                     <!-- Cartão de Crédito com Botão de Modal -->
-                    <button id="btn-show-installments" class="w-full flex items-center justify-between gap-4 bg-black/40 hover:bg-black/60 border border-orange-500/30 hover:border-orange-500/60 rounded-xl p-4 transition-all active:scale-[0.98] group text-left">
+                    <button id="btn-show-installments" class="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-black/40 hover:bg-black/60 border border-orange-500/30 hover:border-orange-500/60 rounded-xl p-4 transition-all active:scale-[0.98] group text-left">
                         <div class="flex items-center gap-3">
                             <div class="bg-orange-500/15 p-2.5 rounded-lg shrink-0">
                                 <i data-lucide="credit-card" class="w-5 h-5 text-orange-400"></i>
@@ -214,8 +219,8 @@
                                 <p class="text-neutral-400 text-xs mt-0.5">Parcele em até <span class="text-orange-400 font-bold">18x</span> sem burocracia</p>
                             </div>
                         </div>
-                        <div class="shrink-0 flex items-center gap-1.5 bg-gradient-to-r from-orange-600 to-yellow-500 group-hover:from-orange-500 group-hover:to-yellow-400 text-black font-black py-2 px-3 rounded-lg text-xs whitespace-nowrap shadow-[0_0_12px_rgba(234,88,12,0.3)]">
-                            <i data-lucide="calculator" class="w-3.5 h-3.5 stroke-[3px]"></i> Ver parcelas
+                        <div class="flex items-center justify-center gap-1.5 bg-gradient-to-r from-orange-600 to-yellow-500 group-hover:from-orange-500 group-hover:to-yellow-400 text-black font-black py-2.5 px-4 rounded-lg text-sm whitespace-nowrap shadow-[0_0_12px_rgba(234,88,12,0.3)]">
+                            <i data-lucide="calculator" class="w-4 h-4 stroke-[3px]"></i> Ver parcelas
                         </div>
                     </button>
 
@@ -332,11 +337,11 @@
             </div>
 
             <!-- Setas de Navegação (Aparecem no hover ou em mobile) -->
-            <button id="btn-prev-vid" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-orange-600 text-white p-2 rounded-full backdrop-blur-sm transition-all shadow-lg md:opacity-0 group-hover:opacity-100 z-10 border border-neutral-700">
-                <i data-lucide="chevron-left" class="w-6 h-6"></i>
+            <button id="btn-prev-vid" class="vid-nav-btn absolute left-2 top-1/2 -translate-y-1/2 z-50">
+                <i data-lucide="chevron-left" class="w-5 h-5"></i>
             </button>
-            <button id="btn-next-vid" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-orange-600 text-white p-2 rounded-full backdrop-blur-sm transition-all shadow-lg md:opacity-0 group-hover:opacity-100 z-10 border border-neutral-700">
-                <i data-lucide="chevron-right" class="w-6 h-6"></i>
+            <button id="btn-next-vid" class="vid-nav-btn absolute right-2 top-1/2 -translate-y-1/2 z-50">
+                <i data-lucide="chevron-right" class="w-5 h-5"></i>
             </button>
         </div>
 
@@ -456,7 +461,41 @@
 <script src="assets/js/config.js"></script>
 <script src="assets/js/utils.js"></script>
 <script src="assets/js/proposta.js"></script>
+<script>
+(function() {
+  // Apply proposal-specific theme from sessionStorage, fallback to localStorage
+  const saved = sessionStorage.getItem('proposalTheme');
+  if (saved === 'light' || saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', saved);
+  }
+  applyThemeMode();
+  _updatePropostaThemeBtn();
+})();
+
+function _updatePropostaThemeBtn() {
+  const btn  = document.getElementById('proposta-theme-btn');
+  const icon = document.getElementById('proposta-theme-icon');
+  if (!btn || !icon) return;
+  const isDark = !document.body.classList.contains('theme-light');
+  icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+  btn.className = 'absolute right-0 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center border transition-all '
+    + (isDark
+      ? 'border-neutral-700 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white'
+      : 'border-blue-300 bg-white hover:bg-blue-50 text-blue-600 hover:text-blue-800');
+  lucide.createIcons();
+}
+
+function togglePropostaTheme() {
+  const isLight = document.body.classList.contains('theme-light');
+  const next = isLight ? 'dark' : 'light';
+  sessionStorage.setItem('proposalTheme', next);
+  document.documentElement.setAttribute('data-theme', next);
+  applyThemeMode();
+  _updatePropostaThemeBtn();
+}
+</script>
 
 
 </body>
 </html>
+

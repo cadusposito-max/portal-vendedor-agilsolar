@@ -164,12 +164,12 @@ function renderVendas(container) {
           <div class="shrink-0 flex flex-col items-end gap-1">
             ${waLink ? `
             <a href="${waLink}" target="_blank" rel="noopener noreferrer"
-              class="flex items-center gap-1.5 bg-green-950/30 border border-green-900/40 hover:border-green-600 text-green-500 px-3 py-1.5 font-black uppercase text-[8px] tracking-widest transition-all">
+              class="flex items-center gap-1.5 bg-green-600 border border-green-500 hover:bg-green-700 hover:border-green-400 text-white px-3 py-1.5 font-black uppercase text-[8px] tracking-widest transition-all">
               <i data-lucide="message-circle" class="w-3 h-3"></i> WhatsApp
             </a>` : ''}
             ${state.isAdmin ? `
             <button onclick="deleteVenda('${v.id}')" title="Excluir venda"
-              class="flex items-center gap-1.5 bg-red-950/30 border border-red-900/40 hover:border-red-600 hover:bg-red-950/60 text-red-600 hover:text-red-400 px-3 py-1.5 font-black uppercase text-[8px] tracking-widest transition-all">
+              class="flex items-center gap-1.5 bg-red-600 border border-red-500 hover:bg-red-700 hover:border-red-400 text-white px-3 py-1.5 font-black uppercase text-[8px] tracking-widest transition-all">
               <i data-lucide="trash-2" class="w-3 h-3"></i> Excluir
             </button>` : ''}
             <p class="text-neutral-700 text-[9px] font-mono uppercase">${escapeHTML(v.kit_brand || '')}</p>

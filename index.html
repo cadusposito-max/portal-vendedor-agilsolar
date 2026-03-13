@@ -101,7 +101,7 @@
   <div class="relative z-10 w-full max-w-md px-6">
     <div class="relative mb-10 flex justify-center group">
       <div class="absolute inset-0 bg-orange-600 blur-[80px] opacity-20 animate-pulse"></div>
-      <img src="assets/img/logo.png" alt="Ágil Solar" data-theme-logo="true" data-logo-dark="assets/img/logo.png" data-logo-light="assets/img/logo-light.png" onerror="this.src='https://placehold.co/300x100?text=Agil+Solar'" class="relative w-64 md:w-72 h-auto object-contain drop-shadow-[0_0_25px_rgba(249,115,22,0.4)] animate-pulse-slow">
+      <img src="assets/img/logo.png" alt="Ágil Solar" data-theme-logo="true" data-logo-dark="assets/img/logo.png" data-logo-light="assets/img/logo-light.png" onerror="this.src='https://placehold.co/300x100?text=Agil+Solar'" class="relative w-64 md:w-72 h-auto object-contain animate-pulse-slow">
     </div>
 
     <div class="bg-neutral-900/80 backdrop-blur-md border border-neutral-800 p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
@@ -173,7 +173,7 @@
 
     <div class="relative mb-6 group">
       <div class="absolute inset-0 bg-orange-600 blur-[80px] opacity-30 animate-pulse"></div>
-      <img src="assets/img/logo.png" alt="Ágil Solar" data-theme-logo="true" data-logo-dark="assets/img/logo.png" data-logo-light="assets/img/logo-light.png" onerror="this.src='https://placehold.co/300x100?text=Agil+Solar'" class="relative w-80 md:w-96 h-auto object-contain drop-shadow-[0_0_25px_rgba(249,115,22,0.5)] animate-pulse-slow">
+      <img src="assets/img/logo.png" alt="Ágil Solar" data-theme-logo="true" data-logo-dark="assets/img/logo.png" data-logo-light="assets/img/logo-light.png" onerror="this.src='https://placehold.co/300x100?text=Agil+Solar'" class="relative w-80 md:w-96 h-auto object-contain animate-pulse-slow">
     </div>
 
     <div class="flex flex-col items-center gap-3 w-64 mt-8">
@@ -201,7 +201,7 @@
         <div class="flex items-center gap-3 cursor-pointer group shrink-0" onclick="window.scrollTo(0,0)">
           <img src="assets/img/logo.png" alt="Ágil Solar" data-theme-logo="true" data-logo-dark="assets/img/logo.png" data-logo-light="assets/img/logo-light.png"
             onerror="this.src='https://placehold.co/150x50?text=Agil+Solar'"
-            class="h-7 w-auto object-contain group-hover:scale-105 transition-transform drop-shadow-[0_0_8px_rgba(249,115,22,0.25)]">
+            class="h-7 w-auto object-contain group-hover:scale-105 transition-transform">
           <div class="hidden sm:block border-l border-neutral-800 pl-3">
             <p class="text-white text-[9px] font-black uppercase tracking-[0.35em] leading-tight">Portal<br>Parceiros</p>
           </div>
@@ -429,6 +429,14 @@
               <label class="text-[10px] text-orange-500/80 font-black uppercase tracking-widest">Frete (R$) <span class="text-neutral-500">— opcional</span></label>
               <input type="number" id="pb-equip-frete" min="0" step="0.01"
                 placeholder="0,00"
+                class="w-full bg-black border border-neutral-700 focus:border-orange-500 rounded-none px-4 py-3 text-white font-mono font-bold transition-all">
+            </div>
+
+            <!-- Potência do Sistema (para cálculo de payback) -->
+            <div class="space-y-1">
+              <label class="text-[10px] text-orange-500/80 font-black uppercase tracking-widest">Potência do Sistema (kWp) <span class="text-neutral-500">— opcional, ativa payback na proposta</span></label>
+              <input type="number" id="pb-equip-potencia" min="0" step="0.01"
+                placeholder="ex: 7.92"
                 class="w-full bg-black border border-neutral-700 focus:border-orange-500 rounded-none px-4 py-3 text-white font-mono font-bold transition-all">
             </div>
 
@@ -787,7 +795,7 @@
   <div class="relative z-10 w-full max-w-md px-6">
     <div class="relative mb-10 flex justify-center group">
       <div class="absolute inset-0 bg-orange-600 blur-[80px] opacity-20 animate-pulse"></div>
-      <img src="assets/img/logo.png" alt="Ágil Solar" data-theme-logo="true" data-logo-dark="assets/img/logo.png" data-logo-light="assets/img/logo-light.png" onerror="this.src='https://placehold.co/300x100?text=Agil+Solar'" class="relative w-64 md:w-72 h-auto object-contain drop-shadow-[0_0_25px_rgba(249,115,22,0.4)] animate-pulse-slow">
+      <img src="assets/img/logo.png" alt="Ágil Solar" data-theme-logo="true" data-logo-dark="assets/img/logo.png" data-logo-light="assets/img/logo-light.png" onerror="this.src='https://placehold.co/300x100?text=Agil+Solar'" class="relative w-64 md:w-72 h-auto object-contain animate-pulse-slow">
     </div>
 
     <div class="bg-neutral-900/80 backdrop-blur-md border border-neutral-800 p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
@@ -842,3 +850,5 @@
 <script src="assets/js/app.js"></script>
 </body>
 </html>
+
+

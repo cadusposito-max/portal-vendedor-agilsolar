@@ -195,7 +195,7 @@ function renderClientesList(container) {
       <!-- Action row -->
       <div class="relative z-10 flex gap-2 mt-4 pt-3.5 border-t border-neutral-800/50">
         <a href="${waLink}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp ${escapeHTML(c.nome)}"
-          class="flex items-center gap-1.5 bg-green-950/30 border border-green-900/40 hover:border-green-600 hover:bg-green-950/60 text-green-500 px-3 py-2 font-black uppercase tracking-wider transition-all active:scale-95 text-[9px] shrink-0">
+          class="flex items-center gap-1.5 bg-green-600 border border-green-500 hover:bg-green-700 hover:border-green-400 text-white px-3 py-2 font-black uppercase tracking-wider transition-all active:scale-95 text-[9px] shrink-0">
           <i data-lucide="message-circle" class="w-3.5 h-3.5 stroke-[2.5px]"></i>
           <span class="hidden sm:inline">WhatsApp</span>
         </a>
@@ -205,7 +205,7 @@ function renderClientesList(container) {
           NOVA PROPOSTA
         </button>
         <button onclick="openFechaVenda('${c.id}')" aria-label="Fechar venda para ${escapeHTML(c.nome)}"
-          class="bg-green-950/40 border border-green-900/50 hover:border-green-500 hover:bg-green-950/70 text-green-500 px-3 py-2 font-black uppercase tracking-wider transition-all active:scale-95 flex gap-1.5 items-center justify-center text-[9px] shrink-0">
+          class="bg-green-600 border border-green-500 hover:bg-green-700 hover:border-green-400 text-white px-3 py-2 font-black uppercase tracking-wider transition-all active:scale-95 flex gap-1.5 items-center justify-center text-[9px] shrink-0">
           <i data-lucide="trophy" class="w-3.5 h-3.5 stroke-[2.5px]"></i>
           <span class="hidden md:inline">FECHAR</span>
         </button>

@@ -736,6 +736,7 @@ function syncEquipInputsFromState() {
   setVal('pb-equip-descricao',       d.descricao      || '');
   setVal('pb-equip-valor',           d.valorEquip     || '');
   setVal('pb-equip-frete',           d.frete          || '');
+  setVal('pb-equip-potencia',        d.potencia       || '');
   setVal('pb-equip-payment-note',    d.paymentNote    || '');
   setVal('pb-equip-commercial-note', d.commercialNote || '');
   updateEquipamentosPreview();
@@ -765,6 +766,7 @@ function bindEquipUIEvents() {
     ['pb-equip-descricao',       v => { state.pbEquipDraft.descricao      = v; }],
     ['pb-equip-valor',           v => { state.pbEquipDraft.valorEquip      = v; updateEquipamentosPreview(); }],
     ['pb-equip-frete',           v => { state.pbEquipDraft.frete           = v; updateEquipamentosPreview(); }],
+    ['pb-equip-potencia',        v => { state.pbEquipDraft.potencia        = v; }],
     ['pb-equip-payment-note',    v => { state.pbEquipDraft.paymentNote     = v; }],
     ['pb-equip-commercial-note', v => { state.pbEquipDraft.commercialNote  = v; }],
   ];
@@ -813,10 +815,10 @@ async function handleEquipamentosProposalSubmit(event) {
       cliente_cidade:          client.cidade,
       kit_nome:                descricao,
       kit_brand:               '',
-      kit_power:               0,
+      kit_power:               parseFloat(draft.potencia) || 0,
       kit_price:               total,
       kit_list_price:          total,
-      geracao_estimada:        null,
+      geracao_estimada:        parseFloat(draft.potencia) > 0 ? calcularGeracaoEstimada(parseFloat(draft.potencia)) : null,
       custom_equipment_price:  equip,
       custom_service_price:    frete > 0 ? frete : null,  // reutilizado para frete no modo EQUIPAMENTOS
       custom_total_price:      total,

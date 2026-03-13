@@ -8,6 +8,13 @@ body {
 }
 
 /* ==========================================
+   LOGO — glow only in dark mode
+   ========================================== */
+img[data-theme-logo="true"] {
+  filter: drop-shadow(0 0 22px rgba(249,115,22,0.4));
+}
+
+/* ==========================================
    SCROLLBARS
    ========================================== */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -293,6 +300,29 @@ body {
   .table-row-hover {
     transition: none !important;
   }
+
+/* ==========================================
+   VIDEO CAROUSEL ARROWS
+   ========================================== */
+.vid-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(20, 20, 20, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  transition: background 0.2s ease, transform 0.15s ease;
+  cursor: pointer;
+}
+.vid-nav-btn:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  transform: scale(1.1);
+}
 
   #toast {
     backdrop-filter: none;

@@ -169,7 +169,7 @@ function renderData(data) {
   const isPersonalizada = data.proposal_mode === 'PERSONALIZADA';
   const isEquipamentos  = data.proposal_mode === 'EQUIPAMENTOS';
   const displayPrice = (isPersonalizada || isEquipamentos) ? (data.custom_total_price || data.kit_price || 0) : (data.kit_price  || 0);
-  const displayPower = (isPersonalizada && !isEquipamentos) ? (data.custom_system_power_kwp || 0) : (isEquipamentos ? 0 : (data.kit_power || 0));
+  const displayPower = (isPersonalizada && !isEquipamentos) ? (data.custom_system_power_kwp || 0) : (data.kit_power || 0);
   const displayName  = isPersonalizada ? 'Proposta Personalizada' : (isEquipamentos ? (data.kit_nome || 'Fornecimento de Equipamentos') : (data.kit_nome || ''));
   const displayBrand = (isPersonalizada || isEquipamentos) ? '' : (data.kit_brand || '');
 
@@ -201,10 +201,10 @@ function renderData(data) {
   if ((isPersonalizada || isEquipamentos) && brandWrapper) brandWrapper.classList.add('hidden');
   document.getElementById('kit-name').innerText       = displayName;
 
-  // Para EQUIPAMENTOS: oculta potência e geração (sem dados de sistema)
+  // Para EQUIPAMENTOS: oculta potência e geração apenas se não houver dados de sistema
   const powerGenGrid = document.querySelector('#kit-power')?.closest('.grid');
   const idealBillRow = document.querySelector('#kit-ideal-bill')?.closest('.mb-8');
-  if (isEquipamentos) {
+  if (isEquipamentos && displayPower <= 0) {
     if (powerGenGrid) powerGenGrid.classList.add('hidden');
     if (idealBillRow) idealBillRow.classList.add('hidden');
   } else {
@@ -237,10 +237,10 @@ function renderData(data) {
     <span class="text-xl align-top text-neutral-500 mr-1">R$</span>${priceParts[0].replace('R$', '').trim()}<span class="text-xl align-top text-neutral-500">,${priceParts[1]}</span>
   `;
 
-  // Oculta seção ambiental e de economia/ROI para EQUIPAMENTOS (sem dados de potência)
+  // Oculta seção ambiental e de economia/ROI para EQUIPAMENTOS sem dados de potência
   const ecoSection = document.querySelector('#eco-month')?.closest('.bg-neutral-900.border');
   const envSection = document.querySelector('#env-trees')?.closest('.flex.flex-col.md\\:flex-row');
-  if (isEquipamentos) {
+  if (isEquipamentos && estGeneration <= 0) {
     if (ecoSection) ecoSection.classList.add('hidden');
     if (envSection) envSection.classList.add('hidden');
   } else {

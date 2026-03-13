@@ -15,17 +15,11 @@ body.theme-light ::selection {
 
 /* ─── 2. SCROLLBARS ───────────────────────── */
 body.theme-light ::-webkit-scrollbar-track,
-body.theme-light .custom-scrollbar::-webkit-scrollbar-track {
-  background: #e2e8f0;
-}
+body.theme-light .custom-scrollbar::-webkit-scrollbar-track { background: #e2e8f0; }
 body.theme-light ::-webkit-scrollbar-thumb,
-body.theme-light .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #94a3b8;
-}
+body.theme-light .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; }
 body.theme-light ::-webkit-scrollbar-thumb:hover,
-body.theme-light .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #2563eb;
-}
+body.theme-light .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #2563eb; }
 
 /* ─── 3. GRID PATTERNS ────────────────────── */
 body.theme-light .bg-grid {
@@ -59,7 +53,7 @@ body.theme-light .gradient-border:before {
 
 /* ─── 6. ANIMATED STRIPE → BLUE ──────────── */
 body.theme-light .animated-stripe {
-  background: repeating-linear-gradient(
+  background-image: repeating-linear-gradient(
     90deg,
     #1d4ed8 0px,
     #2563eb 20px,
@@ -68,6 +62,7 @@ body.theme-light .animated-stripe {
     #1d4ed8 80px
   ) !important;
   background-size: 200px 100% !important;
+  animation: stripe-slide 4s linear infinite !important;
 }
 
 /* ─── 7. TAB ACTIVE UNDERLINE → BLUE ─────── */
@@ -102,15 +97,11 @@ body.theme-light #loading {
   background-color: #f0f4f8 !important;
   background-image: none !important;
 }
-
-/* Header */
 body.theme-light header.sticky {
   background: rgba(255,255,255,0.95) !important;
   border-bottom-color: #e2e8f0 !important;
   box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
 }
-
-/* Dashboard panels */
 body.theme-light .dash-hero,
 body.theme-light .dash-pipeline,
 body.theme-light .dash-proposals-panel,
@@ -120,28 +111,26 @@ body.theme-light .tab-content {
   background: #ffffff !important;
 }
 
-/* ─── 11. DARK BACKGROUNDS → WHITE ───────── */
+/* ─── 11. DARK BACKGROUNDS → LIGHT ───────── */
+/* Tailwind neutral dark shades */
 body.theme-light [class*="bg-neutral-900"],
 body.theme-light [class*="bg-neutral-950"],
 body.theme-light [class*="bg-neutral-800"] {
   background-color: #ffffff !important;
 }
-
+/* Hardcoded dark hex */
 body.theme-light [class*="bg-[#050505]"],
-body.theme-light [class*="bg-[#0a0a0a]"],
 body.theme-light [class*="bg-[#080808]"],
+body.theme-light [class*="bg-[#0a0a0a]"],
 body.theme-light [class*="bg-[#0d0d0d]"],
-body.theme-light [class*="bg-[#111111]"] {
+body.theme-light [class*="bg-[#0f0f0f]"],
+body.theme-light [class*="bg-[#111111]"],
+body.theme-light [class*="bg-[#171717]"],
+body.theme-light [class*="bg-[#1a1a1a]"] {
   background-color: #f8fafc !important;
   background-image: none !important;
 }
-
-/* Pure black (but not opacity variants handled below) */
-body.theme-light [class*="bg-black"]:not([class*="bg-black/7"]):not([class*="bg-black/8"]):not([class*="bg-black/9"]) {
-  background-color: #f8fafc !important;
-}
-
-/* Semi-transparent blacks /10–/60 → off-white */
+/* bg-black variants */
 body.theme-light [class*="bg-black\/1"],
 body.theme-light [class*="bg-black\/2"],
 body.theme-light [class*="bg-black\/3"],
@@ -150,15 +139,19 @@ body.theme-light [class*="bg-black\/5"],
 body.theme-light [class*="bg-black\/6"] {
   background-color: #f1f5f9 !important;
 }
-
-/* High-opacity blacks /70–/95 → pure white (price boxes, modal headers) */
 body.theme-light [class*="bg-black\/7"],
 body.theme-light [class*="bg-black\/8"],
 body.theme-light [class*="bg-black\/9"] {
   background-color: #ffffff !important;
 }
-
-/* Decorative dark gradient stops → transparent */
+/* Pure bg-black (no slash) */
+body.theme-light [class="bg-black"],
+body.theme-light [class*=" bg-black "],
+body.theme-light [class*=" bg-black\""],
+body.theme-light [class^="bg-black "] {
+  background-color: #f8fafc !important;
+}
+/* Decorative dark gradient stops */
 body.theme-light [class*="from-black"],
 body.theme-light [class*="via-black"],
 body.theme-light [class*="to-black"] {
@@ -166,8 +159,7 @@ body.theme-light [class*="to-black"] {
   --tw-gradient-via: transparent !important;
   --tw-gradient-to: transparent !important;
 }
-
-/* Decorative blur blobs → nearly invisible */
+/* Decorative blur blobs */
 body.theme-light [class*="bg-orange-"][class*="blur-"],
 body.theme-light [class*="bg-yellow-"][class*="blur-"],
 body.theme-light [class*="bg-blue-"][class*="blur-"] {
@@ -186,27 +178,52 @@ body.theme-light [id*="overlay"] {
 }
 
 /* ─── 13. TEXT INVERSIONS ─────────────────── */
+/* Invert white text to dark on elements that are now light-background */
 body.theme-light [class*="text-white"] {
   color: #0f172a !important;
 }
 body.theme-light [class*="text-neutral-200"],
-body.theme-light [class*="text-neutral-300"] {
-  color: #334155 !important;
-}
-body.theme-light [class*="text-neutral-400"] {
-  color: #64748b !important;
-}
+body.theme-light [class*="text-neutral-300"] { color: #334155 !important; }
+body.theme-light [class*="text-neutral-400"] { color: #64748b !important; }
 body.theme-light [class*="text-neutral-500"],
-body.theme-light [class*="text-neutral-600"] {
-  color: #94a3b8 !important;
-}
-body.theme-light [class*="text-neutral-700"] {
-  color: #475569 !important;
-}
+body.theme-light [class*="text-neutral-600"] { color: #94a3b8 !important; }
+body.theme-light [class*="text-neutral-700"] { color: #475569 !important; }
 body.theme-light h1, body.theme-light h2,
-body.theme-light h3, body.theme-light h4 {
-  color: #0f172a !important;
+body.theme-light h3, body.theme-light h4  { color: #0f172a !important; }
+
+/* ─── 13b. RESTORE WHITE TEXT ON COLORED BACKGROUNDS ── */
+/*
+   The broad rule above catches everything. Here we restore white text
+   for any element/button that has a solid colored background
+   (blue, green, red, purple, orange-solid) — where white is required for readability.
+*/
+body.theme-light [class*="bg-blue-5"][class*="text-white"],
+body.theme-light [class*="bg-blue-6"][class*="text-white"],
+body.theme-light [class*="bg-blue-7"][class*="text-white"],
+body.theme-light [class*="bg-blue-8"][class*="text-white"],
+body.theme-light [class*="bg-blue-9"][class*="text-white"],
+body.theme-light [class*="bg-green-5"][class*="text-white"],
+body.theme-light [class*="bg-green-6"][class*="text-white"],
+body.theme-light [class*="bg-green-7"][class*="text-white"],
+body.theme-light [class*="bg-red-4"][class*="text-white"],
+body.theme-light [class*="bg-red-5"][class*="text-white"],
+body.theme-light [class*="bg-red-6"][class*="text-white"],
+body.theme-light [class*="bg-red-7"][class*="text-white"],
+body.theme-light [class*="bg-purple-5"][class*="text-white"],
+body.theme-light [class*="bg-purple-6"][class*="text-white"],
+body.theme-light [class*="bg-orange-5"][class*="text-white"],
+body.theme-light [class*="bg-orange-6"][class*="text-white"],
+body.theme-light [class*="bg-emerald-5"][class*="text-white"],
+body.theme-light [class*="bg-emerald-6"][class*="text-white"] {
+  color: #ffffff !important;
 }
+/* Also restore white on gradient buttons that already have the right bg */
+body.theme-light [class*="from-blue-"][class*="text-white"],
+body.theme-light [class*="from-green-"][class*="text-white"] {
+  color: #ffffff !important;
+}
+/* ADMIN badge (purple) */
+body.theme-light [class*="text-purple-"] { color: #7c3aed !important; }
 
 /* ─── 14. BORDER INVERSIONS ───────────────── */
 body.theme-light [class*="border-neutral-700"],
@@ -217,7 +234,6 @@ body.theme-light [class*="border-black"] {
 }
 
 /* ─── 15. ORANGE ACCENT → BLUE ───────────── */
-/* Specific first so cascade wins predictably */
 body.theme-light [class*="text-orange-600"] { color: #1d4ed8 !important; }
 body.theme-light [class*="text-orange-500"] { color: #2563eb !important; }
 body.theme-light [class*="text-orange-400"] { color: #3b82f6 !important; }
@@ -232,24 +248,17 @@ body.theme-light [class*="bg-orange-600\/"],
 body.theme-light [class*="bg-orange-900\/"] {
   background-color: rgba(37,99,235,0.1) !important;
 }
-
-body.theme-light [class*="border-orange-"] {
-  border-color: rgba(37,99,235,0.35) !important;
-}
-body.theme-light [class*="ring-orange-"] {
-  --tw-ring-color: rgba(37,99,235,0.2) !important;
-}
+body.theme-light [class*="border-orange-"] { border-color: rgba(37,99,235,0.35) !important; }
+body.theme-light [class*="ring-orange-"]   { --tw-ring-color: rgba(37,99,235,0.2) !important; }
 
 /* Gradient stops: orange → blue */
 body.theme-light [class*="from-orange-"] {
   --tw-gradient-from: #2563eb !important;
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(37,99,235,0)) !important;
 }
-/* to-yellow → light blue in gradient context */
 body.theme-light [class*="to-yellow-"] {
   --tw-gradient-to: #60a5fa !important;
 }
-/* Tinted overlay gradients from-orange-900/* → subtle blue tint */
 body.theme-light [class*="from-orange-900\/"] {
   --tw-gradient-from: rgba(219,234,254,0.5) !important;
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(219,234,254,0)) !important;
@@ -257,7 +266,8 @@ body.theme-light [class*="from-orange-900\/"] {
 body.theme-light [class*="to-yellow-900\/"] {
   --tw-gradient-to: rgba(219,234,254,0.1) !important;
 }
-/* Gradient buttons with text-black → flip to white text on blue */
+/* Solid/gradient orange buttons: text-black → white (bg converts to blue) */
+body.theme-light [class*="bg-orange-"][class*="text-black"],
 body.theme-light [class*="from-orange-"][class*="text-black"] {
   color: #ffffff !important;
 }
@@ -282,9 +292,7 @@ body.theme-light textarea {
   border-color: #cbd5e1 !important;
 }
 body.theme-light input::placeholder,
-body.theme-light textarea::placeholder {
-  color: #94a3b8 !important;
-}
+body.theme-light textarea::placeholder { color: #94a3b8 !important; }
 body.theme-light input:focus,
 body.theme-light select:focus,
 body.theme-light textarea:focus {
@@ -300,79 +308,43 @@ body.theme-light table th {
   border-bottom: 1px solid #e2e8f0 !important;
 }
 body.theme-light table td,
-body.theme-light table tr {
-  border-color: #f1f5f9 !important;
-}
-body.theme-light table td [class*="text-white"] {
-  color: #0f172a !important;
-}
+body.theme-light table tr { border-color: #f1f5f9 !important; }
+body.theme-light table td [class*="text-white"] { color: #0f172a !important; }
 
 /* ─── 19. YELLOW / GREEN PANELS ───────────── */
-/* Yellow tints (generation panel, warnings) → soft amber */
-body.theme-light [class*="bg-yellow-900\/"] {
-  background-color: rgba(250,204,21,0.08) !important;
-}
-body.theme-light [class*="border-yellow-900\/"] {
-  border-color: rgba(234,179,8,0.25) !important;
-}
-/* WhatsApp / savings → soft green */
-body.theme-light [class*="bg-green-950\/"] {
-  background-color: rgba(21,128,61,0.08) !important;
-}
-body.theme-light [class*="border-green-900\/"] {
-  border-color: rgba(21,128,61,0.25) !important;
-}
+body.theme-light [class*="bg-yellow-900\/"] { background-color: rgba(250,204,21,0.08) !important; }
+body.theme-light [class*="border-yellow-900\/"] { border-color: rgba(234,179,8,0.25) !important; }
+body.theme-light [class*="bg-green-950\/"] { background-color: rgba(21,128,61,0.08) !important; }
+body.theme-light [class*="border-green-900\/"] { border-color: rgba(21,128,61,0.25) !important; }
 
 /* ─── 20. PROPOSTA.HTML SPECIFICS ─────────── */
-
 body.theme-light #kit-brand-wrapper {
   background-color: rgba(37,99,235,0.1) !important;
   border-color: rgba(37,99,235,0.3) !important;
   color: #2563eb !important;
 }
-
 body.theme-light #vendor-avatar {
   background: linear-gradient(to bottom right, #2563eb, #60a5fa) !important;
   color: #ffffff !important;
   box-shadow: 0 0 20px rgba(37,99,235,0.25) !important;
 }
-
 body.theme-light #final-cta-btn {
   background: linear-gradient(to right, #1d4ed8, #3b82f6) !important;
   color: #ffffff !important;
   box-shadow: 0 0 40px rgba(37,99,235,0.35) !important;
 }
-body.theme-light #final-cta-btn:hover {
-  box-shadow: 0 0 60px rgba(37,99,235,0.5) !important;
-}
-
+body.theme-light #final-cta-btn:hover { box-shadow: 0 0 60px rgba(37,99,235,0.5) !important; }
 body.theme-light #btn-submit-login,
 body.theme-light #btn-mfa-submit {
   background: linear-gradient(to right, #1d4ed8, #2563eb) !important;
   color: #ffffff !important;
   box-shadow: 0 0 20px rgba(37,99,235,0.3) !important;
 }
-
 body.theme-light #loading-bar {
   background: linear-gradient(to right, #1d4ed8, #60a5fa) !important;
   box-shadow: 0 0 10px rgba(37,99,235,0.5) !important;
 }
-body.theme-light #loading-percentage {
-  color: #2563eb !important;
-}
-
-body.theme-light #btn-prev-vid,
-body.theme-light #btn-next-vid {
-  background-color: rgba(255,255,255,0.9) !important;
-  border-color: #e2e8f0 !important;
-  color: #0f172a !important;
-}
-body.theme-light #btn-prev-vid:hover,
-body.theme-light #btn-next-vid:hover {
-  background-color: #2563eb !important;
-  color: #ffffff !important;
-}
-
+body.theme-light #loading-percentage { color: #2563eb !important; }
 body.theme-light #modal-parcelamento > div {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
@@ -382,12 +354,26 @@ body.theme-light #modal-parcelamento [class*="bg-black\/50"] {
   background-color: #f8fafc !important;
 }
 
-/* ─── 21. PHOTO BG SECTIONS (environmental) ─ */
-/* Keep dark overlay for readability over photo */
+/* ─── 21. VIDEO PLAYER ────────────────────── */
+body.theme-light #video-wrapper {
+  background-color: #000000 !important;
+  border-color: #222222 !important;
+}
+body.theme-light .vid-nav-btn {
+  background: rgba(20,20,20,0.85) !important;
+  border-color: rgba(255,255,255,0.25) !important;
+  color: #ffffff !important;
+}
+body.theme-light .vid-nav-btn:hover {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+/* ─── 22. PHOTO BG SECTIONS (environmental) ─ */
 body.theme-light [class*="bg-cover"] .absolute.inset-0[class*="bg-black"] {
   background-color: rgba(0,0,0,0.78) !important;
 }
-/* Force light text inside photo overlay */
 body.theme-light [class*="bg-cover"] .relative.z-10 [class*="text-white"] {
   color: #ffffff !important;
 }
@@ -398,10 +384,199 @@ body.theme-light [class*="bg-cover"] .relative.z-10 [class*="text-neutral-400"] 
   color: rgba(255,255,255,0.6) !important;
 }
 
-/* ─── 22. TOAST ───────────────────────────── */
+/* ─── 23. KIT CARDS (proposta-builder, gerados via JS) ── */
+body.theme-light #pb-products-container,
+body.theme-light #pb-equip-panel,
+body.theme-light #pb-custom-panel {
+  background-color: #f0f4f8 !important;
+}
+/* Card shell */
+body.theme-light #pb-products-container > div {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+body.theme-light #pb-products-container > div:hover {
+  border-color: #2563eb !important;
+}
+/* Kit name */
+body.theme-light #pb-products-container h3 { color: #0f172a !important; }
+body.theme-light #pb-products-container .group:hover h3 { color: #2563eb !important; }
+/* Brand badge */
+body.theme-light #pb-products-container [class*="bg-orange-600\/20"] {
+  background-color: rgba(37,99,235,0.1) !important;
+  border-color: rgba(37,99,235,0.3) !important;
+  color: #2563eb !important;
+}
+/* Inner cells (potência / geração) */
+body.theme-light #pb-products-container [class*="bg-black"],
+body.theme-light #pb-products-container [class*="bg-neutral-9"] {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+/* Cell labels */
+body.theme-light #pb-products-container [class*="text-neutral-5"] { color: #64748b !important; }
+/* Dividers */
+body.theme-light #pb-products-container [class*="border-neutral-8"] { border-color: #e2e8f0 !important; }
+/* Strikethrough price */
+body.theme-light #pb-products-container [class*="line-through"] { color: #94a3b8 !important; }
+/* "GERAR PROPOSTA" and any blue/colored button inside cards: ensure white text */
+body.theme-light #pb-products-container button[class*="bg-blue-"],
+body.theme-light #pb-products-container button[class*="bg-green-"],
+body.theme-light #pb-products-container button[class*="bg-orange-"] {
+  color: #ffffff !important;
+}
+
+/* ─── 24. LOGOS — remove orange glow in light mode ───── */
+body.theme-light img[data-theme-logo="true"] {
+  filter: none;
+}
+
+/* ─── 25. TOAST ───────────────────────────── */
 body.theme-light #toast {
   background-color: rgba(255,255,255,0.95) !important;
   color: #0f172a !important;
   border: 1px solid #e2e8f0 !important;
   box-shadow: 0 4px 16px rgba(0,0,0,0.1) !important;
 }
+
+/* ─── 26. PROPOSTA — economia, validade, geração ──── */
+
+/* Texto em ids de economia */
+body.theme-light #eco-month,
+body.theme-light #eco-year { color: #15803d !important; }
+
+/* Geração Estimada — card amarelo */
+body.theme-light [class*="bg-yellow-900/"] {
+  background-color: rgba(202,138,4,0.1) !important;
+  border-color: rgba(202,138,4,0.35) !important;
+}
+body.theme-light [class*="text-yellow-4"] { color: #a16207 !important; }
+body.theme-light [class*="text-yellow-5"] { color: #854d0e !important; }
+body.theme-light [id="kit-generation"]    { color: #a16207 !important; }
+
+/* overlay bg-black/80 sobre foto → muito mais claro */
+body.theme-light [class*="bg-cover"] > .absolute.inset-0[class*="bg-black\/8"],
+body.theme-light [class*="bg-cover"] > .absolute.inset-0[class*="bg-black\/7"],
+body.theme-light [class*="bg-cover"] > .absolute.inset-0[class*="bg-black\/6"],
+body.theme-light [class*="bg-cover"] > .absolute.inset-0[class*="bg-black\/5"] {
+  background-color: rgba(0,0,0,0.35) !important;
+}
+/* Textos sobre foto ficam brancos (legíveis sobre overlay mais claro) */
+body.theme-light [class*="bg-cover"] .relative.z-10 h3,
+body.theme-light [class*="bg-cover"] .relative.z-10 p,
+body.theme-light [class*="bg-cover"] .relative.z-10 [class*="text-white"],
+body.theme-light [class*="bg-cover"] .relative.z-10 [class*="text-neutral-3"],
+body.theme-light [class*="bg-cover"] .relative.z-10 [class*="text-neutral-4"] {
+  color: #ffffff !important;
+}
+body.theme-light [class*="bg-green-900\/10"] {
+  background-color: rgba(21,128,61,0.08) !important;
+  border-color: rgba(21,128,61,0.3) !important;
+}
+/* Texto gradiente verde claro → verde escuro legível */
+body.theme-light [class*="from-green-4"][class*="bg-clip-text"],
+body.theme-light [class*="from-green-4"][class*="text-transparent"] {
+  -webkit-text-fill-color: #15803d !important;
+  color: #15803d !important;
+  background-image: none !important;
+}
+/* text-green-500 na proposta: escurecer para ficar legível */
+body.theme-light #eco-month,
+body.theme-light #eco-year,
+body.theme-light #eco-25years { color: #15803d !important; }
+
+/* Validade da proposta (#urgency-banner) */
+body.theme-light #urgency-banner {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+body.theme-light #urgency-banner [class*="bg-neutral-7"] {
+  background-color: #e2e8f0 !important;
+}
+body.theme-light #urgency-banner [data-lucide] {
+  color: #475569 !important;
+}
+body.theme-light #urgency-banner [class*="text-neutral-5"] { color: #475569 !important; }
+body.theme-light #urgency-banner [class*="text-neutral-3"] { color: #1e293b !important; }
+body.theme-light #urgency-banner [class*="text-white"]      { color: #1e293b !important; }
+
+/* Payback — ícone clock e container */
+body.theme-light [class*="bg-orange-500\/20"] {
+  background-color: rgba(37,99,235,0.12) !important;
+}
+body.theme-light [class*="bg-orange-600\/10"] {
+  background-color: rgba(37,99,235,0.06) !important;
+  border-color: rgba(37,99,235,0.2) !important;
+}
+
+/* ─── 27. ADMIN PANEL ─────────────────────── */
+
+/* Admin bar (MODO ADMINISTRADOR ATIVO) */
+body.theme-light #admin-bar {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+}
+body.theme-light #admin-bar [class*="bg-red-6"] {
+  background-color: rgba(220,38,38,0.12) !important;
+  border-color: rgba(220,38,38,0.3) !important;
+}
+body.theme-light #admin-bar [class*="text-red-4"] { color: #b91c1c !important; }
+body.theme-light #admin-bar [class*="text-white"] { color: #1e293b !important; }
+
+/* Admin bar action buttons (MODELO CSV, XLSX, IMPORTAR, EXPORTAR) */
+body.theme-light #admin-bar a[class*="bg-black"],
+body.theme-light #admin-bar button[class*="bg-black"] {
+  background-color: #ffffff !important;
+}
+body.theme-light #admin-bar [class*="text-cyan-3"]  { color: #0891b2 !important; border-color: #67e8f9 !important; }
+body.theme-light #admin-bar [class*="text-blue-3"]  { color: #1d4ed8 !important; border-color: #93c5fd !important; }
+body.theme-light #admin-bar [class*="text-green-3"] { color: #15803d !important; border-color: #86efac !important; }
+body.theme-light #admin-bar [class*="text-amber-3"] { color: #92400e !important; border-color: #fcd34d !important; }
+
+/* Admin section header (Gerenciamento do Sistema) */
+body.theme-light [class*="bg-red-950\/10"],
+body.theme-light [class*="bg-red-950\/20"] {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+}
+body.theme-light [class*="bg-red-600\/20"] {
+  background-color: rgba(220,38,38,0.1) !important;
+  border-color: rgba(220,38,38,0.25) !important;
+}
+body.theme-light [class*="bg-red-950\/10"] [class*="text-red-4"],
+body.theme-light [class*="bg-red-950\/20"] [class*="text-red-4"] { color: #b91c1c !important; }
+body.theme-light [class*="bg-red-950\/10"] [class*="text-white"],
+body.theme-light [class*="bg-red-950\/20"] [class*="text-white"] { color: #1e293b !important; }
+
+/* "PREÇOS DA UNIDADE" bar */
+body.theme-light [class*="bg-purple-950\/20"] {
+  background-color: #f5f3ff !important;
+  border-color: #ddd6fe !important;
+}
+body.theme-light [class*="bg-purple-950\/20"] [class*="text-purple-4"] { color: #6d28d9 !important; }
+
+/* Botão PREÇOS franquia (editar preços) */
+body.theme-light [class*="bg-purple-600\/20"] {
+  background-color: rgba(109,40,217,0.08) !important;
+  border-color: rgba(109,40,217,0.25) !important;
+  color: #6d28d9 !important;
+}
+
+/* Kit cards admin — EDITAR (blue) e EXCLUIR (red) */
+body.theme-light [class*="bg-blue-600\/20"][class*="text-blue-4"] {
+  background-color: rgba(37,99,235,0.1) !important;
+  color: #1d4ed8 !important;
+}
+body.theme-light [class*="bg-red-600\/20"][class*="text-red-4"] {
+  background-color: rgba(220,38,38,0.08) !important;
+  color: #b91c1c !important;
+}
+/* Kit card dashed border */
+body.theme-light [class*="border-dashed"][class*="border-orange-5"] {
+  border-color: rgba(37,99,235,0.4) !important;
+  background-color: #ffffff !important;
+}
+/* Badges e textos dentro dos kit cards admin */
+body.theme-light #admin-kits-grid [class*="bg-black\/5"],
+body.theme-light #admin-kits-grid [class*="bg-black\/4"] { background-color: #f1f5f9 !important; }
+body.theme-light #admin-kits-grid [class*="text-neutral-5"] { color: #64748b !important; }

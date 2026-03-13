@@ -708,7 +708,7 @@ async function renderAdminPrecosFranquia(franquiaId, franquiaNome) {
           </div>
           <button onclick="savePrecoFranquia('${p.id}', '${franquiaId}', '${p.id}')"
             id="save-btn-${p.id}"
-            class="mt-5 sm:mt-0 flex items-center gap-1.5 px-3 py-2 bg-green-900/20 border border-green-800/40 text-green-500 hover:bg-green-600 hover:text-white hover:border-green-600 font-black uppercase text-[8px] tracking-widest transition-all">
+            class="mt-5 sm:mt-0 flex items-center gap-1.5 px-3 py-2 bg-green-600 border border-green-500 text-white hover:bg-green-700 hover:border-green-400 font-black uppercase text-[8px] tracking-widest transition-all">
             <i data-lucide="check" class="w-3.5 h-3.5"></i> SALVAR
           </button>
         </div>
@@ -767,7 +767,7 @@ async function savePrecoFranquia(produtoId, franquiaId, btnKey) {
     setTimeout(() => {
       if (btn) {
         btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i> SALVAR';
-        btn.className = 'mt-5 sm:mt-0 flex items-center gap-1.5 px-3 py-2 bg-green-900/20 border border-green-800/40 text-green-500 hover:bg-green-600 hover:text-white hover:border-green-600 font-black uppercase text-[8px] tracking-widest transition-all';
+        btn.className = 'mt-5 sm:mt-0 flex items-center gap-1.5 px-3 py-2 bg-green-600 border border-green-500 text-white hover:bg-green-700 hover:border-green-400 font-black uppercase text-[8px] tracking-widest transition-all';
         lucide.createIcons();
       }
     }, 2000);
