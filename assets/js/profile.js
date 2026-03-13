@@ -98,6 +98,10 @@ function _renderProfileModal() {
 function _profileDadosHTML() {
   const avatarUrl = state.profile?.avatar_url || '';
   const initial   = (state.profile?.nome || state.currentUser?.email || '?').charAt(0).toUpperCase();
+  const themePref = (typeof getThemePreference === 'function') ? getThemePreference() : 'system';
+  const themeBtnClass = (id) => themePref === id
+    ? 'bg-orange-600 text-black border-orange-500 shadow-[0_0_8px_rgba(234,88,12,0.3)]'
+    : 'bg-transparent border-neutral-800 text-neutral-500 hover:text-neutral-300 hover:border-neutral-700';
   return `
     <div class="flex flex-col gap-5">
       <!-- Avatar -->
@@ -142,12 +146,37 @@ function _profileDadosHTML() {
           class="w-full bg-neutral-950 border border-neutral-900 px-4 py-3 text-neutral-600 font-bold text-sm cursor-not-allowed">
       </div>
 
+      <!-- Aparência -->
+      <div>
+        <label class="block text-[9px] text-orange-500 font-black uppercase tracking-widest mb-2">Aparência</label>
+        <div class="flex flex-wrap gap-1.5">
+          <button type="button" onclick="_setThemeFromProfile('dark')"
+            class="${themeBtnClass('dark')} border px-4 py-2 font-black uppercase text-[9px] tracking-widest flex items-center gap-2 transition-all">
+            <i data-lucide="moon" class="w-3.5 h-3.5"></i> Escuro
+          </button>
+          <button type="button" onclick="_setThemeFromProfile('light')"
+            class="${themeBtnClass('light')} border px-4 py-2 font-black uppercase text-[9px] tracking-widest flex items-center gap-2 transition-all">
+            <i data-lucide="sun" class="w-3.5 h-3.5"></i> Claro
+          </button>
+          <button type="button" onclick="_setThemeFromProfile('system')"
+            class="${themeBtnClass('system')} border px-4 py-2 font-black uppercase text-[9px] tracking-widest flex items-center gap-2 transition-all">
+            <i data-lucide="monitor" class="w-3.5 h-3.5"></i> Sistema
+          </button>
+        </div>
+        <p class="text-neutral-700 text-[9px] mt-1.5">No celular, usar "Sistema" acompanha automaticamente o tema do aparelho.</p>
+      </div>
+
       <button onclick="_saveDados()"
         class="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black py-3 font-black uppercase tracking-widest text-sm transition-all shadow-[0_0_20px_rgba(234,88,12,0.2)]">
         <i data-lucide="save" class="w-4 h-4 stroke-[3px]"></i> SALVAR DADOS
       </button>
     </div>
   `;
+}
+
+function _setThemeFromProfile(theme) {
+  if (typeof setThemePreference === 'function') setThemePreference(theme);
+  _renderProfileBody();
 }
 
 function _previewAvatar(event) {

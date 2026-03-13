@@ -130,7 +130,7 @@ function renderVendas(container) {
       : null;
 
     html += `
-      <div class="metric-card ${stagger} relative border border-neutral-800 hover:border-green-500/25 p-5 group transition-all duration-300">
+      <div class="metric-card venda-metric-card ${stagger} relative border border-neutral-800 hover:border-green-500/25 p-5 group transition-all duration-300">
         <div class="absolute top-0 right-0 w-24 h-24 bg-green-500/3 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
 
         <div class="relative z-10 flex items-start gap-4">

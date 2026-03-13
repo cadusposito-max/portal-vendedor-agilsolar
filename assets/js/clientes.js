@@ -153,7 +153,7 @@ function renderClientesList(container) {
     }).join('');
 
     return `
-    <div class="metric-card shine-effect ${stagger} relative border border-neutral-800 hover:border-orange-500/25 p-5 group transition-all duration-300">
+    <div class="metric-card client-metric-card shine-effect ${stagger} relative border border-neutral-800 hover:border-orange-500/25 p-5 group transition-all duration-300">
       <!-- Glow blob -->
       <div class="absolute top-0 right-0 w-24 h-24 bg-orange-500/3 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 

@@ -86,8 +86,8 @@ function renderHeaderUser() {
     btn.onclick = toggleAdminViewMode;
     btn.title = state.adminViewAll ? 'Clique para ver só sua franquia' : 'Clique para ver todas as franquias';
     btn.className = state.adminViewAll
-      ? 'p-3 border transition-all duration-300 bg-purple-600/20 border-purple-500/50 text-purple-400 hover:bg-purple-600 hover:text-white flex items-center gap-2 text-[9px] font-black uppercase tracking-widest'
-      : 'p-3 border transition-all duration-300 bg-orange-600/20 border-orange-500/50 text-orange-400 hover:bg-orange-600 hover:text-white flex items-center gap-2 text-[9px] font-black uppercase tracking-widest';
+      ? 'view-scope-toggle is-consolidated p-3 border transition-all duration-300 bg-purple-600/20 border-purple-500/50 text-purple-400 hover:bg-purple-600 hover:text-white flex items-center gap-2 text-[9px] font-black uppercase tracking-widest'
+      : 'view-scope-toggle is-unit p-3 border transition-all duration-300 bg-orange-600/20 border-orange-500/50 text-orange-400 hover:bg-orange-600 hover:text-white flex items-center gap-2 text-[9px] font-black uppercase tracking-widest';
     btn.innerHTML = state.adminViewAll
       ? '<i data-lucide="layers" class="w-4 h-4"></i><span class="hidden sm:inline">CONSOLIDADO</span>'
       : '<i data-lucide="user" class="w-4 h-4"></i><span class="hidden sm:inline">MINHA UNIDADE</span>';
@@ -104,8 +104,8 @@ function renderHeaderUser() {
     btn.onclick = toggleGestorViewMode;
     btn.title = state.gestorViewAll ? 'Clique para ver só os seus clientes' : 'Clique para ver toda a unidade';
     btn.className = state.gestorViewAll
-      ? 'p-3 border transition-all duration-300 bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600 hover:text-white flex items-center gap-2 text-[9px] font-black uppercase tracking-widest'
-      : 'p-3 border transition-all duration-300 bg-orange-600/20 border-orange-500/50 text-orange-400 hover:bg-orange-600 hover:text-white flex items-center gap-2 text-[9px] font-black uppercase tracking-widest';
+      ? 'view-scope-toggle is-gestor-all p-3 border transition-all duration-300 bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600 hover:text-white flex items-center gap-2 text-[9px] font-black uppercase tracking-widest'
+      : 'view-scope-toggle is-gestor-own p-3 border transition-all duration-300 bg-orange-600/20 border-orange-500/50 text-orange-400 hover:bg-orange-600 hover:text-white flex items-center gap-2 text-[9px] font-black uppercase tracking-widest';
     btn.innerHTML = state.gestorViewAll
       ? '<i data-lucide="users" class="w-4 h-4"></i><span class="hidden sm:inline">MINHA UNIDADE</span>'
       : '<i data-lucide="user" class="w-4 h-4"></i><span class="hidden sm:inline">APENAS MEUS</span>';
@@ -199,7 +199,7 @@ function renderTabs() {
     const isActive = state.activeTab === tab.id;
     return `
       <button onclick="setTab('${tab.id}')"
-        class="relative flex items-center gap-2 px-5 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all duration-200 whitespace-nowrap
+        class="app-tab-btn ${isActive ? 'is-active' : ''} relative flex items-center gap-2 px-5 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all duration-200 whitespace-nowrap
           ${isActive
             ? 'text-black bg-gradient-to-r from-orange-600 to-yellow-500 shadow-[0_0_12px_rgba(234,88,12,0.3)]'
             : 'text-neutral-500 hover:text-neutral-300 bg-transparent'
@@ -217,7 +217,7 @@ function renderTabs() {
       const isActive = state.activeTab === tab.id;
       return `
         <button onclick="setTab('${tab.id}')"
-          class="flex items-center gap-3 w-full px-4 py-4 text-sm font-black uppercase tracking-widest transition-all duration-200
+          class="app-tab-mobile-btn ${isActive ? 'is-active' : ''} flex items-center gap-3 w-full px-4 py-4 text-sm font-black uppercase tracking-widest transition-all duration-200
             ${isActive
               ? 'bg-gradient-to-r from-orange-600 to-yellow-500 text-black shadow-[inset_0_0_20px_rgba(0,0,0,0.15)]'
               : 'text-neutral-400 hover:text-white hover:bg-neutral-900/80 border-l-2 border-transparent hover:border-orange-500/40'

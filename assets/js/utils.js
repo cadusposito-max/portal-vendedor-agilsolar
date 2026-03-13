@@ -2,6 +2,92 @@
 // UTILITÁRIOS GERAIS
 // ==========================================
 
+// --- Tema + logo por tema (dark/light) sem ocupar espaço no header ---
+function getThemePreference() {
+  const pref = localStorage.getItem('themePreference');
+  return (pref === 'light' || pref === 'dark' || pref === 'system') ? pref : 'system';
+}
+
+function getActiveThemeMode() {
+  const explicit = document.documentElement.getAttribute('data-theme');
+  if (explicit === 'light' || explicit === 'dark') return explicit;
+
+  const pref = getThemePreference();
+  if (pref === 'light' || pref === 'dark') return pref;
+
+  return (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches)
+    ? 'light'
+    : 'dark';
+}
+
+function applyThemeMode() {
+  const mode = getActiveThemeMode();
+  document.documentElement.setAttribute('data-theme', mode);
+  document.body.classList.toggle('theme-light', mode === 'light');
+  document.body.classList.toggle('theme-dark', mode !== 'light');
+  const lightCssEl = document.getElementById('theme-light-css');
+  if (lightCssEl) lightCssEl.disabled = mode !== 'light';
+  updateThemeMetaColor(mode);
+  applyThemeLogos();
+}
+
+function setThemePreference(preference) {
+  const pref = (preference === 'light' || preference === 'dark' || preference === 'system')
+    ? preference
+    : 'system';
+  localStorage.setItem('themePreference', pref);
+  applyThemeMode();
+  if (typeof showToast === 'function') {
+    const label = pref === 'system' ? 'SISTEMA' : (pref === 'light' ? 'CLARO' : 'ESCURO');
+    showToast(`TEMA: ${label}`);
+  }
+}
+
+function updateThemeMetaColor(mode) {
+  const color = mode === 'light' ? '#f3f4f6' : '#050505';
+  const selectors = [
+    'meta[name="theme-color"]',
+    'meta[name="apple-mobile-web-app-status-bar-style"]'
+  ];
+
+  // theme-color
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeMeta) themeMeta.setAttribute('content', color);
+
+  // iOS status bar behavior remains stable but we keep it explicit
+  const appleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+  if (appleMeta) {
+    appleMeta.setAttribute('content', mode === 'light' ? 'default' : 'black-translucent');
+  }
+}
+
+function applyThemeLogos() {
+  const mode = getActiveThemeMode();
+  document.querySelectorAll('img[data-theme-logo="true"]').forEach(img => {
+    const darkSrc = img.getAttribute('data-logo-dark');
+    const lightSrc = img.getAttribute('data-logo-light');
+    const targetSrc = mode === 'light' ? lightSrc : darkSrc;
+    if (targetSrc && img.getAttribute('src') !== targetSrc) {
+      img.setAttribute('src', targetSrc);
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', applyThemeMode);
+
+if (window.matchMedia) {
+  const _themeMq = window.matchMedia('(prefers-color-scheme: light)');
+  if (_themeMq.addEventListener) {
+    _themeMq.addEventListener('change', () => {
+      if (getThemePreference() === 'system') applyThemeMode();
+    });
+  } else if (_themeMq.addListener) {
+    _themeMq.addListener(() => {
+      if (getThemePreference() === 'system') applyThemeMode();
+    });
+  }
+}
+
 // --- Segurança: sanitizar strings antes de inserir no DOM ---
 function escapeHTML(str) {
   if (str === null || str === undefined) return '';

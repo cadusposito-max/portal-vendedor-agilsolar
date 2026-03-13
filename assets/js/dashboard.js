@@ -126,7 +126,7 @@ function renderDashboard(container) {
     <!-- ════════════════════════════════════════
          HERO HEADER — saudação + relógio
          ════════════════════════════════════════ -->
-    <div class="stagger-1 relative overflow-hidden border border-neutral-800/60 p-6 md:p-8 group" style="background: linear-gradient(135deg, #0f0f0f 0%, #080808 100%);">
+    <div class="dash-hero stagger-1 relative overflow-hidden border border-neutral-800/60 p-6 md:p-8 group" style="background: linear-gradient(135deg, #0f0f0f 0%, #080808 100%);">
       <div class="absolute inset-0 bg-grid opacity-50 pointer-events-none"></div>
       <div class="absolute -right-16 -top-16 w-64 h-64 bg-orange-600/5 rounded-full blur-[80px] group-hover:bg-orange-600/8 transition-all duration-1000 pointer-events-none"></div>
       <div class="absolute -left-8 -bottom-8 w-48 h-48 bg-yellow-500/3 rounded-full blur-[60px] pointer-events-none"></div>
@@ -187,7 +187,7 @@ function renderDashboard(container) {
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
 
       <!-- Clientes -->
-      <div class="metric-card stagger-2 shine-effect border border-neutral-800/60 p-5 md:p-6 flex flex-col gap-4 relative overflow-hidden group cursor-default">
+      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-5 md:p-6 flex flex-col gap-4 relative overflow-hidden group cursor-default">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-blue-500 opacity-[0.05] rounded-full blur-2xl group-hover:opacity-[0.1] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
           <span class="text-[9px] text-neutral-600 font-black uppercase tracking-widest">Meus Clientes</span>
@@ -210,7 +210,7 @@ function renderDashboard(container) {
       </div>
 
       <!-- Propostas -->
-      <div class="metric-card stagger-2 shine-effect border border-neutral-800/60 p-5 md:p-6 flex flex-col gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 80ms">
+      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-5 md:p-6 flex flex-col gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 80ms">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-orange-500 opacity-[0.05] rounded-full blur-2xl group-hover:opacity-[0.1] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
           <span class="text-[9px] text-neutral-600 font-black uppercase tracking-widest">Propostas</span>
@@ -233,7 +233,7 @@ function renderDashboard(container) {
       </div>
 
       <!-- Fechados -->
-      <div class="metric-card stagger-2 shine-effect border border-neutral-800/60 p-5 md:p-6 flex flex-col gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 160ms">
+      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-5 md:p-6 flex flex-col gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 160ms">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-green-500 opacity-[0.05] rounded-full blur-2xl group-hover:opacity-[0.1] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
           <span class="text-[9px] text-neutral-600 font-black uppercase tracking-widest">Negócios Fechados</span>
@@ -256,7 +256,7 @@ function renderDashboard(container) {
       </div>
 
       <!-- Ticket Médio -->
-      <div class="metric-card stagger-2 shine-effect border border-neutral-800/60 p-5 md:p-6 flex flex-col gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 240ms">
+      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-5 md:p-6 flex flex-col gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 240ms">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-blue-400 opacity-[0.04] rounded-full blur-2xl group-hover:opacity-[0.08] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
           <span class="text-[9px] text-neutral-600 font-black uppercase tracking-widest">Ticket Médio</span>
@@ -282,7 +282,7 @@ function renderDashboard(container) {
     <!-- ════════════════════════════════════════
          PIPELINE DE VENDAS
          ════════════════════════════════════════ -->
-    <div class="stagger-3 relative overflow-hidden border border-neutral-800/60 p-6 md:p-7" style="background: linear-gradient(135deg, #0e0e0e 0%, #080808 100%);">
+    <div class="dash-pipeline stagger-3 relative overflow-hidden border border-neutral-800/60 p-6 md:p-7" style="background: linear-gradient(135deg, #0e0e0e 0%, #080808 100%);">
       <div class="absolute right-0 top-0 w-48 h-48 bg-purple-600/4 rounded-full blur-3xl pointer-events-none"></div>
 
       <div class="flex items-center justify-between mb-6 relative z-10">
@@ -375,7 +375,7 @@ function renderDashboard(container) {
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 stagger-4">
 
       <!-- Tabela -->
-      <div class="col-span-1 lg:col-span-2 border border-neutral-800/60 flex flex-col" style="background: linear-gradient(180deg, #0d0d0d 0%, #080808 100%);">
+      <div class="dash-proposals-panel col-span-1 lg:col-span-2 border border-neutral-800/60 flex flex-col" style="background: linear-gradient(180deg, #0d0d0d 0%, #080808 100%);">
         <div class="flex items-center justify-between px-5 py-4 border-b border-neutral-800/50">
           <h3 class="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
             <div class="p-1.5 bg-orange-500/10 border border-orange-500/20">
@@ -404,7 +404,7 @@ function renderDashboard(container) {
       <div class="flex flex-col gap-3">
 
         <!-- Materiais Úteis -->
-        <div class="border border-neutral-800/60 p-5 flex flex-col gap-3" style="background: #0d0d0d;">
+        <div class="dash-materials-panel border border-neutral-800/60 p-5 flex flex-col gap-3" style="background: #0d0d0d;">
           <h3 class="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
             <div class="p-1.5 bg-blue-500/10 border border-blue-500/20">
               <i data-lucide="folder-down" class="w-3 h-3 text-blue-400"></i>
@@ -435,7 +435,7 @@ function renderDashboard(container) {
         </div>
 
         <!-- CTA Ação Rápida -->
-        <div class="relative overflow-hidden border border-orange-500/15 p-5 flex flex-col gap-4"
+        <div class="dash-quick-panel relative overflow-hidden border border-orange-500/15 p-5 flex flex-col gap-4"
           style="background: linear-gradient(135deg, rgba(234,88,12,0.06) 0%, #080808 60%);">
           <div class="absolute inset-0 bg-grid-sm opacity-30 pointer-events-none"></div>
           <div class="relative z-10">
