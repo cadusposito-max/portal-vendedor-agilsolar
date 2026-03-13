@@ -31,6 +31,14 @@ function formatMonthLabel(yyyymm) {
   return `${months[parseInt(m, 10) - 1]} ${y}`;
 }
 
+function debounce(fn, wait = 180) {
+  let timer = null;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), wait);
+  };
+}
+
 // --- Toast com fila (evita sobreposição) ---
 let _toastQueue   = [];
 let _toastShowing = false;
@@ -73,9 +81,21 @@ function hideConfirmModal() {
 // ANIMAÇÃO DE CONTADORES
 // ==========================================
 function animateCounters() {
+  const reduceMotion =
+    (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ||
+    window.innerWidth <= 768;
+
   document.querySelectorAll('[data-count]').forEach(el => {
     const target     = parseFloat(el.dataset.count) || 0;
     const isCurrency = el.dataset.countCurrency === 'true';
+
+    if (reduceMotion) {
+      el.textContent = isCurrency
+        ? formatCurrency(target)
+        : target.toLocaleString('pt-BR');
+      return;
+    }
+
     const duration   = 1200;
     const start      = performance.now();
 
@@ -155,7 +175,7 @@ function getStatusColor(status) {
 // Fallback: 5.4 HSP (Araçatuba) quando não logado (ex: proposta.html pública).
 function calcularGeracaoEstimada(potencia_kWp, categoria) {
   const hsp        = (typeof state !== 'undefined' && state.franquiaHsp) ? state.franquiaHsp : 5.4;
-  const eficiencia = categoria === 'kitsMicro' ? 0.85 : 0.80;
+  const eficiencia = categoria === 'kitsMicro' ? 0.81 : 0.76;
   return potencia_kWp * hsp * 30 * eficiencia;
 }
 

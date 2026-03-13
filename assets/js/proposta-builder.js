@@ -444,11 +444,15 @@ function syncPBCustomInputsFromState() {
 }
 
 function bindPBCustomUIEvents() {
+  const debouncedPBSearchRender = debounce((rawValue) => {
+    state.pbSearch = String(rawValue || '').trim().toLowerCase();
+    renderModalProducts();
+  }, 170);
+
   const pbSearchInput = document.getElementById('pb-search');
   if (pbSearchInput && !pbSearchInput.dataset.bound) {
     pbSearchInput.addEventListener('input', (e) => {
-      state.pbSearch = e.target.value.toLowerCase();
-      renderModalProducts();
+      debouncedPBSearchRender(e.target.value);
     });
     pbSearchInput.dataset.bound = '1';
   }
@@ -872,10 +876,9 @@ function renderModalProducts() {
   if (state.pbSearch) {
     const searchNum = parseInt(state.pbSearch, 10);
     list = list.filter(item => {
-      const estGeneration = calcularGeracaoEstimada(item.power, item.categoria);
-      const textMatch = item.name.toLowerCase().includes(state.pbSearch) ||
-                        item.brand.toLowerCase().includes(state.pbSearch) ||
-                        item.power.toString().includes(state.pbSearch);
+      const estGeneration = Number(item._estGeneration ?? calcularGeracaoEstimada(item.power, item.categoria));
+      const searchBlob = item._searchBlob || `${item.name || ''} ${item.brand || ''} ${item.power || ''}`.toLowerCase();
+      const textMatch = searchBlob.includes(state.pbSearch);
       const generationMatch = !isNaN(searchNum) && Math.abs(estGeneration - searchNum) <= 50;
       return textMatch || generationMatch;
     });
@@ -897,7 +900,8 @@ function renderModalProducts() {
     : 'flex-1 overflow-y-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-[#050505] content-start';
 
   container.innerHTML = list.map(item => {
-    const estGeneration     = calcularGeracaoEstimada(item.power, item.categoria).toFixed(0);
+    const estGenerationNum  = Number(item._estGeneration ?? calcularGeracaoEstimada(item.power, item.categoria)) || 0;
+    const estGeneration     = estGenerationNum.toFixed(0);
     const formattedPrice    = formatCurrency(item.price);
     const formattedListPrice= formatCurrency(item.list_price);
     const safeId            = escapeHTML(String(item.id));

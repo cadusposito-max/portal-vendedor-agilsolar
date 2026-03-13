@@ -6,6 +6,9 @@
 let _clockInterval = null;
 
 function startDashboardClock() {
+  // Evita acumular múltiplos intervals quando o dashboard é re-renderizado.
+  if (_clockInterval) clearInterval(_clockInterval);
+
   const tick = () => {
     const el = document.getElementById('dashboard-clock');
     if (!el) return;
@@ -297,9 +300,13 @@ function renderContent() {
 }
 
 // --- Event Listeners Globais ---
-document.getElementById('search-input').addEventListener('input', (e) => {
-  state.searchTerm = e.target.value;
+const _onSearchInput = debounce((value) => {
+  state.searchTerm = value;
   renderContent();
+}, 180);
+
+document.getElementById('search-input').addEventListener('input', (e) => {
+  _onSearchInput(e.target.value);
 });
 
 document.getElementById('client-telefone').addEventListener('input', formatarTelefone);

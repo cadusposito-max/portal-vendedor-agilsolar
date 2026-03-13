@@ -2,42 +2,81 @@
 // BUSCA DE DADOS (Supabase)
 // ==========================================
 
+function enrichProductForUI(produto) {
+  const power = Number(produto.power) || 0;
+  const categoria = produto.categoria || 'kitsInversor';
+  return {
+    ...produto,
+    power,
+    price: Number(produto.price) || 0,
+    list_price: Number(produto.list_price) || 0,
+    _searchBlob: `${produto.name || ''} ${produto.brand || ''} ${power}`.toLowerCase(),
+    _estGeneration: calcularGeracaoEstimada(power, categoria),
+  };
+}
+
+function resolveBestPositiveValue(values, fallback) {
+  const validValues = (Array.isArray(values) ? values : [])
+    .map(v => Number(v))
+    .filter(v => Number.isFinite(v) && v > 0);
+
+  if (validValues.length > 0) {
+    return Math.max(...validValues);
+  }
+
+  const fallbackNumber = Number(fallback);
+  return Number.isFinite(fallbackNumber) && fallbackNumber > 0 ? fallbackNumber : 0;
+}
+
+function resolveProductPrices(produto) {
+  const franchiseRows = Array.isArray(produto.precos_franquia) ? produto.precos_franquia : [];
+  const price = resolveBestPositiveValue(franchiseRows.map(r => r?.price), produto.price);
+  const listPriceRaw = resolveBestPositiveValue(franchiseRows.map(r => r?.list_price), produto.list_price);
+  const listPrice = Math.max(listPriceRaw, price);
+
+  return { price, list_price: listPrice };
+}
+
 async function fetchProducts() {
   if (!state.currentUser) return;
 
   // Admin: carrega produtos com preços da Matriz (referência)
   // Vendedor: carrega produtos com preço da própria franquia via JOIN
   if (state.isAdmin) {
-    if (state.adminKitsFranquia) {
-      // Admin com franquia selecionada: carrega preços daquela franquia
+    // Para admin, sempre prioriza preços por franquia:
+    // 1) franquia selecionada no painel admin; 2) própria franquia do usuário.
+    const targetFranquiaId = state.adminKitsFranquia || state.franquiaId || null;
+
+    if (targetFranquiaId) {
+      // Admin com franquia alvo: carrega preços daquela franquia
       const { data, error } = await supabaseClient
         .from('produtos')
         .select(`
-          id, categoria, name, brand, power, type, description, tag, created_at,
+          id, categoria, name, brand, power, type, description, tag, created_at, price, list_price,
           precos_franquia(price, list_price)
         `)
-        .eq('precos_franquia.franquia_id', state.adminKitsFranquia)
+        .eq('precos_franquia.franquia_id', targetFranquiaId)
         .order('power', { ascending: true });
       if (!error) {
-        state.data = (data || []).map(p => ({
+        state.data = (data || []).map(p => enrichProductForUI({
           ...p,
-          price:      p.precos_franquia?.[0]?.price      ?? 0,
-          list_price: p.precos_franquia?.[0]?.list_price ?? 0,
+          ...resolveProductPrices(p),
         }));
       }
     } else {
+      // Fallback de segurança quando não houver franquia vinculada no JWT.
       const { data, error } = await supabaseClient
         .from('produtos')
         .select('*')
         .order('power', { ascending: true });
-      if (!error) state.data = data || [];
+      if (!error) state.data = (data || []).map(enrichProductForUI);
     }
   } else {
     // JOIN com precos_franquia para retornar o preço correto da franquia do vendedor
     const { data, error } = await supabaseClient
       .from('produtos')
       .select(`
-        id, categoria, name, brand, power, type, description, tag, created_at,
+        id, categoria, name, brand, power, type, description, tag, created_at, price, list_price,
         precos_franquia!inner(price, list_price)
       `)
       .eq('precos_franquia.franquia_id', state.franquiaId)
@@ -45,10 +84,9 @@ async function fetchProducts() {
 
     if (!error) {
       // Achata o resultado: substitui price/list_price pelo valor da franquia
-      state.data = (data || []).map(p => ({
+      state.data = (data || []).map(p => enrichProductForUI({
         ...p,
-        price:      p.precos_franquia[0]?.price      ?? p.price,
-        list_price: p.precos_franquia[0]?.list_price ?? p.list_price,
+        ...resolveProductPrices(p),
       }));
     }
   }

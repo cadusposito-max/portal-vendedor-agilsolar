@@ -58,6 +58,9 @@ async function checkAuth() {
       state.isAdmin     = appMeta.role === 'admin';
       state.isGestor    = appMeta.role === 'gestor';
       state.franquiaId  = appMeta.franquia_id || null;
+      if (state.isAdmin && state.franquiaId && !state.adminKitsFranquia) {
+        state.adminKitsFranquia = state.franquiaId;
+      }
       if (state.isAdmin || state.isGestor) {
         const adminBtn = document.getElementById('admin-toggle-btn');
         if (adminBtn) adminBtn.classList.remove('hidden');
@@ -232,6 +235,9 @@ async function _finishLogin(user, email) {
   state.isAdmin     = appMeta.role === 'admin';
   state.isGestor    = appMeta.role === 'gestor';
   state.franquiaId  = appMeta.franquia_id || null;
+  if (state.isAdmin && state.franquiaId && !state.adminKitsFranquia) {
+    state.adminKitsFranquia = state.franquiaId;
+  }
   if (state.isAdmin || state.isGestor) {
     const adminBtn = document.getElementById('admin-toggle-btn');
     if (adminBtn) adminBtn.classList.remove('hidden');

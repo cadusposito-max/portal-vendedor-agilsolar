@@ -269,3 +269,33 @@ body {
 .hover-lift:hover {
   transform: translateY(-2px);
 }
+
+/* ==========================================
+   PERFORMANCE — mobile/reduced motion
+   ========================================== */
+@media (prefers-reduced-motion: reduce), (max-width: 768px) {
+  .stagger-1,
+  .stagger-2,
+  .stagger-3,
+  .stagger-4,
+  .stagger-5,
+  .stagger-6,
+  .bar-animated,
+  .funnel-bar,
+  .number-pop,
+  .avatar-pulse,
+  .animated-stripe {
+    animation: none !important;
+  }
+
+  .metric-card,
+  .hover-lift,
+  .table-row-hover {
+    transition: none !important;
+  }
+
+  #toast {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

@@ -177,7 +177,7 @@ function renderData(data) {
   // Fallback para propostas antigas sem geracao_estimada salva
   const estGeneration = data.geracao_estimada
     ? Number(data.geracao_estimada)
-    : displayPower * 5.4 * 30 * 0.80;
+    : calcularGeracaoEstimada(displayPower);
 
   const valorFaturaIdeal = estGeneration * TARIFA_MEDIA;
   const economiaMensal   = valorFaturaIdeal * 0.85;
