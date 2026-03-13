@@ -60,6 +60,11 @@ function renderProductsList(container) {
     const badgeClass        = getBadgeStyles(item.tag);
     const formattedPrice    = formatCurrency(item.price);
     const formattedListPrice= formatCurrency(item.list_price);
+    const safeTag  = escapeHTML(item.tag || '');
+    const safeName = escapeHTML(item.name || '');
+    const safeBrand= escapeHTML(item.brand || '');
+    const safeType = escapeHTML(item.type || '');
+    const safeDesc = escapeHTML(item.description || '');
 
     const adminButtons = `
       <div class="flex gap-1">
@@ -73,12 +78,12 @@ function renderProductsList(container) {
           <div class="absolute top-0 right-0 p-2 z-20 flex gap-1 bg-black/80 backdrop-blur border-b border-l border-neutral-700">${adminButtons}</div>
           <div class="absolute -left-1 top-4 z-10"><div class="bg-red-600 text-white text-xs font-black px-3 py-1 shadow-lg flex items-center gap-1 skew-x-[-10deg] border-2 border-red-800"><span class="skew-x-[10deg]">-${discount}% OFF</span></div></div>
           <div class="p-6 relative z-10 flex flex-col h-full">
-            <div class="flex justify-end mb-4"><span class="px-2 py-0.5 rounded-none skew-x-[-10deg] text-[10px] font-black uppercase tracking-tighter border-l-4 shadow-[0_0_10px_rgba(0,0,0,0.5)] ${badgeClass}"><span class="skew-x-[10deg] inline-block">${item.tag}</span></span></div>
-            <div class="mb-1"><span class="text-[10px] text-neutral-500 font-bold uppercase tracking-[0.2em]">${item.brand}</span></div>
-            <h3 class="text-white font-black text-xl leading-none uppercase tracking-tight mb-4">${item.name}</h3>
+            <div class="flex justify-end mb-4"><span class="px-2 py-0.5 rounded-none skew-x-[-10deg] text-[10px] font-black uppercase tracking-tighter border-l-4 shadow-[0_0_10px_rgba(0,0,0,0.5)] ${badgeClass}"><span class="skew-x-[10deg] inline-block">${safeTag}</span></span></div>
+            <div class="mb-1"><span class="text-[10px] text-neutral-500 font-bold uppercase tracking-[0.2em]">${safeBrand}</span></div>
+            <h3 class="text-white font-black text-xl leading-none uppercase tracking-tight mb-4">${safeName}</h3>
             <div class="bg-black/50 border border-neutral-800 p-3 mb-6 grid grid-cols-2 gap-2">
               <div class="flex flex-col"><span class="text-[10px] text-neutral-500 font-bold uppercase">Potência</span><span class="text-orange-500 font-black text-lg flex items-center gap-1"><i data-lucide="zap" class="w-4 h-4 fill-orange-500"></i> ${item.power} <span class="text-xs">kWp</span></span></div>
-              <div class="flex flex-col border-l border-neutral-800 pl-3"><span class="text-[10px] text-neutral-500 font-bold uppercase">Tipo</span><span class="text-neutral-300 font-bold text-sm uppercase mt-1 truncate">${item.type}</span></div>
+              <div class="flex flex-col border-l border-neutral-800 pl-3"><span class="text-[10px] text-neutral-500 font-bold uppercase">Tipo</span><span class="text-neutral-300 font-bold text-sm uppercase mt-1 truncate">${safeType}</span></div>
             </div>
             <div class="mt-auto pt-4 border-t-2 border-dashed border-neutral-800">
               <div class="flex flex-col mb-1"><span class="text-xs text-neutral-500 line-through font-bold decoration-red-500 decoration-2">DE: ${formattedListPrice}</span></div>
@@ -94,14 +99,14 @@ function renderProductsList(container) {
         <div class="relative flex flex-col sm:flex-row sm:items-center p-5 gap-4 group bg-neutral-900 border-b border-dashed border-orange-500/30 transition-all opacity-80 hover:opacity-100">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-3 mb-2 flex-wrap">
-              <span class="px-2 py-0.5 rounded-none skew-x-[-10deg] text-[10px] font-black uppercase tracking-tighter border-l-4 shadow-[0_0_10px_rgba(0,0,0,0.5)] ${badgeClass}"><span class="skew-x-[10deg] inline-block">${item.tag}</span></span>
-              <span class="text-[10px] font-black text-neutral-500 uppercase tracking-widest bg-black px-2 py-0.5">${item.brand}</span>
+              <span class="px-2 py-0.5 rounded-none skew-x-[-10deg] text-[10px] font-black uppercase tracking-tighter border-l-4 shadow-[0_0_10px_rgba(0,0,0,0.5)] ${badgeClass}"><span class="skew-x-[10deg] inline-block">${safeTag}</span></span>
+              <span class="text-[10px] font-black text-neutral-500 uppercase tracking-widest bg-black px-2 py-0.5">${safeBrand}</span>
             </div>
-            <h3 class="text-white font-black text-lg uppercase tracking-tight truncate group-hover:text-orange-400 transition-colors">${item.name}</h3>
+            <h3 class="text-white font-black text-lg uppercase tracking-tight truncate group-hover:text-orange-400 transition-colors">${safeName}</h3>
             <div class="flex items-center gap-4 text-xs mt-2 text-neutral-400 uppercase font-bold">
               <span class="flex items-center text-orange-500"><i data-lucide="zap" class="w-3 h-3 mr-1"></i> ${item.power} kWp</span>
               <span class="w-1 h-1 bg-neutral-600 rounded-full"></span>
-              <span class="truncate max-w-[300px]">${item.description}</span>
+              <span class="truncate max-w-[300px]">${safeDesc}</span>
             </div>
           </div>
           <div class="flex items-center justify-between sm:justify-end gap-6 sm:min-w-[300px] border-t sm:border-t-0 border-neutral-800 pt-3 sm:pt-0 mt-2 sm:mt-0">

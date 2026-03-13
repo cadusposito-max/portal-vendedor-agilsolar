@@ -2,9 +2,17 @@
 // AUTENTICAÇÃO
 // ==========================================
 
-// --- Proteção contra brute-force ---
-let _loginAttempts = 0;
-let _loginLockout  = false;
+// --- Proteção contra brute-force (persiste no sessionStorage para resistir a F5) ---
+const _BF_KEY_ATTEMPTS = 'bf_attempts';
+const _BF_KEY_UNTIL    = 'bf_until';
+
+function _bfGetAttempts() { return parseInt(sessionStorage.getItem(_BF_KEY_ATTEMPTS) || '0', 10); }
+function _bfSetAttempts(n) { sessionStorage.setItem(_BF_KEY_ATTEMPTS, String(n)); }
+function _bfGetUntil()    { return parseInt(sessionStorage.getItem(_BF_KEY_UNTIL) || '0', 10); }
+function _bfSetUntil(ts)  { sessionStorage.setItem(_BF_KEY_UNTIL, String(ts)); }
+function _bfClear()       { sessionStorage.removeItem(_BF_KEY_ATTEMPTS); sessionStorage.removeItem(_BF_KEY_UNTIL); }
+
+let _loginLockout = false;
 
 // --- Flag para fluxo de recuperação de senha ---
 let _isPasswordRecovery = false;
@@ -96,6 +104,34 @@ async function checkAuth() {
   }
 }
 
+// Ao carregar a página, verifica se ainda há lockout ativo
+(function _bfCheckOnLoad() {
+  const until = _bfGetUntil();
+  if (until && Date.now() < until) {
+    _loginLockout = true;
+    const btnSubmit = document.getElementById('btn-submit-login');
+    const errorEl   = document.getElementById('login-error');
+    let segundos = Math.ceil((until - Date.now()) / 1000);
+    if (errorEl) { errorEl.innerText = `Muitas tentativas. Aguarde ${segundos}s.`; errorEl.classList.remove('hidden'); }
+    if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.innerHTML = `<i data-lucide="lock" class="w-5 h-5 stroke-[3px]"></i> BLOQUEADO (${segundos}s)`; }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    const iv = setInterval(() => {
+      segundos--;
+      if (errorEl) errorEl.innerText = `Muitas tentativas. Aguarde ${segundos}s.`;
+      if (btnSubmit) btnSubmit.innerHTML = `<i data-lucide="lock" class="w-5 h-5 stroke-[3px]"></i> BLOQUEADO (${segundos}s)`;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      if (segundos <= 0) {
+        clearInterval(iv);
+        _loginLockout = false;
+        _bfClear();
+        if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerHTML = `<i data-lucide="log-in" class="w-5 h-5 stroke-[3px]"></i> ENTRAR NO SISTEMA`; }
+        if (errorEl) errorEl.classList.add('hidden');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      }
+    }, 1000);
+  }
+})();
+
 document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -114,12 +150,15 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
   if (error) {
-    _loginAttempts++;
-    const restantes = MAX_LOGIN_ATTEMPTS - _loginAttempts;
+    const attempts = _bfGetAttempts() + 1;
+    _bfSetAttempts(attempts);
+    const restantes = MAX_LOGIN_ATTEMPTS - attempts;
 
-    if (_loginAttempts >= MAX_LOGIN_ATTEMPTS) {
+    if (attempts >= MAX_LOGIN_ATTEMPTS) {
       _loginLockout = true;
-      let segundos  = LOGIN_LOCKOUT_SECONDS;
+      const until = Date.now() + LOGIN_LOCKOUT_SECONDS * 1000;
+      _bfSetUntil(until);
+      let segundos = LOGIN_LOCKOUT_SECONDS;
       errorEl.innerText = `Muitas tentativas. Aguarde ${segundos}s para tentar novamente.`;
       errorEl.classList.remove('hidden');
 
@@ -130,8 +169,8 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
         lucide.createIcons();
         if (segundos <= 0) {
           clearInterval(lockInterval);
-          _loginLockout  = false;
-          _loginAttempts = 0;
+          _loginLockout = false;
+          _bfClear();
           btnSubmit.disabled = false;
           btnSubmit.innerHTML = `<i data-lucide="log-in" class="w-5 h-5 stroke-[3px]"></i> ENTRAR NO SISTEMA`;
           errorEl.classList.add('hidden');
@@ -149,7 +188,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
       lucide.createIcons();
     }
   } else {
-    _loginAttempts = 0;
+    _bfClear();
     errorEl.classList.add('hidden');
     state.currentUser = data.user;
 

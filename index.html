@@ -6,14 +6,17 @@
   <!-- Content Security Policy: bloqueia scripts de origens não autorizadas -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
-    script-src  'self' 'unsafe-inline' cdn.tailwindcss.com unpkg.com cdn.jsdelivr.net;
-    style-src   'self' 'unsafe-inline' fonts.googleapis.com;
-    font-src    fonts.gstatic.com;
-    img-src     'self' data: placehold.co https:;
-    connect-src 'self' https://unpkg.com https://tzwjxgprhorqrmpqudgg.supabase.co wss://tzwjxgprhorqrmpqudgg.supabase.co;
+    script-src  'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net;
+    style-src   'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src    'self' https://fonts.gstatic.com;
+    img-src     'self' data: blob: https://placehold.co https://tzwjxgprhorqrmpqudgg.supabase.co https:;
+    connect-src 'self' https://tzwjxgprhorqrmpqudgg.supabase.co wss://tzwjxgprhorqrmpqudgg.supabase.co;
     frame-src   'none';
     object-src  'none';
+    base-uri    'self';
+    worker-src  'none';
   ">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Ágil Solar - Portal Parceiros</title>
 
   <!-- Tailwind CSS -->
