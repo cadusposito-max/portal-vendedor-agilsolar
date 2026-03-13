@@ -151,10 +151,12 @@ function getStatusColor(status) {
 }
 
 // Estima geração mensal em kWh
+// Usa hsp_medio da franquia do usuário logado (carregado via fetchFranquia).
+// Fallback: 5.4 HSP (Araçatuba) quando não logado (ex: proposta.html pública).
 function calcularGeracaoEstimada(potencia_kWp, categoria) {
-  const horasSolMesBruto = 153.75;
+  const hsp        = (typeof state !== 'undefined' && state.franquiaHsp) ? state.franquiaHsp : 5.4;
   const eficiencia = categoria === 'kitsMicro' ? 0.85 : 0.80;
-  return potencia_kWp * horasSolMesBruto * eficiencia;
+  return potencia_kWp * hsp * 30 * eficiencia;
 }
 
 function copiarTextoBlindado(texto) {

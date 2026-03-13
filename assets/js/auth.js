@@ -375,8 +375,9 @@ async function updateVendedorStats(email) {
   if (stats) {
     state.comissaoPct = stats.comissao_pct ?? 5;
     await supabaseClient.from('vendedores_stats').update({
-      total_logins: stats.total_logins + 1,
-      ultimo_acesso: new Date().toISOString()
+      total_logins:  stats.total_logins + 1,
+      ultimo_acesso: new Date().toISOString(),
+      franquia_id:   state.franquiaId || null,
     }).eq('email', email);
   } else {
     state.comissaoPct = 5;

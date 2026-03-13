@@ -62,9 +62,9 @@ function renderProductsList(container) {
     const formattedListPrice= formatCurrency(item.list_price);
 
     const adminButtons = `
-      <div class="flex gap-2">
-        <button data-item-id="${item.id}" onclick="openModalById(this.dataset.itemId)" aria-label="Editar ${escapeHTML(item.name)}" class="p-1.5 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white transition-colors"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-        <button onclick="deleteItem('${item.id}')" aria-label="Excluir ${escapeHTML(item.name)}" class="p-1.5 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+      <div class="flex gap-1">
+        <button data-item-id="${item.id}" onclick="openModalById(this.dataset.itemId)" aria-label="Editar ${escapeHTML(item.name)}" class="flex items-center gap-1.5 px-3 py-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>EDITAR</button>
+        <button onclick="deleteItem('${item.id}')" aria-label="Excluir ${escapeHTML(item.name)}" class="flex items-center gap-1.5 px-3 py-2 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>EXCLUIR</button>
       </div>`;
 
     if (state.viewMode === 'grid') {
@@ -211,3 +211,585 @@ function toggleAdminMode() {
     : 'p-3 border transition-all duration-300 bg-black border-neutral-800 text-neutral-500 hover:text-white hover:border-white';
   renderContent();
 }
+
+const KIT_IMPORT_HEADER_ALIASES = {
+  id:         ['id', 'produtoid'],
+  categoria:  ['categoria', 'category', 'aba', 'secao'],
+  name:       ['name', 'nome', 'kit', 'kitnome', 'produto', 'nomedokit'],
+  brand:      ['brand', 'marca', 'fabricante'],
+  power:      ['power', 'potencia', 'potenciakwp', 'kwp', 'potenciasistema'],
+  type:       ['type', 'tipo', 'fase', 'tiporede'],
+  price:      ['price', 'preco', 'precovenda', 'valor', 'valorvenda', 'avista', 'valoravista'],
+  list_price: ['listprice', 'precolista', 'precode', 'de', 'valorlista', 'valorde', 'precotabela'],
+  tag:        ['tag', 'selo', 'etiqueta'],
+  description:['description', 'descricao', 'detalhes'],
+};
+
+const KIT_IMPORT_TAG_MAP = {
+  'MAIS VENDIDO': 'MAIS VENDIDO',
+  'PREMIUM': 'PREMIUM',
+  'CUSTO BENEFICIO': 'CUSTO-BENEFÍCIO',
+  'LANCAMENTO': 'LANÇAMENTO',
+  'ALTA POTENCIA': 'ALTA POTÊNCIA',
+  'PROJETO ESPECIAL': 'PROJETO ESPECIAL',
+};
+
+function normalizeImportText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
+function normalizeImportHeader(value) {
+  return normalizeImportText(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '');
+}
+
+function detectCsvDelimiter(text) {
+  const firstLine = (text || '').split(/\r?\n/).find(line => line.trim().length > 0) || '';
+  const semicolonCount = (firstLine.match(/;/g) || []).length;
+  const commaCount     = (firstLine.match(/,/g) || []).length;
+  return semicolonCount > commaCount ? ';' : ',';
+}
+
+function parseSpreadsheetNumber(value) {
+  if (typeof value === 'number') return value;
+  let str = String(value ?? '').trim();
+  if (!str) return NaN;
+
+  str = str
+    .replace(/R\$/gi, '')
+    .replace(/\s+/g, '')
+    .replace(/[^\d,.-]/g, '');
+
+  const lastComma = str.lastIndexOf(',');
+  const lastDot   = str.lastIndexOf('.');
+
+  if (lastComma > -1 && lastDot > -1) {
+    if (lastComma > lastDot) {
+      str = str.replace(/\./g, '').replace(',', '.');
+    } else {
+      str = str.replace(/,/g, '');
+    }
+  } else if (lastComma > -1) {
+    str = str.replace(/\./g, '').replace(',', '.');
+  }
+
+  const num = Number(str);
+  return Number.isFinite(num) ? num : NaN;
+}
+
+function normalizeImportedCategory(value, fallback) {
+  const v = normalizeImportHeader(value);
+  if (!v) return fallback;
+  if (v.includes('micro')) return 'kitsMicro';
+  if (v.includes('string')) return 'kitsString';
+  if (v.includes('inversor')) return 'kitsInversor';
+  if (v === 'kitsmicro') return 'kitsMicro';
+  if (v === 'kitsstring') return 'kitsString';
+  if (v === 'kitsinversor') return 'kitsInversor';
+  return fallback;
+}
+
+function normalizeImportedType(value) {
+  const original = String(value || '').trim();
+  const v = normalizeImportText(original).toUpperCase();
+  if (!v) return 'Bifásico';
+  if (v.includes('MONO')) return 'Monofásico';
+  if (v.includes('TRI')) return 'Trifásico';
+  if (v.includes('BI')) return 'Bifásico';
+  return original;
+}
+
+function normalizeImportedTag(value) {
+  const normalized = normalizeImportText(value)
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, ' ')
+    .trim();
+  if (!normalized) return 'MAIS VENDIDO';
+  return KIT_IMPORT_TAG_MAP[normalized] || 'PROJETO ESPECIAL';
+}
+
+function getImportDefaultCategory() {
+  const validCategories = new Set(['kitsInversor', 'kitsMicro', 'kitsString']);
+  return validCategories.has(state.activeTab) ? state.activeTab : 'kitsInversor';
+}
+
+function getMappedImportValue(rowMap, field) {
+  const aliases = KIT_IMPORT_HEADER_ALIASES[field] || [];
+  for (const key of aliases) {
+    const value = rowMap[key];
+    if (value !== undefined && String(value).trim() !== '') return value;
+  }
+  return '';
+}
+
+function buildKitMatchKey(name, brand, power) {
+  const powerNum = Number(power);
+  const powerKey = Number.isFinite(powerNum) ? powerNum.toFixed(4) : '';
+  return `${normalizeImportHeader(name)}|${normalizeImportHeader(brand)}|${powerKey}`;
+}
+
+async function readImportedKitRows(file) {
+  if (typeof XLSX === 'undefined') {
+    throw new Error('Biblioteca XLSX nao carregada. Recarregue a pagina e tente novamente.');
+  }
+
+  const fileName = String(file?.name || '').toLowerCase();
+  let workbook;
+
+  if (fileName.endsWith('.csv')) {
+    const csvText = await file.text();
+    workbook = XLSX.read(csvText, {
+      type: 'string',
+      FS: detectCsvDelimiter(csvText),
+      raw: false,
+    });
+  } else {
+    const data = await file.arrayBuffer();
+    workbook = XLSX.read(data, { type: 'array', raw: false });
+  }
+
+  const firstSheet = workbook.SheetNames?.[0];
+  if (!firstSheet) return [];
+
+  const sheet = workbook.Sheets[firstSheet];
+  const rows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
+  return rows.map((row, idx) => ({ ...row, __rowNum: idx + 2 }));
+}
+
+function mapImportedRowsToProducts(rows) {
+  const fallbackCategory = getImportDefaultCategory();
+  const mappedRows = [];
+  const errors = [];
+
+  rows.forEach((row, index) => {
+    const rowNum = Number(row.__rowNum) || index + 2;
+    const rowMap = {};
+
+    Object.entries(row).forEach(([header, value]) => {
+      if (header === '__rowNum') return;
+      const normalizedHeader = normalizeImportHeader(header);
+      if (!normalizedHeader) return;
+      rowMap[normalizedHeader] = value;
+    });
+
+    if (Object.keys(rowMap).length === 0) return;
+
+    const explicitId = String(getMappedImportValue(rowMap, 'id')).trim() || null;
+    const rawName = String(getMappedImportValue(rowMap, 'name')).trim();
+    const rawBrand = String(getMappedImportValue(rowMap, 'brand')).trim();
+    const rawCategory = String(getMappedImportValue(rowMap, 'categoria')).trim();
+    const rawType = String(getMappedImportValue(rowMap, 'type')).trim();
+    const rawTag = String(getMappedImportValue(rowMap, 'tag')).trim();
+    const rawDescription = String(getMappedImportValue(rowMap, 'description')).trim();
+
+    const name  = rawName.toUpperCase();
+    const brand = rawBrand.toUpperCase();
+    const power = parseSpreadsheetNumber(getMappedImportValue(rowMap, 'power'));
+    const price = parseSpreadsheetNumber(getMappedImportValue(rowMap, 'price'));
+    let listPrice = parseSpreadsheetNumber(getMappedImportValue(rowMap, 'list_price'));
+    const hasLookupKey = Boolean(name) && Boolean(brand) && Number.isFinite(power) && power > 0;
+
+    const rowIssues = [];
+    if (!Number.isFinite(price) || price <= 0) rowIssues.push('preco');
+    if (!explicitId) {
+      if (!name) rowIssues.push('nome');
+      if (!brand) rowIssues.push('marca');
+      if (!Number.isFinite(power) || power <= 0) rowIssues.push('potencia');
+    }
+
+    if (rowIssues.length > 0) {
+      errors.push(`Linha ${rowNum}: campos invalidos (${rowIssues.join(', ')}).`);
+      return;
+    }
+
+    if (!Number.isFinite(listPrice) || listPrice <= 0 || listPrice < price) {
+      listPrice = price;
+    }
+
+    const categoria = rawCategory
+      ? normalizeImportedCategory(rawCategory, fallbackCategory)
+      : null;
+    const type = rawType ? normalizeImportedType(rawType) : null;
+    const tag = rawTag ? normalizeImportedTag(rawTag) : null;
+
+    let description = rawDescription || null;
+    if (!description && !explicitId && Number.isFinite(power) && brand) {
+      description = `${power}kWp - ${brand}`;
+    }
+
+    mappedRows.push({
+      _rowNum: rowNum,
+      _explicitId: explicitId,
+      _hasLookupKey: hasLookupKey,
+      categoria,
+      name: name || null,
+      brand: brand || null,
+      power: Number.isFinite(power) && power > 0 ? power : null,
+      price,
+      list_price: listPrice,
+      type,
+      tag,
+      description,
+    });
+  });
+
+  const dedupMap = new Map();
+  let duplicateRows = 0;
+  for (const row of mappedRows) {
+    const key = row._explicitId
+      ? `id:${row._explicitId}`
+      : row._hasLookupKey
+        ? `key:${buildKitMatchKey(row.name, row.brand, row.power)}`
+        : `row:${row._rowNum}`;
+    if (dedupMap.has(key)) duplicateRows++;
+    dedupMap.set(key, row);
+  }
+
+  return {
+    validRows: [...dedupMap.values()],
+    errors,
+    duplicateRows,
+  };
+}
+
+async function importMappedKits(mappedRows) {
+  const { data: existing = [], error: existingErr } = await supabaseClient
+    .from('produtos')
+    .select('id, categoria, name, brand, power, type, tag, description');
+  if (existingErr) throw existingErr;
+
+  const byId = new Map(existing.map(item => [String(item.id), item]));
+  const byKey = new Map(existing.map(item => [buildKitMatchKey(item.name, item.brand, item.power), item]));
+
+  const toInsert = [];
+  const toUpdate = [];
+  const skippedIdRows = [];
+
+  for (const row of mappedRows) {
+    let target = null;
+    if (row._explicitId) {
+      target = byId.get(String(row._explicitId)) || null;
+      if (!target) {
+        skippedIdRows.push(row._rowNum);
+        continue;
+      }
+    } else if (row._hasLookupKey) {
+      target = byKey.get(buildKitMatchKey(row.name, row.brand, row.power)) || null;
+    }
+
+    if (target) {
+      const payload = {
+        categoria: row.categoria || target.categoria,
+        name: row.name || target.name,
+        brand: row.brand || target.brand,
+        power: row.power ?? target.power,
+        price: row.price,
+        list_price: row.list_price,
+        type: row.type || target.type,
+        tag: row.tag || target.tag,
+        description: row.description || target.description,
+      };
+      toUpdate.push({ id: target.id, payload });
+    } else {
+      // Sem ID e sem correspondencia: cria novo kit apenas quando dados essenciais existem.
+      if (!row.name || !row.brand || !Number.isFinite(row.power) || row.power <= 0) {
+        continue;
+      }
+
+      const payload = {
+        categoria: row.categoria || getImportDefaultCategory(),
+        name: row.name,
+        brand: row.brand,
+        power: row.power,
+        price: row.price,
+        list_price: row.list_price,
+        type: row.type || 'Bifasico',
+        tag: row.tag || 'MAIS VENDIDO',
+        description: row.description || `${row.power}kWp - ${row.brand}`,
+      };
+      toInsert.push(payload);
+    }
+  }
+
+  let insertedRows = [];
+  if (toInsert.length > 0) {
+    const { data, error } = await supabaseClient
+      .from('produtos')
+      .insert(toInsert)
+      .select('id, price, list_price');
+    if (error) throw error;
+    insertedRows = data || [];
+  }
+
+  const updateGlobalPrices = !state.adminKitsFranquia;
+  for (const item of toUpdate) {
+    const produtoPayload = updateGlobalPrices
+      ? item.payload
+      : {
+          categoria: item.payload.categoria,
+          name: item.payload.name,
+          brand: item.payload.brand,
+          power: item.payload.power,
+          type: item.payload.type,
+          tag: item.payload.tag,
+          description: item.payload.description,
+        };
+
+    const { error } = await supabaseClient
+      .from('produtos')
+      .update(produtoPayload)
+      .eq('id', item.id);
+    if (error) throw error;
+  }
+
+  if (insertedRows.length > 0) {
+    const { data: franquias = [], error: franquiasErr } = await supabaseClient
+      .from('franquias')
+      .select('id')
+      .eq('ativo', true);
+    if (franquiasErr) throw franquiasErr;
+
+    if (franquias.length > 0) {
+      const pricingRows = [];
+      for (const kit of insertedRows) {
+        for (const franquia of franquias) {
+          pricingRows.push({
+            produto_id: kit.id,
+            franquia_id: franquia.id,
+            price: Number(kit.price) || 0,
+            list_price: Number(kit.list_price) || 0,
+          });
+        }
+      }
+
+      if (pricingRows.length > 0) {
+        const { error: pricingErr } = await supabaseClient
+          .from('precos_franquia')
+          .upsert(pricingRows, { onConflict: 'produto_id,franquia_id' });
+        if (pricingErr) throw pricingErr;
+      }
+    }
+  }
+
+  if (state.adminKitsFranquia && toUpdate.length > 0) {
+    const updatePricingRows = toUpdate.map(item => ({
+      produto_id: item.id,
+      franquia_id: state.adminKitsFranquia,
+      price: Number(item.payload.price) || 0,
+      list_price: Number(item.payload.list_price) || 0,
+    }));
+
+    const { error: updatePricingErr } = await supabaseClient
+      .from('precos_franquia')
+      .upsert(updatePricingRows, { onConflict: 'produto_id,franquia_id' });
+    if (updatePricingErr) throw updatePricingErr;
+  }
+
+  return {
+    insertedCount: insertedRows.length,
+    updatedCount: toUpdate.length,
+    skippedIdCount: skippedIdRows.length,
+    skippedIdRows,
+  };
+}
+
+async function handleKitsSpreadsheetSelection(event) {
+  const fileInput = event?.target;
+  const file = fileInput?.files?.[0];
+  if (!file) return;
+
+  try {
+    showToast('LENDO PLANILHA...');
+    const rows = await readImportedKitRows(file);
+
+    if (rows.length === 0) {
+      showToast('PLANILHA VAZIA OU SEM DADOS.');
+      return;
+    }
+
+    const mapped = mapImportedRowsToProducts(rows);
+    if (mapped.validRows.length === 0) {
+      showToast('NENHUMA LINHA VALIDA ENCONTRADA.');
+      if (mapped.errors.length > 0) {
+        console.warn('Importacao de kits - erros de validacao:', mapped.errors);
+      }
+      return;
+    }
+
+    const summaryLines = [
+      `Arquivo: ${file.name}`,
+      `Linhas lidas: ${rows.length}`,
+      `Linhas validas: ${mapped.validRows.length}`,
+      `Linhas ignoradas: ${mapped.errors.length}`,
+    ];
+    if (mapped.duplicateRows > 0) {
+      summaryLines.push(`Duplicadas no arquivo: ${mapped.duplicateRows} (mantida a ultima).`);
+    }
+    summaryLines.push('', 'Deseja importar agora?');
+
+    if (!confirm(summaryLines.join('\n'))) return;
+
+    showToast('IMPORTANDO KITS...');
+    const result = await importMappedKits(mapped.validRows);
+
+    await fetchProducts();
+    renderContent();
+
+    const resultParts = [
+      `${result.insertedCount} novo(s)`,
+      `${result.updatedCount} atualizado(s)`,
+    ];
+    if (result.skippedIdCount > 0) {
+      resultParts.push(`${result.skippedIdCount} ignorado(s) por ID nao encontrado`);
+      console.warn('Importacao de kits - linhas com ID nao encontrado:', result.skippedIdRows);
+    }
+    if (mapped.errors.length > 0) {
+      resultParts.push(`${mapped.errors.length} ignorado(s)`);
+      console.warn('Importacao de kits - linhas ignoradas:', mapped.errors);
+    }
+
+    showToast(`IMPORTACAO CONCLUIDA: ${resultParts.join(' | ')}`);
+  } catch (err) {
+    const msg = err?.message || 'Erro inesperado';
+    showToast(`ERRO AO IMPORTAR: ${msg}`);
+  } finally {
+    if (fileInput) fileInput.value = '';
+  }
+}
+
+function triggerKitsImportPicker() {
+  if (state.activeTab !== 'admin' || state.adminSection !== 'produtos') {
+    showToast('ACESSO DISPONIVEL APENAS NA ABA ADMIN > KITS.');
+    return;
+  }
+
+  const fileInput = document.getElementById('kits-import-file-input');
+  if (!fileInput) {
+    showToast('CAMPO DE IMPORTACAO NAO ENCONTRADO.');
+    return;
+  }
+
+  fileInput.value = '';
+  fileInput.click();
+}
+
+function exportCurrentKitsXLSX() {
+  if (state.activeTab !== 'admin' || state.adminSection !== 'produtos') {
+    showToast('ACESSO DISPONIVEL APENAS NA ABA ADMIN > KITS.');
+    return;
+  }
+
+  const kits = Array.isArray(state.data) ? state.data : [];
+  if (kits.length === 0) {
+    showToast('NENHUM KIT PARA EXPORTAR.');
+    return;
+  }
+
+  const columns = [
+    { header: 'id', key: 'id' },
+    { header: 'categoria', key: 'categoria' },
+    { header: 'name', key: 'name' },
+    { header: 'brand', key: 'brand' },
+    { header: 'power', key: 'power' },
+    { header: 'price', key: 'price' },
+    { header: 'list_price', key: 'list_price' },
+    { header: 'type', key: 'type' },
+    { header: 'tag', key: 'tag' },
+    { header: 'description', key: 'description' },
+  ];
+
+  const rows = kits.map(item => {
+    const power = Number(item.power);
+    const price = Number(item.price);
+    const listPrice = Number(item.list_price);
+
+    return {
+      id: item.id ?? '',
+      categoria: item.categoria || '',
+      name: item.name || '',
+      brand: item.brand || '',
+      power: Number.isFinite(power) ? power : '',
+      price: Number.isFinite(price) ? price : '',
+      list_price: Number.isFinite(listPrice) ? listPrice : '',
+      type: item.type || '',
+      tag: item.tag || '',
+      description: item.description || '',
+    };
+  });
+
+  const datePart = new Date().toISOString().split('T')[0];
+  const scopePart = state.adminKitsFranquia
+    ? `franquia_${String(state.adminKitsFranquia).slice(0, 8)}`
+    : 'matriz';
+
+  exportToXLSX(rows, columns, `kits_exportados_${scopePart}_${datePart}`);
+  showToast(`EXPORTACAO XLSX CONCLUIDA (${rows.length} KIT(S)).`);
+}
+
+function downloadKitsImportTemplateXLSX() {
+  const columns = [
+    { header: 'id', key: 'id' },
+    { header: 'categoria', key: 'categoria' },
+    { header: 'name', key: 'name' },
+    { header: 'brand', key: 'brand' },
+    { header: 'power', key: 'power' },
+    { header: 'price', key: 'price' },
+    { header: 'list_price', key: 'list_price' },
+    { header: 'type', key: 'type' },
+    { header: 'tag', key: 'tag' },
+    { header: 'description', key: 'description' },
+  ];
+
+  const rows = [
+    {
+      id: '',
+      categoria: 'kitsInversor',
+      name: 'KIT 4 MOD 585W + MICRO INV GROWATT NEO 2.25KW',
+      brand: 'GROWATT',
+      power: 2.34,
+      price: 7797,
+      list_price: 8197,
+      type: 'Bifasico',
+      tag: 'ALTA POTENCIA',
+      description: '2.34kWp - GROWATT',
+    },
+    {
+      id: '',
+      categoria: 'kitsInversor',
+      name: 'KIT 5 MOD 585W + INV SOFAR 3.3K',
+      brand: 'SOFAR',
+      power: 2.925,
+      price: 9597,
+      list_price: 10197,
+      type: 'Bifasico',
+      tag: 'CUSTO BENEFICIO',
+      description: '2.925kWp - SOFAR',
+    },
+    {
+      id: '',
+      categoria: 'kitsMicro',
+      name: 'KIT 6 MOD 585W + MICRO INV SOFAR 3.3K',
+      brand: 'SOFAR',
+      power: 3.51,
+      price: 10697,
+      list_price: 11397,
+      type: 'Trifasico',
+      tag: 'MAIS VENDIDO',
+      description: '3.51kWp - SOFAR',
+    },
+  ];
+
+  exportToXLSX(rows, columns, 'modelo_importacao_kits');
+  showToast('MODELO XLSX GERADO.');
+}
+
+(function bindKitsImportInputListener() {
+  const fileInput = document.getElementById('kits-import-file-input');
+  if (!fileInput || fileInput.dataset.bound === '1') return;
+  fileInput.addEventListener('change', handleKitsSpreadsheetSelection);
+  fileInput.dataset.bound = '1';
+})();

@@ -326,9 +326,9 @@ function updatePBTabsUI() {
 }
 
 function setPBProposalMode(mode) {
-  // Bloqueia os modos PERSONALIZADA e EQUIPAMENTOS para não-admins/não-gestores
-  if (mode === PB_PROPOSAL_MODES.PERSONALIZADA && !state.isAdmin && !state.isGestor) return;
-  if (mode === PB_PROPOSAL_MODES.EQUIPAMENTOS  && !state.isAdmin && !state.isGestor) return;
+  // Bloqueia os modos PERSONALIZADA e EQUIPAMENTOS para não-admins
+  if (mode === PB_PROPOSAL_MODES.PERSONALIZADA && !state.isAdmin) return;
+  if (mode === PB_PROPOSAL_MODES.EQUIPAMENTOS  && !state.isAdmin) return;
 
   if (mode === PB_PROPOSAL_MODES.PERSONALIZADA) {
     state.pbProposalMode = PB_PROPOSAL_MODES.PERSONALIZADA;
@@ -377,11 +377,11 @@ function updatePBModeUI() {
   if (btnPromo)  btnPromo.className  = (mode === 'PROMOCIONAL') ? ACTIVE    : INACTIVE;
   if (btnCustom) {
     btnCustom.className = isPersonalizada ? ACTIVE_BL : INACTIVE;
-    btnCustom.classList.toggle('hidden', !state.isAdmin && !state.isGestor);
+    btnCustom.classList.toggle('hidden', !state.isAdmin);
   }
   if (btnEquip) {
     btnEquip.className = isEquipamentos ? ACTIVE_BL : INACTIVE;
-    btnEquip.classList.toggle('hidden', !state.isAdmin && !state.isGestor);
+    btnEquip.classList.toggle('hidden', !state.isAdmin);
   }
 
   if (helperText) {
@@ -637,6 +637,7 @@ async function handleCustomProposalSubmit(event) {
   // Captura nomes dos componentes para snapshot
   const modulo   = (state.componentes || []).find(c => c.id === draft.moduloId);
   const inversor = (state.componentes || []).find(c => c.id === draft.inversorId);
+  const categoriaPersonalizada = (inversor && /micro/i.test(inversor.nome)) ? 'kitsMicro' : 'kitsString';
 
   try {
     const vendedorMeta = state.currentUser.user_metadata || {};
@@ -656,6 +657,7 @@ async function handleCustomProposalSubmit(event) {
       kit_power:                    calc.potencia_kwp,
       kit_price:                    calc.total,
       kit_list_price:               calc.total,
+      geracao_estimada:             calcularGeracaoEstimada(calc.potencia_kwp, categoriaPersonalizada),
       custom_system_power_kwp:      calc.potencia_kwp,
       custom_equipment_price:       null,
       custom_service_price:         null,
@@ -810,6 +812,7 @@ async function handleEquipamentosProposalSubmit(event) {
       kit_power:               0,
       kit_price:               total,
       kit_list_price:          total,
+      geracao_estimada:        null,
       custom_equipment_price:  equip,
       custom_service_price:    frete > 0 ? frete : null,  // reutilizado para frete no modo EQUIPAMENTOS
       custom_total_price:      total,
@@ -1015,6 +1018,7 @@ async function copyProposalLink(kit, event) {
       kit_power:         kit.power,
       kit_price:         kit.price,
       kit_list_price:    kit.list_price,
+      geracao_estimada:  calcularGeracaoEstimada(kit.power, kit.categoria),
       franquia_id:       state.franquiaId
     }]).select();
 

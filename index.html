@@ -245,7 +245,7 @@
 
   <main class="max-w-7xl mx-auto px-4 py-6 md:py-8 relative animate-fade-in-up">
 
-    <div id="admin-bar" class="hidden mb-6 bg-red-950/20 border border-red-600/20 p-4 flex items-center justify-between backdrop-blur-sm">
+    <div id="admin-bar" class="hidden mb-6 bg-red-950/20 border border-red-600/20 p-4 flex items-center justify-between backdrop-blur-sm gap-3">
       <div class="flex items-center gap-3">
         <div class="bg-red-600/20 border border-red-600/30 p-2 text-red-400"><i data-lucide="settings" class="w-4 h-4 animate-spin-slow"></i></div>
         <div>
@@ -253,10 +253,29 @@
           <span class="text-white font-bold text-sm">MODO ADMINISTRADOR ATIVO</span>
         </div>
       </div>
-      <button onclick="openModal()" class="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black px-5 py-2.5 font-black uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(234,88,12,0.2)] hover:shadow-[0_0_30px_rgba(234,88,12,0.4)] active:scale-95 text-xs">
-        <i data-lucide="plus" class="w-4 h-4 stroke-[3px]"></i> NOVO KIT
-      </button>
+      <div class="flex items-center gap-2 flex-wrap justify-end">
+        <a href="assets/templates/modelo_importacao_kits.csv" download="modelo_importacao_kits.csv" class="flex items-center gap-2 bg-black border border-cyan-700/60 text-cyan-300 hover:bg-cyan-600/15 hover:border-cyan-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]">
+          <i data-lucide="file-text" class="w-4 h-4"></i> MODELO CSV
+        </a>
+        <button onclick="downloadKitsImportTemplateXLSX()" class="flex items-center gap-2 bg-black border border-blue-700/60 text-blue-300 hover:bg-blue-600/15 hover:border-blue-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> MODELO XLSX
+        </button>
+        <button onclick="triggerKitsImportPicker()" class="flex items-center gap-2 bg-black border border-green-700/60 text-green-300 hover:bg-green-600/15 hover:border-green-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]">
+          <i data-lucide="upload" class="w-4 h-4"></i> IMPORTAR PLANILHA
+        </button>
+        <button onclick="exportCurrentKitsXLSX()" class="flex items-center gap-2 bg-black border border-amber-700/60 text-amber-300 hover:bg-amber-600/15 hover:border-amber-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]">
+          <i data-lucide="download" class="w-4 h-4"></i> EXPORTAR XLSX
+        </button>
+        <button onclick="openModal()" class="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black px-5 py-2.5 font-black uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(234,88,12,0.2)] hover:shadow-[0_0_30px_rgba(234,88,12,0.4)] active:scale-95 text-xs">
+          <i data-lucide="plus" class="w-4 h-4 stroke-[3px]"></i> NOVO KIT
+        </button>
+      </div>
     </div>
+    <input
+      type="file"
+      id="kits-import-file-input"
+      class="hidden"
+      accept=".xlsx,.xls,.csv,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
 
     <!-- Toolbar Principal -->
     <div id="main-toolbar" class="flex flex-col sm:flex-row gap-4 mb-8 hidden">
@@ -616,15 +635,15 @@
       <div class="grid grid-cols-3 gap-4">
         <div class="space-y-1">
           <label class="text-[10px] text-orange-500/80 font-black uppercase tracking-widest">Potência (kWp)</label>
-          <input required type="number" step="0.01" id="form-power" class="w-full bg-black border border-neutral-700 focus:border-orange-500 rounded-none px-4 py-3 text-white font-mono font-bold">
+          <input required type="number" step="any" id="form-power" class="w-full bg-black border border-neutral-700 focus:border-orange-500 rounded-none px-4 py-3 text-white font-mono font-bold">
         </div>
         <div class="space-y-1">
           <label class="text-[10px] text-green-500/80 font-black uppercase tracking-widest">Preço Venda</label>
-          <input required type="number" id="form-price" class="w-full bg-black border border-green-900 focus:border-green-500 text-green-400 rounded-none px-4 py-3 font-mono font-bold">
+          <input required type="number" step="any" id="form-price" class="w-full bg-black border border-green-900 focus:border-green-500 text-green-400 rounded-none px-4 py-3 font-mono font-bold">
         </div>
         <div class="space-y-1">
           <label class="text-[10px] text-red-500/80 font-black uppercase tracking-widest">Preço Lista</label>
-          <input required type="number" id="form-listPrice" class="w-full bg-black border border-red-900 focus:border-red-500 text-red-400 rounded-none px-4 py-3 font-mono font-bold">
+          <input required type="number" step="any" id="form-listPrice" class="w-full bg-black border border-red-900 focus:border-red-500 text-red-400 rounded-none px-4 py-3 font-mono font-bold">
         </div>
       </div>
       <div class="grid grid-cols-2 gap-4">

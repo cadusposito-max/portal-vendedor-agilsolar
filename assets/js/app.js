@@ -73,6 +73,8 @@ function renderHeaderUser() {
   // Botão de alternância de visão (somente admin)
   const existingToggle = document.getElementById('admin-view-toggle-btn');
   if (existingToggle) existingToggle.remove();
+  const existingGestorToggle = document.getElementById('gestor-view-toggle-btn');
+  if (existingGestorToggle) existingGestorToggle.remove();
 
   if (state.isAdmin) {
     const adminBtn = document.getElementById('admin-toggle-btn');
@@ -91,11 +93,37 @@ function renderHeaderUser() {
     }
     lucide.createIcons();
   }
+
+  if (state.isGestor) {
+    const adminBtn = document.getElementById('admin-toggle-btn');
+    const btn = document.createElement('button');
+    btn.id = 'gestor-view-toggle-btn';
+    btn.onclick = toggleGestorViewMode;
+    btn.title = state.gestorViewAll ? 'Clique para ver só os seus clientes' : 'Clique para ver toda a unidade';
+    btn.className = state.gestorViewAll
+      ? 'p-3 border transition-all duration-300 bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600 hover:text-white flex items-center gap-2 text-[9px] font-black uppercase tracking-widest'
+      : 'p-3 border transition-all duration-300 bg-orange-600/20 border-orange-500/50 text-orange-400 hover:bg-orange-600 hover:text-white flex items-center gap-2 text-[9px] font-black uppercase tracking-widest';
+    btn.innerHTML = state.gestorViewAll
+      ? '<i data-lucide="users" class="w-4 h-4"></i><span class="hidden sm:inline">MINHA UNIDADE</span>'
+      : '<i data-lucide="user" class="w-4 h-4"></i><span class="hidden sm:inline">APENAS MEUS</span>';
+    if (adminBtn && adminBtn.parentNode) {
+      adminBtn.parentNode.insertBefore(btn, adminBtn);
+    }
+    lucide.createIcons();
+  }
 }
 
 async function toggleAdminViewMode() {
   state.adminViewAll = !state.adminViewAll;
   showToast(state.adminViewAll ? 'VISÃO: TODAS AS FRANQUIAS' : 'VISÃO: MINHA UNIDADE');
+  await Promise.all([fetchClientes(), fetchPropostas(), fetchVendas()]);
+  renderHeaderUser();
+  renderContent();
+}
+
+async function toggleGestorViewMode() {
+  state.gestorViewAll = !state.gestorViewAll;
+  showToast(state.gestorViewAll ? 'VISÃO: MINHA UNIDADE' : 'VISÃO: APENAS MEUS CLIENTES');
   await Promise.all([fetchClientes(), fetchPropostas(), fetchVendas()]);
   renderHeaderUser();
   renderContent();

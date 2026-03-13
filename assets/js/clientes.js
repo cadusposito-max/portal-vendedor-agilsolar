@@ -179,6 +179,7 @@ function renderClientesList(container) {
             ${c.cidade ? `<span class="flex items-center gap-1"><i data-lucide="map-pin" class="w-2.5 h-2.5"></i>${escapeHTML(c.cidade)}</span>` : ''}
             <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-2.5 h-2.5"></i>${formatDate(c.created_at)}</span>
             ${(state.isAdmin && state.adminViewAll && c.vendedor_email) ? `<span class="flex items-center gap-1 text-purple-400 font-bold"><i data-lucide="user" class="w-2.5 h-2.5"></i>${escapeHTML(c.vendedor_email.split('@')[0])}</span>` : ''}
+            ${(state.isGestor && state.gestorViewAll && c.vendedor_email) ? `<span class="flex items-center gap-1 text-blue-400 font-bold"><i data-lucide="user" class="w-2.5 h-2.5"></i>${escapeHTML(c.vendedor_email.split('@')[0])}</span>` : ''}
           </div>
 
           <!-- Pipeline progress -->
@@ -325,7 +326,18 @@ document.getElementById('client-form').addEventListener('submit', async (e) => {
   let { data, error } = await supabaseClient.from('clientes').insert([newClient]);
   if (error && error.code === '42703') {
     delete newClient.status;
-    await supabaseClient.from('clientes').insert([newClient]);
+    const { error: error2 } = await supabaseClient.from('clientes').insert([newClient]);
+    if (error2) {
+      console.error('Erro ao salvar cliente:', error2);
+      alert(`Erro ao salvar cliente: ${error2.message}`);
+      btnSave.innerText = 'SALVAR CLIENTE';
+      return;
+    }
+  } else if (error) {
+    console.error('Erro ao salvar cliente:', error);
+    alert(`Erro ao salvar cliente: ${error.message}`);
+    btnSave.innerText = 'SALVAR CLIENTE';
+    return;
   }
 
   await fetchClientes();

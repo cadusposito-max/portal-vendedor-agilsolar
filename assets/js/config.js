@@ -63,6 +63,7 @@ let state = {
   adminSection: 'produtos', // Sub-aba ativa no painel admin
   adminKitsFranquia: null,  // Franquia selecionada na aba KITS do admin (null = não iniciado)
   adminViewAll: true,       // Admin: true = ver tudo (consolidado), false = ver só própria franquia
+  gestorViewAll: true,      // Gestor: true = ver toda a unidade, false = ver só os próprios clientes
 
   // Multi-franquia
   franquiaId:   null,       // UUID da franquia do usuário logado (de app_metadata.franquia_id)

@@ -173,7 +173,11 @@ function renderData(data) {
   const displayName  = isPersonalizada ? 'Proposta Personalizada' : (isEquipamentos ? (data.kit_nome || 'Fornecimento de Equipamentos') : (data.kit_nome || ''));
   const displayBrand = (isPersonalizada || isEquipamentos) ? '' : (data.kit_brand || '');
 
-  const estGeneration= displayPower * 120;
+  // Geração: usa valor salvo no banco (imutável, calculado com HSP da franquia na criação)
+  // Fallback para propostas antigas sem geracao_estimada salva
+  const estGeneration = data.geracao_estimada
+    ? Number(data.geracao_estimada)
+    : displayPower * 5.4 * 30 * 0.80;
 
   const valorFaturaIdeal = estGeneration * TARIFA_MEDIA;
   const economiaMensal   = valorFaturaIdeal * 0.85;

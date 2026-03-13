@@ -61,9 +61,9 @@ async function fetchClientes() {
     .select('*')
     .order('created_at', { ascending: false });
 
-  // Gestor: vê todos da franquia (RLS restringe). Admin com adminViewAll: idem.
-  // Vendedor / admin sem adminViewAll: filtra pelo próprio email.
-  const fetchAll = state.isGestor || (state.isAdmin && Boolean(state.adminViewAll));
+  // Gestor com gestorViewAll: vê todos da franquia (RLS restringe). Admin com adminViewAll: idem.
+  // Gestor sem gestorViewAll ou vendedor: filtra pelo próprio email.
+  const fetchAll = (state.isGestor && Boolean(state.gestorViewAll)) || (state.isAdmin && Boolean(state.adminViewAll));
   if (!fetchAll) query.eq('vendedor_email', state.currentUser.email);
 
   const { data, error } = await query;
@@ -77,7 +77,7 @@ async function fetchPropostas() {
     .select('*')
     .order('created_at', { ascending: false });
 
-  const fetchAll = state.isGestor || (state.isAdmin && Boolean(state.adminViewAll));
+  const fetchAll = (state.isGestor && Boolean(state.gestorViewAll)) || (state.isAdmin && Boolean(state.adminViewAll));
   if (!fetchAll) query.eq('vendedor_email', state.currentUser.email);
 
   const { data, error } = await query;
@@ -91,7 +91,7 @@ async function fetchVendas() {
     .select('*')
     .order('created_at', { ascending: false });
 
-  const fetchAll = state.isGestor || (state.isAdmin && Boolean(state.adminViewAll));
+  const fetchAll = (state.isGestor && Boolean(state.gestorViewAll)) || (state.isAdmin && Boolean(state.adminViewAll));
   if (!fetchAll) query.eq('vendedor_email', state.currentUser.email);
 
   const { data, error } = await query;
@@ -102,10 +102,13 @@ async function fetchFranquia() {
   if (!state.franquiaId) return;
   const { data, error } = await supabaseClient
     .from('franquias')
-    .select('nome')
+    .select('nome, hsp_medio')
     .eq('id', state.franquiaId)
     .single();
-  if (!error && data) state.franquiaNome = data.nome;
+  if (!error && data) {
+    state.franquiaNome = data.nome;
+    state.franquiaHsp  = data.hsp_medio ?? 5.4;
+  }
 }
 
 async function fetchComponentes() {
