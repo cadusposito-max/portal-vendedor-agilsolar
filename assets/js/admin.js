@@ -72,6 +72,7 @@ function renderAdminPanel(container) {
     { id: 'financiadoras', label: 'FINANCIADORAS',   icon: 'landmark',   adminOnly: true },
     { id: 'componentes',   label: 'COMPONENTES',     icon: 'cpu',        adminOnly: true },
     { id: 'custos',        label: 'CUSTOS EXTRAS',   icon: 'circle-plus', adminOnly: true },
+    { id: 'usuarios',      label: 'USUARIOS',        icon: 'user-cog',   adminOnly: true },
     { id: 'vendedores',    label: 'VENDEDORES',       icon: 'users' },
   ];
   const sections = allSections.filter(s => !s.adminOnly || state.isAdmin);
@@ -115,6 +116,7 @@ function renderAdminPanel(container) {
     if (state.adminSection === 'financiadoras') renderAdminFinanciadoras(content);
     else if (state.adminSection === 'componentes') renderAdminComponentes(content);
     else if (state.adminSection === 'custos')      renderAdminCustos(content);
+    else if (state.adminSection === 'usuarios')    renderAdminUsuarios(content);
     else if (state.adminSection === 'vendedores')  renderAdminVendedores(content);
     else if (state.adminSection === 'franquias')   renderAdminFranquias(content);
   }
@@ -197,6 +199,11 @@ function _statusBadge(ativo) {
   return `<span class="px-2 py-0.5 text-[8px] font-black uppercase border shrink-0 ${ativo
     ? 'text-green-400 border-green-800 bg-green-900/20'
     : 'text-red-400 border-red-800 bg-red-900/10'}">${ativo ? 'ATIVO' : 'INATIVO'}</span>`;
+}
+function _chatAccessBadge(enabled) {
+  return `<span class="px-2 py-0.5 text-[8px] font-black uppercase border shrink-0 ${enabled
+    ? 'text-cyan-300 border-cyan-700 bg-cyan-900/20'
+    : 'text-neutral-300 border-neutral-700 bg-neutral-900/30'}">${enabled ? 'CHAT ON' : 'CHAT OFF'}</span>`;
 }
 
 function _editBtn(onclick) {
@@ -563,6 +570,418 @@ async function saveVendedorComissao(email, valor) {
   }
 }
 
+// --- Usuarios (somente Admin) ---
+function _roleBadge(role) {
+  const normalized = (role || 'vendedor').toLowerCase();
+  if (normalized === 'admin') {
+    return '<span class="px-2 py-0.5 text-[8px] font-black uppercase border text-purple-300 border-purple-700 bg-purple-900/30">ADMIN</span>';
+  }
+  if (normalized === 'gestor') {
+    return '<span class="px-2 py-0.5 text-[8px] font-black uppercase border text-blue-300 border-blue-700 bg-blue-900/30">GESTOR</span>';
+  }
+  return '<span class="px-2 py-0.5 text-[8px] font-black uppercase border text-neutral-300 border-neutral-700 bg-neutral-900/30">VENDEDOR</span>';
+}
+
+async function fetchAdminUsuarios() {
+  const { data, error } = await supabaseClient.rpc('admin_list_users_chat');
+  if (error) throw error;
+  return data || [];
+}
+
+function setAdminUsuariosSearch(value) {
+  state.adminUsersSearch = value || '';
+  const c = document.getElementById('admin-section-content');
+  if (c) renderAdminUsuarios(c);
+}
+
+function setAdminUsuariosFilter(type, value) {
+  if (type === 'status') state.adminUsersStatus = value || 'all';
+  if (type === 'role') state.adminUsersRole = value || 'all';
+  if (type === 'franquia') state.adminUsersFranquia = value || 'all';
+  const c = document.getElementById('admin-section-content');
+  if (c) renderAdminUsuarios(c);
+}
+
+async function renderAdminUsuarios(container) {
+  container.innerHTML = `<div class="flex items-center justify-center py-12 text-neutral-600">
+    <i data-lucide="loader-2" class="w-6 h-6 animate-spin mr-2"></i><span class="font-bold uppercase text-[10px] tracking-widest">Carregando...</span>
+  </div>`;
+  lucide.createIcons();
+
+  let items = [];
+  try {
+    items = await fetchAdminUsuarios();
+  } catch (error) {
+    container.innerHTML = `<p class="text-red-500 text-sm font-bold p-4 border border-red-800 bg-red-900/10">Erro ao carregar: ${escapeHTML(error.message || 'Falha ao carregar usuarios')}</p>`;
+    return;
+  }
+
+  if (typeof state.adminUsersSearch !== 'string') state.adminUsersSearch = '';
+  if (!state.adminUsersStatus) state.adminUsersStatus = 'all';
+  if (!state.adminUsersRole) state.adminUsersRole = 'all';
+  if (!state.adminUsersFranquia) state.adminUsersFranquia = 'all';
+
+  const totalUsuarios = items.length;
+  const totalAtivos = items.filter(i => i.ativo !== false).length;
+  const totalInativos = totalUsuarios - totalAtivos;
+  const totalChatOn = items.filter(i => i.chat_enabled === true).length;
+
+  const search = state.adminUsersSearch.trim().toLowerCase();
+  const statusFilter = state.adminUsersStatus;
+  const roleFilter = state.adminUsersRole;
+  const franquiaFilter = state.adminUsersFranquia;
+
+  const franquiaMap = new Map();
+  items.forEach(i => {
+    if (i.franquia_id) {
+      franquiaMap.set(i.franquia_id, i.franquia_nome || 'Sem nome');
+    }
+  });
+  const franquiaOptions = Array.from(franquiaMap.entries())
+    .sort((a, b) => String(a[1]).localeCompare(String(b[1]), 'pt-BR'));
+
+  const filteredItems = items.filter(item => {
+    const isAtivo = item.ativo !== false;
+    const role = (item.role || 'vendedor').toLowerCase();
+    const franquiaId = item.franquia_id || '__none__';
+
+    if (statusFilter === 'ativos' && !isAtivo) return false;
+    if (statusFilter === 'inativos' && isAtivo) return false;
+
+    if (roleFilter !== 'all' && role !== roleFilter) return false;
+
+    if (franquiaFilter !== 'all' && franquiaId !== franquiaFilter) return false;
+
+    if (search) {
+      const nome = String(item.nome || '').toLowerCase();
+      const email = String(item.email || '').toLowerCase();
+      const franquiaNome = String(item.franquia_nome || '').toLowerCase();
+      if (!nome.includes(search) && !email.includes(search) && !franquiaNome.includes(search)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  const rows = filteredItems.length === 0
+    ? `<p class="text-neutral-600 text-sm font-bold text-center py-10">Nenhum usuario encontrado.</p>`
+    : filteredItems.map(item => `
+      <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-neutral-900/60 border border-neutral-800 p-4 hover:border-neutral-700 transition-all">
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <p class="text-white font-bold text-sm truncate">${escapeHTML(item.nome || item.email || '—')}</p>
+            ${_roleBadge(item.role)}
+            ${_statusBadge(item.ativo !== false)}
+            ${_chatAccessBadge(item.chat_enabled === true)}
+          </div>
+          <p class="text-neutral-500 text-[10px] font-bold truncate">${escapeHTML(item.email || '—')}</p>
+          <p class="text-neutral-600 text-[10px] font-bold">
+            ${escapeHTML(item.franquia_nome || 'Sem franquia')}
+            ${item.last_sign_in_at ? ' � Ultimo acesso: ' + formatDate(item.last_sign_in_at) : ''}
+          </p>
+          ${(item.role || 'vendedor').toLowerCase() === 'vendedor'
+            ? `<p class="text-neutral-600 text-[10px] font-bold">Gestor vinculado: ${escapeHTML(item.gestor_nome || 'Nao vinculado')}</p>`
+            : ''}
+        </div>
+        <div class="shrink-0 flex items-center gap-2">
+          <button onclick="openAdminUsuarioForm('${item.user_id}')"
+            class="px-3 py-1.5 bg-blue-600/20 border border-blue-500/30 text-blue-300 hover:bg-blue-600 hover:text-white hover:border-blue-600 font-black uppercase text-[8px] tracking-widest transition-all flex items-center gap-1.5">
+            <i data-lucide="edit-2" class="w-3 h-3"></i> EDITAR
+          </button>
+          <button onclick="toggleAdminUsuarioAtivo('${item.user_id}', ${item.ativo === false ? 'true' : 'false'})"
+            class="px-3 py-1.5 ${item.ativo === false ? 'bg-green-600/20 border-green-500/30 text-green-300 hover:bg-green-600 hover:border-green-600' : 'bg-red-600/20 border-red-500/30 text-red-300 hover:bg-red-600 hover:border-red-600'} border hover:text-white font-black uppercase text-[8px] tracking-widest transition-all flex items-center gap-1.5">
+            <i data-lucide="${item.ativo === false ? 'power' : 'ban'}" class="w-3 h-3"></i> ${item.ativo === false ? 'ATIVAR' : 'DESATIVAR'}
+          </button>
+        </div>
+      </div>`).join('');
+
+  container.innerHTML = `
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4">
+      <div class="bg-neutral-900/60 border border-neutral-800 p-3">
+        <p class="text-neutral-500 text-[8px] font-black uppercase tracking-widest">TOTAL</p>
+        <p class="text-white font-black text-lg">${totalUsuarios}</p>
+      </div>
+      <div class="bg-green-950/20 border border-green-700/30 p-3">
+        <p class="text-green-400/80 text-[8px] font-black uppercase tracking-widest">ATIVOS</p>
+        <p class="text-green-300 font-black text-lg">${totalAtivos}</p>
+      </div>
+      <div class="bg-red-950/20 border border-red-700/30 p-3">
+        <p class="text-red-400/80 text-[8px] font-black uppercase tracking-widest">INATIVOS</p>
+        <p class="text-red-300 font-black text-lg">${totalInativos}</p>
+      </div>
+      <div class="bg-cyan-950/20 border border-cyan-700/30 p-3">
+        <p class="text-cyan-300/80 text-[8px] font-black uppercase tracking-widest">CHAT ON</p>
+        <p class="text-cyan-200 font-black text-lg">${totalChatOn}</p>
+      </div>
+      <div class="bg-blue-950/20 border border-blue-700/30 p-3">
+        <p class="text-blue-400/80 text-[8px] font-black uppercase tracking-widest">EXIBINDO</p>
+        <p class="text-blue-300 font-black text-lg">${filteredItems.length}</p>
+      </div>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-2 mb-4">
+      <input
+        type="text"
+        value="${escapeHTML(state.adminUsersSearch)}"
+        oninput="setAdminUsuariosSearch(this.value)"
+        placeholder="Buscar por nome, email ou franquia..."
+        class="flex-1 bg-black border border-neutral-700 focus:border-orange-500 px-4 py-2.5 text-white font-bold transition-all"
+      >
+      <select onchange="setAdminUsuariosFilter('status', this.value)" class="bg-black border border-neutral-700 focus:border-orange-500 px-3 py-2.5 text-white font-bold uppercase text-[11px]">
+        <option value="all" ${statusFilter === 'all' ? 'selected' : ''}>TODOS STATUS</option>
+        <option value="ativos" ${statusFilter === 'ativos' ? 'selected' : ''}>ATIVOS</option>
+        <option value="inativos" ${statusFilter === 'inativos' ? 'selected' : ''}>INATIVOS</option>
+      </select>
+      <select onchange="setAdminUsuariosFilter('role', this.value)" class="bg-black border border-neutral-700 focus:border-orange-500 px-3 py-2.5 text-white font-bold uppercase text-[11px]">
+        <option value="all" ${roleFilter === 'all' ? 'selected' : ''}>TODOS PERFIS</option>
+        <option value="admin" ${roleFilter === 'admin' ? 'selected' : ''}>ADMIN</option>
+        <option value="gestor" ${roleFilter === 'gestor' ? 'selected' : ''}>GESTOR</option>
+        <option value="vendedor" ${roleFilter === 'vendedor' ? 'selected' : ''}>VENDEDOR</option>
+      </select>
+      <select onchange="setAdminUsuariosFilter('franquia', this.value)" class="bg-black border border-neutral-700 focus:border-orange-500 px-3 py-2.5 text-white font-bold uppercase text-[11px]">
+        <option value="all" ${franquiaFilter === 'all' ? 'selected' : ''}>TODAS FRANQUIAS</option>
+        <option value="__none__" ${franquiaFilter === '__none__' ? 'selected' : ''}>SEM FRANQUIA</option>
+        ${franquiaOptions.map(([id, nome]) => `<option value="${id}" ${franquiaFilter === id ? 'selected' : ''}>${escapeHTML(nome)}</option>`).join('')}
+      </select>
+    </div>
+
+    <div class="flex justify-between items-center mb-4 gap-2 flex-wrap">
+      <span class="text-neutral-500 text-[10px] font-black uppercase tracking-widest">${filteredItems.length} usuario(s) na lista</span>
+      ${_addBtn('NOVO USUARIO', 'openAdminUsuarioForm()')}
+    </div>
+    <div class="bg-amber-950/20 border border-amber-700/30 p-3 flex items-start gap-2 mb-4">
+      <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5"></i>
+      <p class="text-amber-300/80 text-[10px] font-bold">Desativar usuario bloqueia o login, mas preserva clientes, propostas e vendas ja cadastrados.</p>
+    </div>
+    <div class="flex flex-col gap-2">${rows}</div>`;
+  lucide.createIcons();
+}
+
+async function _loadFranquiasForUserForm() {
+  const { data, error } = await supabaseClient
+    .from('franquias')
+    .select('id, nome')
+    .eq('ativo', true)
+    .order('nome', { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+function _renderFranquiaOptions(franquias, selectedId) {
+  return franquias.map(f => `<option value="${f.id}" ${selectedId === f.id ? 'selected' : ''}>${escapeHTML(f.nome)}</option>`).join('');
+}
+
+function _normalizeAdminRole(role) {
+  return String(role || 'vendedor').toLowerCase();
+}
+
+function _renderGestorOptions(users, franquiaId, selectedGestorId) {
+  const targetFranquia = franquiaId || null;
+  const selectedId = selectedGestorId || '';
+
+  const gestores = (users || [])
+    .filter(u => _normalizeAdminRole(u.role) === 'gestor')
+    .filter(u => !targetFranquia || u.franquia_id === targetFranquia)
+    .sort((a, b) => String(a.nome || a.email || '').localeCompare(String(b.nome || b.email || ''), 'pt-BR'));
+
+  let html = `<option value="">SEM VINCULO</option>`;
+  html += gestores.map(g => {
+    const label = g.nome || g.email || 'Gestor';
+    const chatStatus = g.chat_enabled === true ? 'chat on' : 'chat off';
+    return `<option value="${g.user_id}" ${selectedId === g.user_id ? 'selected' : ''}>${escapeHTML(label)} (${chatStatus})</option>`;
+  }).join('');
+
+  return html;
+}
+
+async function openAdminUsuarioForm(userId) {
+  let franquias = [];
+  let users = [];
+  try {
+    [franquias, users] = await Promise.all([
+      _loadFranquiasForUserForm(),
+      fetchAdminUsuarios(),
+    ]);
+  } catch (error) {
+    showToast('ERRO: ' + (error.message || 'Falha ao carregar dados do formulario'));
+    return;
+  }
+
+  let current = null;
+  if (userId) {
+    current = users.find(i => i.user_id === userId) || null;
+    if (!current) {
+      showToast('ERRO: Usuario nao encontrado.');
+      return;
+    }
+  }
+
+  const defaultRole = _normalizeAdminRole(current?.role || 'vendedor');
+  const defaultFranquia = current?.franquia_id || state.franquiaId || franquias[0]?.id || '';
+  const defaultChatEnabled = current?.chat_enabled === true;
+  const defaultGestorId = current?.gestor_user_id || '';
+
+  const fieldsHTML = `
+    <input type="hidden" id="au-user-id" value="${userId || ''}">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="col-span-2"><label class="${_labelCls}">Email *</label>
+        <input ${userId ? 'disabled' : 'required'} id="au-email" type="email" class="${_inputCls} normal-case" value="${escapeHTML(current?.email || '')}" placeholder="usuario@dominio.com"></div>
+      ${userId ? '' : `<div class="col-span-2"><label class="${_labelCls}">Senha temporaria *</label>
+        <input required id="au-password" type="text" minlength="6" class="${_inputCls} normal-case" placeholder="Minimo 6 caracteres"></div>`}
+      <div class="col-span-2"><label class="${_labelCls}">Nome</label>
+        <input id="au-nome" class="${_inputCls}" value="${escapeHTML(current?.nome || '')}" placeholder="Nome para exibicao"></div>
+      <div><label class="${_labelCls}">Perfil *</label>
+        <select id="au-role" class="${_selectCls}">
+          <option value="vendedor" ${defaultRole === 'vendedor' ? 'selected' : ''}>VENDEDOR</option>
+          <option value="gestor" ${defaultRole === 'gestor' ? 'selected' : ''}>GESTOR</option>
+          <option value="admin" ${defaultRole === 'admin' ? 'selected' : ''}>ADMIN</option>
+        </select></div>
+      <div><label class="${_labelCls}">Franquia *</label>
+        <select id="au-franquia-id" class="${_selectCls}">${_renderFranquiaOptions(franquias, defaultFranquia)}</select></div>
+      <label class="col-span-2 flex items-center gap-3 cursor-pointer">
+        <input type="checkbox" id="au-ativo" ${current?.ativo === false ? '' : 'checked'} class="w-4 h-4 accent-red-500">
+        <span class="text-white font-bold text-sm uppercase">Usuario ativo</span>
+      </label>
+      <label class="col-span-2 flex items-center gap-3 cursor-pointer">
+        <input type="checkbox" id="au-chat-enabled" ${defaultChatEnabled ? 'checked' : ''} class="w-4 h-4 accent-cyan-500">
+        <span class="text-white font-bold text-sm uppercase">Permitir uso do chat (chat_enabled)</span>
+      </label>
+      <div class="col-span-2 bg-cyan-950/20 border border-cyan-700/30 p-3">
+        <p class="text-cyan-200/90 text-[10px] font-bold">Quando desativado: usuario nao aparece no chat, nao inicia/recebe conversa e nao envia mensagens.</p>
+      </div>
+      <div id="au-gestor-wrap" class="col-span-2 ${defaultRole === 'vendedor' ? '' : 'hidden'}">
+        <label class="${_labelCls}">Gestor vinculado (apenas vendedor)</label>
+        <select id="au-gestor-user-id" class="${_selectCls}">
+          ${_renderGestorOptions(users, defaultFranquia, defaultGestorId)}
+        </select>
+        <p class="text-neutral-500 text-[10px] font-bold mt-1">Vendedor so pode conversar com o gestor vinculado (quando ambos estiverem com chat habilitado).</p>
+      </div>
+    </div>`;
+
+  openAdminModal(userId ? 'EDITAR USUARIO' : 'NOVO USUARIO', fieldsHTML, async () => {
+    const roleValue = document.getElementById('au-role').value;
+    const chatEnabled = document.getElementById('au-chat-enabled').checked;
+    const gestorUserId = roleValue === 'vendedor'
+      ? (document.getElementById('au-gestor-user-id')?.value || null)
+      : null;
+
+    const payload = {
+      p_nome: document.getElementById('au-nome').value.trim() || null,
+      p_role: roleValue,
+      p_franquia_id: document.getElementById('au-franquia-id').value,
+      p_ativo: document.getElementById('au-ativo').checked,
+    };
+
+    if (userId) {
+      const { error } = await supabaseClient.rpc('admin_update_user', {
+        p_user_id: userId,
+        ...payload,
+      });
+      if (error) { showToast('ERRO: ' + error.message); return; }
+
+      const { error: chatError } = await supabaseClient.rpc('admin_set_user_chat_access', {
+        p_user_id: userId,
+        p_chat_enabled: chatEnabled,
+        p_gestor_user_id: gestorUserId,
+      });
+      if (chatError) { showToast('ERRO CHAT: ' + chatError.message); return; }
+
+      closeAdminModal();
+      showToast('USUARIO ATUALIZADO');
+    } else {
+      const email = document.getElementById('au-email').value.trim().toLowerCase();
+      const password = document.getElementById('au-password').value;
+      const { data: newUserId, error } = await supabaseClient.rpc('admin_create_user', {
+        p_email: email,
+        p_password: password,
+        ...payload,
+      });
+      if (error) { showToast('ERRO: ' + error.message); return; }
+
+      if (!newUserId) {
+        showToast('ERRO: Usuario criado sem retorno de ID para configurar chat.');
+        return;
+      }
+
+      const { error: chatError } = await supabaseClient.rpc('admin_set_user_chat_access', {
+        p_user_id: newUserId,
+        p_chat_enabled: chatEnabled,
+        p_gestor_user_id: gestorUserId,
+      });
+      if (chatError) {
+        closeAdminModal();
+        showToast('USUARIO CRIADO, MAS CHAT NAO FOI CONFIGURADO: ' + chatError.message);
+      } else {
+        closeAdminModal();
+        showToast('USUARIO CRIADO COM SUCESSO');
+      }
+    }
+
+    const c = document.getElementById('admin-section-content');
+    if (c) renderAdminUsuarios(c);
+  });
+
+  const roleSelect = document.getElementById('au-role');
+  const franquiaSelect = document.getElementById('au-franquia-id');
+  const gestorWrap = document.getElementById('au-gestor-wrap');
+  const gestorSelect = document.getElementById('au-gestor-user-id');
+
+  const syncGestorField = () => {
+    if (!roleSelect || !franquiaSelect || !gestorWrap || !gestorSelect) return;
+
+    const isVendedor = _normalizeAdminRole(roleSelect.value) === 'vendedor';
+    const franquiaId = franquiaSelect.value || null;
+    const selectedGestorId = isVendedor ? (gestorSelect.value || defaultGestorId || '') : '';
+
+    gestorSelect.innerHTML = _renderGestorOptions(users, franquiaId, selectedGestorId);
+    gestorWrap.classList.toggle('hidden', !isVendedor);
+
+    if (!isVendedor) {
+      gestorSelect.value = '';
+    }
+  };
+
+  if (roleSelect) roleSelect.addEventListener('change', syncGestorField);
+  if (franquiaSelect) franquiaSelect.addEventListener('change', syncGestorField);
+  syncGestorField();
+}
+
+async function toggleAdminUsuarioAtivo(userId, nextActive) {
+  let items = [];
+  try {
+    items = await fetchAdminUsuarios();
+  } catch (error) {
+    showToast('ERRO: ' + (error.message || 'Falha ao carregar usuario'));
+    return;
+  }
+  const current = items.find(i => i.user_id === userId);
+  if (!current) {
+    showToast('Usuario nao encontrado.');
+    return;
+  }
+
+  const actionText = nextActive ? 'ativar' : 'desativar';
+  showConfirmModal(`Tem certeza que deseja ${actionText} este usuario?`, async () => {
+    const { error } = await supabaseClient.rpc('admin_update_user', {
+      p_user_id: userId,
+      p_nome: current.nome || null,
+      p_role: current.role || 'vendedor',
+      p_franquia_id: current.franquia_id,
+      p_ativo: nextActive,
+    });
+
+    if (error) {
+      showToast('ERRO: ' + error.message);
+      return;
+    }
+
+    showToast(nextActive ? 'USUARIO ATIVADO' : 'USUARIO DESATIVADO');
+    const c = document.getElementById('admin-section-content');
+    if (c) renderAdminUsuarios(c);
+  });
+}
+
 // ─── Franquias ────────────────────────────────────────────────
 async function renderAdminFranquias(container) {
   container.innerHTML = `<div class="flex items-center justify-center py-12 text-neutral-600">
@@ -830,3 +1249,11 @@ function openAdminCustoForm(id) {
     });
   }
 }
+
+
+
+
+
+
+
+

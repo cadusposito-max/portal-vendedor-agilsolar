@@ -1,8 +1,8 @@
-// ==========================================
-// AUTENTICAÇÃO
+﻿// ==========================================
+// AUTENTICAÃ‡ÃƒO
 // ==========================================
 
-// --- Proteção contra brute-force (persiste no sessionStorage para resistir a F5) ---
+// --- ProteÃ§Ã£o contra brute-force (persiste no sessionStorage para resistir a F5) ---
 const _BF_KEY_ATTEMPTS = 'bf_attempts';
 const _BF_KEY_UNTIL    = 'bf_until';
 
@@ -14,7 +14,7 @@ function _bfClear()       { sessionStorage.removeItem(_BF_KEY_ATTEMPTS); session
 
 let _loginLockout = false;
 
-// --- Flag para fluxo de recuperação de senha ---
+// --- Flag para fluxo de recuperaÃ§Ã£o de senha ---
 let _isPasswordRecovery = false;
 
 // Detecta evento PASSWORD_RECOVERY (fluxo PKCE / magic-link do Supabase)
@@ -28,12 +28,34 @@ supabaseClient.auth.onAuthStateChange((event) => {
 // --- Timeout de inatividade ---
 let _inactivityTimer = null;
 
+async function ensureUserIsActive() {
+  try {
+    const { data, error } = await supabaseClient.rpc('is_current_user_active');
+    if (error) return true; // evita bloquear login caso a migration SQL ainda nao tenha sido aplicada
+    return data !== false;
+  } catch (_) {
+    return true;
+  }
+}
+
+async function blockInactiveSession() {
+  await supabaseClient.auth.signOut();
+  state.currentUser = null;
+  document.getElementById('splash-screen').classList.add('hidden');
+  document.getElementById('app-content').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+  const errorEl = document.getElementById('login-error');
+  errorEl.innerText = 'Usuario desativado. Contate o administrador.';
+  errorEl.classList.remove('hidden');
+  if (typeof chatTeardown === 'function') chatTeardown(true);
+}
+
 function startInactivityWatcher() {
   const MS = SESSION_TIMEOUT_HOURS * 60 * 60 * 1000;
   const reset = () => {
     clearTimeout(_inactivityTimer);
     _inactivityTimer = setTimeout(async () => {
-      showToast('Sessão encerrada por inatividade.');
+      showToast('SessÃ£o encerrada por inatividade.');
       await handleLogout();
     }, MS);
   };
@@ -45,10 +67,10 @@ function startInactivityWatcher() {
 
 async function checkAuth() {
   try {
-    // Detecta link de recuperação de senha (fluxo implícito via hash da URL)
+    // Detecta link de recuperaÃ§Ã£o de senha (fluxo implÃ­cito via hash da URL)
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     if (hashParams.get('type') === 'recovery') {
-      await supabaseClient.auth.getSession(); // troca o token de recuperação
+      await supabaseClient.auth.getSession(); // troca o token de recuperaÃ§Ã£o
       _isPasswordRecovery = true;
       showPasswordResetForm();
       return;
@@ -61,7 +83,12 @@ async function checkAuth() {
 
     if (session && session.user) {
       state.currentUser = session.user;
-      // Lê role e franquia_id do app_metadata (JWT)
+      const isActive = await ensureUserIsActive();
+      if (!isActive) {
+        await blockInactiveSession();
+        return;
+      }
+      // LÃª role e franquia_id do app_metadata (JWT)
       const appMeta     = session.user.app_metadata || {};
       state.isAdmin     = appMeta.role === 'admin';
       state.isGestor    = appMeta.role === 'gestor';
@@ -91,20 +118,22 @@ async function checkAuth() {
       renderHeaderUser();
       renderTabs();
       renderContent();
+      if (typeof chatBoot === 'function') await chatBoot();
     } else {
       document.getElementById('login-screen').classList.remove('hidden');
       document.getElementById('splash-screen').classList.add('hidden');
       document.getElementById('app-content').classList.add('hidden');
+      if (typeof chatTeardown === 'function') chatTeardown(true);
     }
   } catch (error) {
     console.error('Erro auth:', error);
     const errorEl = document.getElementById('login-error');
-    errorEl.innerText = 'Não foi possível conectar ao servidor. Tente novamente.';
+    errorEl.innerText = 'NÃ£o foi possÃ­vel conectar ao servidor. Tente novamente.';
     errorEl.classList.remove('hidden');
   }
 }
 
-// Ao carregar a página, verifica se ainda há lockout ativo
+// Ao carregar a pÃ¡gina, verifica se ainda hÃ¡ lockout ativo
 (function _bfCheckOnLoad() {
   const until = _bfGetUntil();
   if (until && Date.now() < until) {
@@ -192,14 +221,14 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     errorEl.classList.add('hidden');
     state.currentUser = data.user;
 
-    // Verifica se o usuário tem 2FA ativo e sessão ainda em aal1
+    // Verifica se o usuÃ¡rio tem 2FA ativo e sessÃ£o ainda em aal1
     const { data: mfaData } = await supabaseClient.auth.mfa.listFactors();
     const hasVerifiedTotp = mfaData?.totp?.some(f => f.status === 'verified');
     const { data: aalData } = await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
     const needsMfa = hasVerifiedTotp && aalData?.currentLevel === 'aal1' && aalData?.nextLevel === 'aal2';
 
     if (needsMfa) {
-      // Inicia desafio 2FA e mostra tela de código
+      // Inicia desafio 2FA e mostra tela de cÃ³digo
       const { data: challengeData, error: chErr } = await supabaseClient.auth.mfa.challenge({
         factorId: mfaData.totp.find(f => f.status === 'verified').id
       });
@@ -236,7 +265,7 @@ async function submitMfaCode() {
   const errEl   = document.getElementById('mfa-login-error');
   const btn     = document.getElementById('btn-mfa-submit');
   errEl.classList.add('hidden');
-  if (code.length !== 6) { errEl.innerText = 'Insira o código de 6 dígitos.'; errEl.classList.remove('hidden'); return; }
+  if (code.length !== 6) { errEl.innerText = 'Insira o cÃ³digo de 6 dÃ­gitos.'; errEl.classList.remove('hidden'); return; }
 
   btn.disabled  = true;
   btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> VERIFICANDO...`;
@@ -249,7 +278,7 @@ async function submitMfaCode() {
   });
 
   if (error) {
-    errEl.innerText = 'Código inválido. Tente novamente.';
+    errEl.innerText = 'CÃ³digo invÃ¡lido. Tente novamente.';
     errEl.classList.remove('hidden');
     btn.disabled  = false;
     btn.innerHTML = `<i data-lucide="check" class="w-5 h-5 stroke-[3px]"></i> CONFIRMAR`;
@@ -270,6 +299,12 @@ function cancelMfaStep() {
 }
 
 async function _finishLogin(user, email) {
+  const isActive = await ensureUserIsActive();
+  if (!isActive) {
+    await blockInactiveSession();
+    return;
+  }
+
   const appMeta     = user.app_metadata || {};
   state.isAdmin     = appMeta.role === 'admin';
   state.isGestor    = appMeta.role === 'gestor';
@@ -302,6 +337,7 @@ async function _finishLogin(user, email) {
   renderHeaderUser();
   renderTabs();
   renderContent();
+  if (typeof chatBoot === 'function') await chatBoot();
 }
 
 // --- Exibir tela de reset de senha ---
@@ -314,7 +350,7 @@ function showPasswordResetForm() {
   lucide.createIcons();
 }
 
-// --- Handler do formulário de nova senha ---
+// --- Handler do formulÃ¡rio de nova senha ---
 document.getElementById('reset-password-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const newPass     = document.getElementById('reset-new-password').value;
@@ -330,7 +366,7 @@ document.getElementById('reset-password-form').addEventListener('submit', async 
     return;
   }
   if (newPass !== confirmPass) {
-    errorEl.textContent = 'As senhas não coincidem.';
+    errorEl.textContent = 'As senhas nÃ£o coincidem.';
     errorEl.classList.remove('hidden');
     return;
   }
@@ -351,12 +387,12 @@ document.getElementById('reset-password-form').addEventListener('submit', async 
   } else {
     await supabaseClient.auth.signOut();
     _isPasswordRecovery = false;
-    // limpa o hash da URL sem recarregar a página
+    // limpa o hash da URL sem recarregar a pÃ¡gina
     history.replaceState(null, '', window.location.pathname);
     document.getElementById('reset-password-screen').classList.add('hidden');
     document.getElementById('login-screen').classList.remove('hidden');
     const loginErrorEl = document.getElementById('login-error');
-    loginErrorEl.textContent     = '✓ Senha atualizada com sucesso! Faça login com sua nova senha.';
+    loginErrorEl.textContent     = 'âœ“ Senha atualizada com sucesso! FaÃ§a login com sua nova senha.';
     loginErrorEl.style.color     = '#22c55e';
     loginErrorEl.style.borderColor = 'rgba(34,197,94,0.3)';
     loginErrorEl.style.background  = 'rgba(34,197,94,0.08)';
@@ -364,7 +400,7 @@ document.getElementById('reset-password-form').addEventListener('submit', async 
   }
 });
 
-// --- Recuperação de senha ---
+// --- RecuperaÃ§Ã£o de senha ---
 async function handleForgotPassword() {
   const email = document.getElementById('login-email').value.trim();
   const errorEl = document.getElementById('login-error');
@@ -387,10 +423,10 @@ async function handleForgotPassword() {
   btnForgot.disabled = false;
   if (error) {
     btnForgot.innerText = 'ESQUECI A SENHA';
-    errorEl.innerText   = 'Erro ao enviar e-mail. Verifique o endereço e tente novamente.';
+    errorEl.innerText   = 'Erro ao enviar e-mail. Verifique o endereÃ§o e tente novamente.';
     errorEl.classList.remove('hidden');
   } else {
-    btnForgot.innerText = '✓ E-MAIL ENVIADO!';
+    btnForgot.innerText = 'âœ“ E-MAIL ENVIADO!';
     setTimeout(() => { btnForgot.innerText = 'ESQUECI A SENHA'; }, 6000);
   }
 }
@@ -436,6 +472,8 @@ async function updateVendedorStats(email) {
 
 async function handleLogout() {
   clearTimeout(_inactivityTimer);
+  if (typeof chatTeardown === 'function') chatTeardown(true);
   await supabaseClient.auth.signOut();
   window.location.reload();
 }
+

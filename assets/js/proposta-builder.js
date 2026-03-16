@@ -636,7 +636,8 @@ async function handleCustomProposalSubmit(event) {
     lucide.createIcons();
   }
 
-  const novaAba = window.open('', '_blank');
+  const shouldUsePopup = !isStandaloneDisplayMode();
+  const popupRef = shouldUsePopup ? window.open('', '_blank') : null;
 
   // Captura nomes dos componentes para snapshot
   const modulo   = (state.componentes || []).find(c => c.id === draft.moduloId);
@@ -688,8 +689,7 @@ async function handleCustomProposalSubmit(event) {
     const baseUrl   = window.location.href.split('index.html')[0].replace(/\/$/, '');
     const linkFinal = `${baseUrl}/proposta.html?id=${data[0].id}`;
 
-    novaAba.location.href = linkFinal;
-    copiarTextoBlindado(linkFinal);
+    handleProposalLinkOpen(linkFinal, popupRef);
 
     if (!client.status || client.status === 'NOVO') {
       await cycleClientStatus(client.id, 'NOVO');
@@ -715,7 +715,7 @@ async function handleCustomProposalSubmit(event) {
   } catch (err) {
     console.error('Erro ao gerar proposta personalizada:', err);
     alert('Erro ao gerar a proposta. Tente novamente.');
-    if (novaAba) novaAba.close();
+    if (popupRef) popupRef.close();
     if (submitBtn) {
       submitBtn.disabled  = false;
       submitBtn.innerHTML = originalText;
@@ -798,7 +798,8 @@ async function handleEquipamentosProposalSubmit(event) {
     lucide.createIcons();
   }
 
-  const novaAba = window.open('', '_blank');
+  const shouldUsePopup = !isStandaloneDisplayMode();
+  const popupRef = shouldUsePopup ? window.open('', '_blank') : null;
   try {
     const vendedorMeta = state.currentUser.user_metadata || {};
     const vendedorNome = vendedorMeta.full_name || vendedorMeta.name || state.currentUser.email.split('@')[0];
@@ -831,8 +832,7 @@ async function handleEquipamentosProposalSubmit(event) {
 
     const baseUrl   = window.location.href.split('index.html')[0].replace(/\/$/, '');
     const linkFinal = `${baseUrl}/proposta.html?id=${data[0].id}`;
-    novaAba.location.href = linkFinal;
-    copiarTextoBlindado(linkFinal);
+    handleProposalLinkOpen(linkFinal, popupRef);
 
     if (!client.status || client.status === 'NOVO') await cycleClientStatus(client.id, 'NOVO');
     await fetchPropostas();
@@ -854,7 +854,7 @@ async function handleEquipamentosProposalSubmit(event) {
   } catch (err) {
     console.error('Erro ao gerar orçamento de equipamento:', err);
     alert('Erro ao gerar o orçamento. Tente novamente.');
-    if (novaAba) novaAba.close();
+    if (popupRef) popupRef.close();
     if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = originalText; lucide.createIcons(); }
   }
 }
@@ -1005,7 +1005,8 @@ async function copyProposalLink(kit, event) {
   btnCopiar.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> GERANDO...';
   lucide.createIcons();
 
-  const novaAba = window.open('', '_blank');
+  const shouldUsePopup = !isStandaloneDisplayMode();
+  const popupRef = shouldUsePopup ? window.open('', '_blank') : null;
 
   try {
     const vendedorMeta  = state.currentUser.user_metadata || {};
@@ -1033,8 +1034,7 @@ async function copyProposalLink(kit, event) {
     const baseUrl   = window.location.href.split('index.html')[0].replace(/\/$/, '');
     const linkFinal = `${baseUrl}/proposta.html?id=${data[0].id}`;
 
-    novaAba.location.href = linkFinal;
-    copiarTextoBlindado(linkFinal);
+    handleProposalLinkOpen(linkFinal, popupRef);
 
     if (!client.status || client.status === 'NOVO') {
       await cycleClientStatus(client.id, 'NOVO');
@@ -1058,9 +1058,65 @@ async function copyProposalLink(kit, event) {
   } catch (err) {
     console.error('Erro na geração da proposta personalizada:', err);
     alert('Erro ao gerar a proposta. Tente novamente.');
-    novaAba.close();
+    if (popupRef) popupRef.close();
     btnCopiar.innerHTML = originalText;
     lucide.createIcons();
+  }
+}
+
+function isStandaloneDisplayMode() {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    window.navigator.standalone === true
+  );
+}
+
+function handleProposalLinkOpen(link, popupRef) {
+  // Em modo app (PWA), evita navegar para dentro da proposta e "prender" o vendedor.
+  copiarTextoBlindado(link);
+
+  if (isStandaloneDisplayMode()) {
+    const externalAttempt = tryOpenExternalBrowser(link);
+
+    if (navigator.share) {
+      navigator.share({
+        title: 'Proposta Ágil Solar',
+        text: 'Segue o link da proposta:',
+        url: link,
+      }).catch(() => {});
+    }
+
+    showToast(externalAttempt
+      ? 'LINK COPIADO! Se nao abrir fora do app, use compartilhar.'
+      : 'LINK COPIADO! Use compartilhar para abrir no navegador.');
+    return;
+  }
+
+  if (popupRef) {
+    popupRef.location.href = link;
+    return;
+  }
+
+  const newTab = window.open(link, '_blank', 'noopener,noreferrer');
+  if (!newTab) {
+    window.location.href = link;
+  }
+}
+
+function tryOpenExternalBrowser(link) {
+  try {
+    const anchor = document.createElement('a');
+    anchor.href = link;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener noreferrer external';
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    return true;
+  } catch (_) {
+    return false;
   }
 }
 

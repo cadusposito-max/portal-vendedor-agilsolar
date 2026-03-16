@@ -435,30 +435,21 @@
         </div>
     </div>
 
-    <!-- FINAL CTA — Fechar negócio -->
-    <div class="relative overflow-hidden rounded-2xl border border-orange-500/30 shadow-[0_0_60px_rgba(234,88,12,0.15)] bg-grid-sm">
-        <div class="absolute inset-0 bg-gradient-to-br from-orange-900/60 via-black/80 to-yellow-900/30 pointer-events-none"></div>
-        <div class="absolute -top-10 -right-10 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="relative z-10 p-8 md:p-10 text-center">
-            <p class="text-orange-400 text-[10px] font-black uppercase tracking-[0.35em] mb-3">
-                <i data-lucide="zap" class="inline w-3 h-3 mr-1"></i>PRONTO PARA ECONOMIZAR?
-            </p>
-            <h3 class="text-2xl md:text-4xl font-black text-white uppercase leading-tight tracking-tighter mb-3">
-                Dê o primeiro passo<br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400">rumo à independência energética</span>
-            </h3>
-            <p class="text-neutral-400 text-sm md:text-base max-w-lg mx-auto mb-8">Clique abaixo, fale com o seu consultor e garanta esta proposta especial. Resposta em minutos.</p>
-            <a id="final-cta-btn" href="#"
-                class="inline-flex items-center gap-3 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black px-10 py-5 font-black uppercase tracking-widest transition-all shadow-[0_0_40px_rgba(234,88,12,0.4)] hover:shadow-[0_0_60px_rgba(234,88,12,0.6)] active:scale-95 text-base md:text-lg rounded-xl">
-                <i data-lucide="message-circle" class="w-6 h-6 stroke-[3px]"></i>
-                QUERO ESTE SISTEMA
-            </a>
-            <p class="text-neutral-600 text-[10px] font-bold uppercase tracking-wider mt-5">
-                <i data-lucide="lock" class="inline w-3 h-3 mr-1"></i>Sem compromisso &middot; Sem burocracia &middot; Resposta imediata
-            </p>
-        </div>
-    </div>
+</div>
 
+<!-- Acoes rapidas (principalmente para modo app/PWA) -->
+<div id="proposal-quick-actions" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-black/85 border border-neutral-700 rounded-xl px-2 py-2 shadow-[0_0_30px_rgba(0,0,0,0.45)] backdrop-blur-sm">
+    <div class="flex items-center gap-2">
+        <button id="qa-back-btn" class="px-3 py-2 bg-neutral-800 hover:bg-neutral-700 text-white text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center gap-1.5">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar
+        </button>
+        <button id="qa-copy-btn" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center gap-1.5">
+            <i data-lucide="copy" class="w-4 h-4"></i> Copiar
+        </button>
+        <button id="qa-open-browser-btn" class="px-3 py-2 bg-orange-600 hover:bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center gap-1.5">
+            <i data-lucide="external-link" class="w-4 h-4"></i> Navegador
+        </button>
+    </div>
 </div>
 
 <script src="assets/js/config.js"></script>

@@ -580,3 +580,46 @@ body.theme-light [class*="border-dashed"][class*="border-orange-5"] {
 body.theme-light #admin-kits-grid [class*="bg-black\/5"],
 body.theme-light #admin-kits-grid [class*="bg-black\/4"] { background-color: #f1f5f9 !important; }
 body.theme-light #admin-kits-grid [class*="text-neutral-5"] { color: #64748b !important; }
+/* ─── 20b. PROPOSTA PREMIUM (hero/cards/cta) ─────────── */
+body.theme-light .proposal-hero-shell {
+  border-color: rgba(37, 99, 235, 0.28) !important;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(37, 99, 235, 0.14) 0%, rgba(37, 99, 235, 0) 58%),
+    radial-gradient(90% 100% at 100% 0%, rgba(96, 165, 250, 0.18) 0%, rgba(96, 165, 250, 0) 55%),
+    linear-gradient(170deg, #ffffff 0%, #f8fafc 60%, #f1f5f9 100%) !important;
+  box-shadow: 0 0 40px rgba(37, 99, 235, 0.16) !important;
+}
+
+body.theme-light .proposal-hero-shell::before {
+  background: linear-gradient(115deg, rgba(37, 99, 235, 0.28), rgba(96, 165, 250, 0.12), transparent 65%) !important;
+}
+
+body.theme-light .proposal-kpi-card {
+  border-color: #dbe3ee !important;
+  background: linear-gradient(180deg, #ffffff, #f8fafc) !important;
+}
+
+body.theme-light .proposal-kpi-label {
+  color: #64748b !important;
+}
+
+body.theme-light .proposal-kpi-value {
+  color: #0f172a !important;
+}
+
+body.theme-light .proposal-kpi-note {
+  color: #64748b !important;
+}
+
+body.theme-light .proposal-inline-cta {
+  border-color: rgba(37, 99, 235, 0.35) !important;
+  background: linear-gradient(135deg, #1d4ed8, #3b82f6) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 28px rgba(37, 99, 235, 0.24) !important;
+}
+
+body.theme-light .proposal-inline-cta.is-secondary {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.11), rgba(96, 165, 250, 0.17)) !important;
+  color: #1e293b !important;
+  box-shadow: none !important;
+}

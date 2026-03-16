@@ -719,6 +719,122 @@
   </div>
 </div>
 
+<!-- CHAT FLOATING BUTTON -->
+<div id="chat-fab-container" class="hidden fixed bottom-8 right-6 z-[92]">
+  <button id="chat-fab-btn" type="button" aria-label="Abrir chat interno" class="chat-fab-btn">
+    <i data-lucide="message-circle" class="w-6 h-6"></i>
+    <span id="chat-fab-badge" class="chat-fab-badge hidden">0</span>
+  </button>
+</div>
+
+<!-- CHAT SHELL -->
+<div id="chat-shell-backdrop" class="hidden fixed inset-0 z-[93] bg-black/65 backdrop-blur-sm"></div>
+<section id="chat-shell" class="hidden fixed z-[94]" aria-label="Chat interno">
+  <div class="chat-shell-window">
+    <header class="chat-shell-header">
+      <div class="chat-shell-header-left">
+        <button id="chat-thread-back-btn" type="button" class="chat-icon-btn hidden" aria-label="Voltar para lista">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        </button>
+
+        <button id="chat-thread-meta-btn" type="button" class="chat-thread-meta-btn" aria-label="Ver perfil do contato" aria-expanded="false" disabled>
+          <span id="chat-thread-avatar" class="chat-thread-avatar">
+            <span class="chat-thread-avatar-core">U</span>
+          </span>
+          <span class="chat-shell-header-title-wrap">
+            <p class="chat-shell-overline">Chat Interno</p>
+            <h3 id="chat-thread-title" class="chat-shell-title">Conversa</h3>
+            <p id="chat-thread-subtitle" class="chat-shell-subtitle">Selecione uma conversa para comecar.</p>
+          </span>
+        </button>
+
+        <div id="chat-thread-profile-card" class="chat-thread-profile-card hidden" role="dialog" aria-label="Perfil do contato">
+          <div class="chat-thread-profile-top">
+            <span id="chat-profile-avatar" class="chat-profile-avatar">
+              <span class="chat-profile-avatar-core">U</span>
+            </span>
+            <div class="chat-thread-profile-main">
+              <p id="chat-profile-name" class="chat-thread-profile-name">Usuario</p>
+              <p id="chat-profile-kind" class="chat-thread-profile-kind">Conversa direta</p>
+            </div>
+          </div>
+          <div class="chat-thread-profile-grid">
+            <div class="chat-thread-profile-row">
+              <span class="chat-thread-profile-label">Email</span>
+              <span id="chat-profile-email" class="chat-thread-profile-value">-</span>
+            </div>
+            <div class="chat-thread-profile-row">
+              <span class="chat-thread-profile-label">Cargo</span>
+              <span id="chat-profile-role" class="chat-thread-profile-value">-</span>
+            </div>
+            <div class="chat-thread-profile-row">
+              <span class="chat-thread-profile-label">Franquia</span>
+              <span id="chat-profile-franquia" class="chat-thread-profile-value">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="chat-shell-header-actions">
+        <button id="chat-new-conversation-btn" type="button" class="chat-icon-btn" aria-label="Nova conversa">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+        </button>
+        <button id="chat-shell-close-btn" type="button" class="chat-icon-btn" aria-label="Fechar chat">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="chat-shell-body">
+      <aside id="chat-list-panel" class="chat-list-panel">
+        <div class="chat-search-wrap">
+          <i data-lucide="search" class="w-4 h-4"></i>
+          <input id="chat-list-search" type="text" placeholder="Buscar conversa..." autocomplete="off">
+        </div>
+        <div id="chat-list-empty" class="chat-list-empty hidden">Nenhuma conversa encontrada.</div>
+        <div id="chat-list-items" class="chat-list-items custom-scrollbar"></div>
+      </aside>
+
+      <section id="chat-thread-panel" class="chat-thread-panel">
+        <div id="chat-thread-empty" class="chat-thread-empty">
+          <i data-lucide="messages-square" class="w-8 h-8"></i>
+          <p>Selecione uma conversa para começar.</p>
+        </div>
+
+        <div id="chat-thread-body" class="chat-thread-body hidden">
+          <div id="chat-thread-loading" class="chat-thread-loading hidden">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+            Carregando mensagens...
+          </div>
+          <div id="chat-thread-messages" class="chat-thread-messages custom-scrollbar"></div>
+          <form id="chat-thread-form" class="chat-thread-form" autocomplete="off">
+            <textarea id="chat-thread-input" rows="2" maxlength="4000" placeholder="Digite uma mensagem..."></textarea>
+            <button id="chat-thread-send-btn" type="submit" aria-label="Enviar mensagem" disabled>
+              <i data-lucide="send" class="w-4 h-4"></i>
+            </button>
+          </form>
+        </div>
+      </section>
+    </div>
+
+    <div id="chat-directory-overlay" class="chat-directory-overlay hidden">
+      <div class="chat-directory-card">
+        <div class="chat-directory-header">
+          <p class="chat-directory-title">Nova conversa</p>
+          <button id="chat-directory-close-btn" type="button" class="chat-icon-btn" aria-label="Fechar lista de usuários">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="chat-search-wrap">
+          <i data-lucide="search" class="w-4 h-4"></i>
+          <input id="chat-directory-search" type="text" placeholder="Buscar usuário..." autocomplete="off">
+        </div>
+        <div id="chat-directory-empty" class="chat-list-empty hidden">Nenhum usuário encontrado.</div>
+        <div id="chat-directory-list" class="chat-directory-list custom-scrollbar"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- TOAST NOTIFICATION -->
 <div id="toast" class="fixed bottom-10 right-10 bg-gradient-to-r from-orange-600 to-yellow-500 text-black px-8 py-5 shadow-[0_0_50px_rgba(234,88,12,0.5)] flex items-center gap-4 border-4 border-orange-400 transform translate-y-full opacity-0 transition-all duration-300 z-[9999]" style="pointer-events: none;">
   <div class="bg-black p-1"><i data-lucide="check" class="w-6 h-6 text-orange-500 stroke-[4px]"></i></div>
@@ -856,6 +972,7 @@
 <script src="assets/js/vendas.js"></script>
 <script src="assets/js/admin.js"></script>
 <script src="assets/js/profile.js"></script>
+<script src="assets/js/chat.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
 (function () {
@@ -889,5 +1006,7 @@
 })();
 </script>
 </html>
+
+
 
 

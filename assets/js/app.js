@@ -1,12 +1,12 @@
-// ==========================================
+﻿// ==========================================
 // APP: ORQUESTRADOR PRINCIPAL
 // ==========================================
 
-// --- Relógio ao vivo (Dashboard) ---
+// --- RelÃ³gio ao vivo (Dashboard) ---
 let _clockInterval = null;
 
 function startDashboardClock() {
-  // Evita acumular múltiplos intervals quando o dashboard é re-renderizado.
+  // Evita acumular mÃºltiplos intervals quando o dashboard Ã© re-renderizado.
   if (_clockInterval) clearInterval(_clockInterval);
 
   const tick = () => {
@@ -73,7 +73,7 @@ function renderHeaderUser() {
   if (roleEl)   roleEl.textContent = state.isAdmin ? 'Administrador' : state.isGestor ? 'Gestor' : 'Vendedor';
   if (wrapEl)   wrapEl.classList.replace('hidden', 'flex');
 
-  // Botão de alternância de visão (somente admin)
+  // BotÃ£o de alternÃ¢ncia de visÃ£o (somente admin)
   const existingToggle = document.getElementById('admin-view-toggle-btn');
   if (existingToggle) existingToggle.remove();
   const existingGestorToggle = document.getElementById('gestor-view-toggle-btn');
@@ -84,7 +84,7 @@ function renderHeaderUser() {
     const btn = document.createElement('button');
     btn.id = 'admin-view-toggle-btn';
     btn.onclick = toggleAdminViewMode;
-    btn.title = state.adminViewAll ? 'Clique para ver só sua franquia' : 'Clique para ver todas as franquias';
+    btn.title = state.adminViewAll ? 'Clique para ver sÃ³ sua franquia' : 'Clique para ver todas as franquias';
     btn.className = state.adminViewAll
       ? 'view-scope-toggle is-consolidated p-3 border transition-all duration-300 bg-purple-600 border-purple-500 text-white hover:bg-purple-700 hover:border-purple-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest'
       : 'view-scope-toggle is-unit p-3 border transition-all duration-300 bg-blue-600 border-blue-500 text-white hover:bg-blue-700 hover:border-blue-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest';
@@ -102,7 +102,7 @@ function renderHeaderUser() {
     const btn = document.createElement('button');
     btn.id = 'gestor-view-toggle-btn';
     btn.onclick = toggleGestorViewMode;
-    btn.title = state.gestorViewAll ? 'Clique para ver só os seus clientes' : 'Clique para ver toda a unidade';
+    btn.title = state.gestorViewAll ? 'Clique para ver sÃ³ os seus clientes' : 'Clique para ver toda a unidade';
     btn.className = state.gestorViewAll
       ? 'view-scope-toggle is-gestor-all p-3 border transition-all duration-300 bg-blue-600 border-blue-500 text-white hover:bg-blue-700 hover:border-blue-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest'
       : 'view-scope-toggle is-gestor-own p-3 border transition-all duration-300 bg-blue-600 border-blue-500 text-white hover:bg-blue-700 hover:border-blue-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest';
@@ -118,7 +118,7 @@ function renderHeaderUser() {
 
 async function toggleAdminViewMode() {
   state.adminViewAll = !state.adminViewAll;
-  showToast(state.adminViewAll ? 'VISÃO: TODAS AS FRANQUIAS' : 'VISÃO: MINHA UNIDADE');
+  showToast(state.adminViewAll ? 'VISÃƒO: TODAS AS FRANQUIAS' : 'VISÃƒO: MINHA UNIDADE');
   await Promise.all([fetchClientes(), fetchPropostas(), fetchVendas()]);
   renderHeaderUser();
   renderContent();
@@ -126,7 +126,7 @@ async function toggleAdminViewMode() {
 
 async function toggleGestorViewMode() {
   state.gestorViewAll = !state.gestorViewAll;
-  showToast(state.gestorViewAll ? 'VISÃO: MINHA UNIDADE' : 'VISÃO: APENAS MEUS CLIENTES');
+  showToast(state.gestorViewAll ? 'VISÃƒO: MINHA UNIDADE' : 'VISÃƒO: APENAS MEUS CLIENTES');
   await Promise.all([fetchClientes(), fetchPropostas(), fetchVendas()]);
   renderHeaderUser();
   renderContent();
@@ -136,7 +136,7 @@ function initSplash() {
   return new Promise(resolve => {
     const MESSAGES = [
       'Sincronizando Banco de Dados...',
-      'Carregando Catálogo de Kits...',
+      'Carregando CatÃ¡logo de Kits...',
       'Validando Credenciais...',
       'Preparando Dashboard...',
     ];
@@ -163,7 +163,7 @@ function initSplash() {
           document.getElementById('splash-content').classList.add('scale-110');
           document.getElementById('app-content').classList.remove('opacity-0', 'scale-95', 'hidden');
           document.getElementById('app-content').classList.add('opacity-100', 'scale-100');
-          resolve(); // dados já estarão prontos quando isso for chamado
+          resolve(); // dados jÃ¡ estarÃ£o prontos quando isso for chamado
         }, 500);
         setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 2000);
       }
@@ -235,6 +235,7 @@ function renderTabs() {
 
 function setTab(tabId) {
   closeMobileMenu();
+  if (typeof chatHandleAppTabChange === 'function') chatHandleAppTabChange();
   stopDashboardClock();
   state.activeTab = tabId;
   renderTabs();
@@ -311,6 +312,7 @@ document.getElementById('search-input').addEventListener('input', (e) => {
 
 document.getElementById('client-telefone').addEventListener('input', formatarTelefone);
 
-// --- Inicialização ---
+// --- InicializaÃ§Ã£o ---
 lucide.createIcons();
 checkAuth();
+

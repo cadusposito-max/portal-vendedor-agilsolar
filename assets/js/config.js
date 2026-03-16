@@ -71,11 +71,32 @@ let state = {
 
   comissaoPct:  5,          // % de comissão do vendedor logado (carregado de vendedores_stats)
 
-  // Perfil do usuário (carregado de profiles no login)
+  // Perfil do usu�rio (carregado de profiles no login)
   profile: {
     nome:       '',
     telefone:   '',
     avatar_url: '',
+  },
+
+  // Chat interno
+  chat: {
+    initialized: false,
+    hasAccess: false,
+    isOpen: false,
+    isMobile: false,
+    mobileView: 'list', // 'list' | 'thread'
+    loadingConversations: false,
+    loadingMessages: false,
+    conversations: [],
+    activeConversationId: null,
+    activeConversation: null,
+    activeConversationTitle: '',
+    messages: [],
+    unreadTotal: 0,
+    directory: [],
+    searchTerm: '',
+    directorySearch: '',
+    profileCardOpen: false,
   },
 };
 
@@ -84,4 +105,6 @@ const TABS = [
   { id: 'clientes',  label: 'MEUS CLIENTES',  icon: 'users' },
   { id: 'vendas',    label: 'VENDAS',         icon: 'trophy' }
 ];
+
+
 
