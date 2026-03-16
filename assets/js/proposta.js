@@ -1,5 +1,5 @@
-// ==========================================
-// LÓGICA DA PÁGINA DE PROPOSTA (proposta.html)
+﻿// ==========================================
+// LÃ“GICA DA PÃGINA DE PROPOSTA (proposta.html)
 // ==========================================
 
 const VIDEOS_YOUTUBE = [
@@ -80,7 +80,7 @@ function initProposalQuickActions() {
 }
 
 // ==========================================
-// VALIDADE DA PROPOSTA — 72h from created_at
+// VALIDADE DA PROPOSTA â€” 72h from created_at
 // ==========================================
 function startCountdown(createdAt) {
   const EXPIRY_HOURS = 72;
@@ -99,7 +99,7 @@ function startCountdown(createdAt) {
 }
 
 // ==========================================
-// CARROSSEL DE VÍDEOS
+// CARROSSEL DE VÃDEOS
 // ==========================================
 let videoAtual = 0;
 const playerContainer = document.getElementById('video-wrapper');
@@ -230,12 +230,13 @@ function renderData(data) {
 
   const isPersonalizada = data.proposal_mode === 'PERSONALIZADA';
   const isEquipamentos  = data.proposal_mode === 'EQUIPAMENTOS';
-  const displayPrice = (isPersonalizada || isEquipamentos) ? (data.custom_total_price || data.kit_price || 0) : (data.kit_price  || 0);
-  const displayPower = (isPersonalizada && !isEquipamentos) ? (data.custom_system_power_kwp || 0) : (data.kit_power || 0);
-  const displayName  = isPersonalizada ? 'Proposta Personalizada' : (isEquipamentos ? (data.kit_nome || 'Fornecimento de Equipamentos') : (data.kit_nome || ''));
-  const displayBrand = (isPersonalizada || isEquipamentos) ? '' : (data.kit_brand || '');
+  const isCustomMode    = isPersonalizada || isEquipamentos;
+  const displayPrice = isCustomMode ? (data.custom_total_price || data.kit_price || 0) : (data.kit_price || 0);
+  const displayPower = isCustomMode ? (data.custom_system_power_kwp || data.kit_power || 0) : (data.kit_power || 0);
+  const displayName  = isCustomMode ? 'Proposta Personalizada' : (data.kit_nome || '');
+  const displayBrand = isCustomMode ? '' : (data.kit_brand || '');
 
-  // Geração: usa valor salvo no banco (imutável, calculado com HSP da franquia na criação)
+  // GeraÃ§Ã£o: usa valor salvo no banco (imutÃ¡vel, calculado com HSP da franquia na criaÃ§Ã£o)
   // Fallback para propostas antigas sem geracao_estimada salva
   const estGeneration = data.geracao_estimada
     ? Number(data.geracao_estimada)
@@ -255,8 +256,8 @@ function renderData(data) {
   let textoPayback = '';
   if (anosPayback > 0)                    textoPayback += `${anosPayback} ano${anosPayback > 1 ? 's' : ''}`;
   if (anosPayback > 0 && mesesRestantes > 0) textoPayback += ' e ';
-  if (mesesRestantes > 0)                 textoPayback += `${mesesRestantes} ${mesesRestantes > 1 ? 'meses' : 'mês'}`;
-  if (textoPayback === '')                textoPayback = 'Menos de 1 mês';
+  if (mesesRestantes > 0)                 textoPayback += `${mesesRestantes} ${mesesRestantes > 1 ? 'meses' : 'mÃªs'}`;
+  if (textoPayback === '')                textoPayback = 'Menos de 1 mÃªs';
 
   const taxa18x = TAXAS_CARTAO[MAX_PARCELAS] || 0;
   const totalCartao18x = displayPrice > 0 ? displayPrice / (1 - (taxa18x / 100)) : 0;
@@ -273,7 +274,7 @@ function renderData(data) {
   document.getElementById('client-name').innerText    = clientePrimeiroNome;
   document.getElementById('kit-brand').innerText      = displayBrand;
   const brandWrapper = document.getElementById('kit-brand-wrapper');
-  if ((isPersonalizada || isEquipamentos) && brandWrapper) brandWrapper.classList.add('hidden');
+  if (isCustomMode && brandWrapper) brandWrapper.classList.add('hidden');
   document.getElementById('kit-name').innerText       = displayName;
 
   const heroInvestmentEl = document.getElementById('hero-investment');
@@ -289,20 +290,20 @@ function renderData(data) {
   if (heroSystemNameEl) heroSystemNameEl.innerText = displayName;
   if (heroSystemMetaEl) heroSystemMetaEl.innerText = heroSystemMeta;
 
-  // Para EQUIPAMENTOS: oculta potência e geração apenas se não houver dados de sistema
+  // Para EQUIPAMENTOS: oculta potÃªncia e geraÃ§Ã£o apenas se nÃ£o houver dados de sistema
   const powerGenGrid = document.querySelector('#kit-power')?.closest('.grid');
   const idealBillRow = document.querySelector('#kit-ideal-bill')?.closest('.mb-8');
-  if (isEquipamentos && displayPower <= 0) {
+  if (isCustomMode && displayPower <= 0) {
     if (powerGenGrid) powerGenGrid.classList.add('hidden');
     if (idealBillRow) idealBillRow.classList.add('hidden');
   } else {
     document.getElementById('kit-power').innerText      = displayPower + ' kWp';
-    document.getElementById('kit-generation').innerText = estGeneration.toFixed(0) + ' kWh/mês';
+    document.getElementById('kit-generation').innerText = estGeneration.toFixed(0) + ' kWh/mÃªs';
     if (idealBillRow) document.getElementById('kit-ideal-bill').innerText = formatter.format(valorFaturaIdeal);
   }
 
   const listPriceEl = document.getElementById('kit-list-price');
-  if (isPersonalizada || isEquipamentos) {
+  if (isCustomMode) {
     if (listPriceEl) listPriceEl.classList.add('hidden');
   } else {
     if (listPriceEl) listPriceEl.innerText = 'De: ' + formatter.format(data.kit_list_price || displayPrice);
@@ -310,28 +311,22 @@ function renderData(data) {
 
   const badgeDiscountEl = document.getElementById('badge-discount');
   if (badgeDiscountEl) {
-    const hasDiscount = isPersonalizada
-      ? (Number(data.custom_discount_value) > 0)
-      : (!isEquipamentos && data.kit_list_price && data.kit_list_price > displayPrice);
+    const hasDiscount = !isCustomMode && data.kit_list_price && data.kit_list_price > displayPrice;
     if (hasDiscount) badgeDiscountEl.classList.remove('hidden');
   }
-
-  // Breakdown equipamento + frete (oculto na proposta do cliente — info interna apenas)
-  const equipBreakdownRow = document.getElementById('equip-breakdown-row');
-  if (equipBreakdownRow) equipBreakdownRow.classList.add('hidden');
 
   const priceParts = formatter.format(displayPrice).split(',');
   document.getElementById('kit-price').innerHTML = `
     <span class="text-xl align-top text-neutral-500 mr-1">R$</span>${priceParts[0].replace('R$', '').trim()}<span class="text-xl align-top text-neutral-500">,${priceParts[1]}</span>
   `;
 
-  // Oculta seção ambiental e de economia/ROI para EQUIPAMENTOS sem dados de potência
+  // Oculta seÃ§Ã£o ambiental e de economia/ROI para EQUIPAMENTOS sem dados de potÃªncia
   const ecoSection = document.querySelector('#eco-month')?.closest('.bg-neutral-900.border');
   const envSection = document.querySelector('#env-trees')?.closest('.flex.flex-col.md\\:flex-row');
   const ecoCurrentBillEl = document.getElementById('eco-current-bill');
   const ecoPostBillEl = document.getElementById('eco-post-bill');
   const paymentCardBestEl = document.getElementById('payment-card-best');
-  if (isEquipamentos && estGeneration <= 0) {
+  if (isCustomMode && estGeneration <= 0) {
     if (ecoSection) ecoSection.classList.add('hidden');
     if (envSection) envSection.classList.add('hidden');
   } else {
@@ -352,11 +347,11 @@ function renderData(data) {
   const vendorNome = data.vendedor_nome || (data.vendedor_email ? data.vendedor_email.split('@')[0] : 'Consultor');
   const vendorTel  = data.vendedor_telefone || '';
   const waMsg      = encodeURIComponent(
-    `Olá ${vendorNome.split(' ')[0]}! Vi a proposta "${displayName}" (${formatter.format(displayPrice)}) e quero saber mais. Pode me ajudar? Meu nome é ${clientePrimeiroNome}.`
+    `OlÃ¡ ${vendorNome.split(' ')[0]}! Vi a proposta "${displayName}" (${formatter.format(displayPrice)}) e quero saber mais. Pode me ajudar? Meu nome Ã© ${clientePrimeiroNome}.`
   );
   const waLink = vendorTel
     ? `https://wa.me/55${vendorTel.replace(/\D/g, '')}?text=${waMsg}`
-    : (data.vendedor_email ? `mailto:${data.vendedor_email}?subject=Interesse na proposta solar&body=Olá, tenho interesse na proposta enviada.` : '#');
+    : (data.vendedor_email ? `mailto:${data.vendedor_email}?subject=Interesse na proposta solar&body=OlÃ¡, tenho interesse na proposta enviada.` : '#');
 
   const finalCta    = document.getElementById('final-cta-btn');
   const heroCta     = document.getElementById('hero-cta-btn');
@@ -382,13 +377,13 @@ function renderData(data) {
   // --- Custom notes for PERSONALIZADA and EQUIPAMENTOS ---
   const payNoteRow  = document.getElementById('custom-payment-note-row');
   const payNoteText = document.getElementById('custom-payment-note-text');
-  if ((isPersonalizada || isEquipamentos) && data.custom_payment_note && payNoteRow && payNoteText) {
+  if (isCustomMode && data.custom_payment_note && payNoteRow && payNoteText) {
     payNoteText.innerText = data.custom_payment_note;
     payNoteRow.classList.remove('hidden');
   }
   const comNoteRow  = document.getElementById('custom-commercial-note-row');
   const comNoteText = document.getElementById('custom-commercial-note-text');
-  if ((isPersonalizada || isEquipamentos) && data.custom_commercial_note && comNoteRow && comNoteText) {
+  if (isCustomMode && data.custom_commercial_note && comNoteRow && comNoteText) {
     comNoteText.innerText = data.custom_commercial_note;
     comNoteRow.classList.remove('hidden');
   }
@@ -412,3 +407,5 @@ function showError() {
 
 carregarProposta();
 initProposalQuickActions();
+
+

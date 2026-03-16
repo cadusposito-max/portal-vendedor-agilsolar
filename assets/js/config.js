@@ -1,5 +1,5 @@
-// ==========================================
-// CONFIGURAÇÃO SUPABASE + ESTADO GLOBAL
+﻿// ==========================================
+// CONFIGURAÃ‡ÃƒO SUPABASE + ESTADO GLOBAL
 // ==========================================
 
 const SUPABASE_URL = 'https://tzwjxgprhorqrmpqudgg.supabase.co';
@@ -7,13 +7,13 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// --- CONSTANTES DE NEGÓCIO ---
+// --- CONSTANTES DE NEGÃ“CIO ---
 const COMISSAO_POR_VENDA    = 2500;   // R$ por venda fechada (alterar conforme acordo)
-const SESSION_TIMEOUT_HOURS = 6;      // Logout automático após N horas sem atividade
+const SESSION_TIMEOUT_HOURS = 6;      // Logout automÃ¡tico apÃ³s N horas sem atividade
 const MAX_LOGIN_ATTEMPTS    = 3;      // Tentativas antes de bloquear login
-const LOGIN_LOCKOUT_SECONDS = 30;     // Segundos de bloqueio após exceder tentativas
+const LOGIN_LOCKOUT_SECONDS = 30;     // Segundos de bloqueio apÃ³s exceder tentativas
 
-// --- ESTADO GLOBAL DA APLICAÇÃO ---
+// --- ESTADO GLOBAL DA APLICAÃ‡ÃƒO ---
 let state = {
   data: [],
   clientes: [],
@@ -25,53 +25,40 @@ let state = {
   currentUser: null,
 
   clienteFilter: 'TODOS',   // Filtro de status na aba clientes
-  clienteSort:   'recent',  // Ordenação: 'recent' | 'alpha'
+  clienteSort:   'recent',  // OrdenaÃ§Ã£o: 'recent' | 'alpha'
 
   pbActiveClient: null,
-  pbProposalMode: 'PROMOCIONAL', // 'PROMOCIONAL' | 'PERSONALIZADA' | 'EQUIPAMENTOS'
+  pbProposalMode: 'PROMOCIONAL', // 'PROMOCIONAL' | 'PERSONALIZADA' (EQUIPAMENTOS legado)
   pbCategory: 'kitsInversor',
   pbSearch: '',
   pbViewMode: 'list',
   pbMainTab: 'kits',        // 'kits' | 'financiamento' | 'historico'
-  componentes: [],           // módulos e inversores (sem preço)
-  pbCustomCalc: { total: 0, potencia_kwp: 0, desconto_aplicado: 0, loading: false, error: null },
-
-  pbCustomDraft: {
-    moduloId:      '',
-    moduloQty:     1,
-    inversorId:    '',
-    inversorQty:   1,
-    discountType:  'value',   // 'value' | 'percent'
-    discountValue: '',
-    paymentNote:   '',
-    commercialNote: ''
-  },
-
+  componentes: [],           // mÃ³dulos e inversores (sem preÃ§o)
   pbEquipDraft: {
-    descricao:      '',       // Descrição do equipamento
-    valorEquip:     '',       // Valor numérico do equipamento (R$)
-    frete:          '',       // Frete (R$), opcional
+    descricao:      '',       // Descricao da proposta personalizada
+    valorEquip:     '',       // Valor numerico da proposta (R$)
+    potencia:       '',       // Potencia do sistema (kWp)
     paymentNote:    '',
     commercialNote: '',
   },
 
   vendas: [],               // Vendas fechadas
-  vendasPeriod: '',         // Período filtro vendas: '' = mês atual, 'all' = geral, 'YYYY-MM' = mês específico
-  dashPeriod:   '',         // Período filtro dashboard (mesmas regras)
+  vendasPeriod: '',         // PerÃ­odo filtro vendas: '' = mÃªs atual, 'all' = geral, 'YYYY-MM' = mÃªs especÃ­fico
+  dashPeriod:   '',         // PerÃ­odo filtro dashboard (mesmas regras)
 
-  isAdmin:      false,      // Usuário com role:admin no app_metadata (detectado via JWT)
+  isAdmin:      false,      // UsuÃ¡rio com role:admin no app_metadata (detectado via JWT)
   adminSection: 'produtos', // Sub-aba ativa no painel admin
-  adminKitsFranquia: null,  // Franquia selecionada na aba KITS do admin (null = não iniciado)
-  adminViewAll: true,       // Admin: true = ver tudo (consolidado), false = ver só própria franquia
-  gestorViewAll: true,      // Gestor: true = ver toda a unidade, false = ver só os próprios clientes
+  adminKitsFranquia: null,  // Franquia selecionada na aba KITS do admin (null = nÃ£o iniciado)
+  adminViewAll: true,       // Admin: true = ver tudo (consolidado), false = ver sÃ³ prÃ³pria franquia
+  gestorViewAll: true,      // Gestor: true = ver toda a unidade, false = ver sÃ³ os prÃ³prios clientes
 
   // Multi-franquia
-  franquiaId:   null,       // UUID da franquia do usuário logado (de app_metadata.franquia_id)
+  franquiaId:   null,       // UUID da franquia do usuÃ¡rio logado (de app_metadata.franquia_id)
   franquiaNome: '',         // Nome da franquia (carregado no boot)
 
-  comissaoPct:  5,          // % de comissão do vendedor logado (carregado de vendedores_stats)
+  comissaoPct:  5,          // % de comissÃ£o do vendedor logado (carregado de vendedores_stats)
 
-  // Perfil do usu�rio (carregado de profiles no login)
+  // Perfil do usuário (carregado de profiles no login)
   profile: {
     nome:       '',
     telefone:   '',
@@ -105,6 +92,12 @@ const TABS = [
   { id: 'clientes',  label: 'MEUS CLIENTES',  icon: 'users' },
   { id: 'vendas',    label: 'VENDAS',         icon: 'trophy' }
 ];
+
+
+
+
+
+
 
 
 
