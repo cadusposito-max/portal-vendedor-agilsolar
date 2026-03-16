@@ -9,7 +9,7 @@ function renderDashboard(container) {
   const totalClientes  = state.clientes.length;
   const propostasReais = state.propostas.length;
 
-  const funil = { 'NOVO': 0, 'PROPOSTA ENVIADA': 0, 'EM NEGOCIAÇÃO': 0, 'FECHADO': 0 };
+  const funil = { 'NOVO': 0, 'PROPOSTA ENVIADA': 0, 'EM NEGOCIAÃƒâ€¡ÃƒÆ’O': 0, 'FECHADO': 0 };
   state.clientes.forEach(c => {
     const s = c.status || 'NOVO';
     if (funil[s] !== undefined) funil[s]++;
@@ -18,7 +18,7 @@ function renderDashboard(container) {
 
   const vendasFechadas = funil['FECHADO'];
 
-  // --- Período das métricas de venda ---
+  // --- PerÃƒÂ­odo das mÃƒÂ©tricas de venda ---
   const nowDash      = new Date();
   const dashCurrMonth = `${nowDash.getFullYear()}-${String(nowDash.getMonth() + 1).padStart(2, '0')}`;
   if (!state.dashPeriod) state.dashPeriod = dashCurrMonth;
@@ -38,7 +38,7 @@ function renderDashboard(container) {
         return m === state.dashPeriod;
       });
 
-  // Botões de período pré-calculados
+  // BotÃƒÂµes de perÃƒÂ­odo prÃƒÂ©-calculados
   const _dashGeralAtivo = state.dashPeriod === 'all';
   const _dashBtns = availMonthsDash.map(m => {
     const ativo   = state.dashPeriod === m;
@@ -46,7 +46,7 @@ function renderDashboard(container) {
     const cls = ativo
       ? (ehAtual ? 'bg-orange-600 text-black border-orange-500 shadow-[0_0_8px_rgba(234,88,12,0.4)]' : 'bg-neutral-700 text-white border-neutral-600')
       : 'bg-transparent border-neutral-800 text-neutral-600 hover:text-neutral-300 hover:border-neutral-700';
-    const label = formatMonthLabel(m) + (ehAtual ? ' ●' : '');
+    const label = formatMonthLabel(m) + (ehAtual ? ' Ã¢â€”Â' : '');
     return `<button onclick="setDashPeriod('${m}')" class="${cls} border px-2.5 py-1 font-black uppercase text-[8px] tracking-widest transition-all whitespace-nowrap">${label}</button>`;
   }).join('');
 
@@ -58,74 +58,116 @@ function renderDashboard(container) {
   // Percentuais do funil (relativo ao total de clientes)
   const maxF   = totalClientes || 1;
   const fPct   = k => Math.round((funil[k] / maxF) * 100);
-  const fWidth = k => Math.max(fPct(k), 2); // mínimo visual de 2%
+  const fWidth = k => Math.max(fPct(k), 2); // mÃƒÂ­nimo visual de 2%
 
-  // Taxa de avanço entre etapas
+  // Taxa de avanÃƒÂ§o entre etapas
   const toNum = (a, b) => funil[a] > 0 ? Math.round((funil[b] / funil[a]) * 100) : 0;
   const convProp = toNum('NOVO',             'PROPOSTA ENVIADA');
-  const convNeg  = toNum('PROPOSTA ENVIADA', 'EM NEGOCIAÇÃO');
-  const convFech = toNum('EM NEGOCIAÇÃO',    'FECHADO');
+  const convNeg  = toNum('PROPOSTA ENVIADA', 'EM NEGOCIAÃƒâ€¡ÃƒÆ’O');
+  const convFech = toNum('EM NEGOCIAÃƒâ€¡ÃƒÆ’O',    'FECHADO');
 
-  // Saudação
+  // SaudaÃƒÂ§ÃƒÂ£o
   const greeting  = getGreeting();
   const firstName = getFirstName();
   const hoje      = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
   const dateStr   = hoje.charAt(0).toUpperCase() + hoje.slice(1);
 
-  // Tabela de propostas
-  const recentes = state.propostas.slice(0, 5);
-  const totalPropostasLabel = state.propostas.length > 5
-    ? `<span class="text-[9px] text-neutral-600 italic">${state.propostas.length - 5} mais no histórico</span>`
+  // Mural de comunicados (desacoplado da UI da home)
+  const HOME_COMUNICADOS_PAGE_SIZE = 2;
+  if (!Number.isFinite(Number(state.dashComunicadosPage)) || Number(state.dashComunicadosPage) < 0) {
+    state.dashComunicadosPage = 0;
+  }
+
+  const comunicadosService = window.comunicadosService;
+  const comunicadosOrdenados =
+    comunicadosService && typeof comunicadosService.listPublished === 'function'
+      ? comunicadosService.listPublished()
+      : [];
+
+  const totalComunicados = comunicadosOrdenados.length;
+  const comunicadosTotalPages = Math.max(Math.ceil(totalComunicados / HOME_COMUNICADOS_PAGE_SIZE), 1);
+  const currentComunicadosPage = Math.min(Number(state.dashComunicadosPage) || 0, comunicadosTotalPages - 1);
+  state.dashComunicadosPage = currentComunicadosPage;
+
+  const pageStart = currentComunicadosPage * HOME_COMUNICADOS_PAGE_SIZE;
+  const comunicadosRecentes = comunicadosOrdenados.slice(pageStart, pageStart + HOME_COMUNICADOS_PAGE_SIZE);
+  const canGoPrev = currentComunicadosPage > 0;
+  const canGoNext = currentComunicadosPage < comunicadosTotalPages - 1;
+
+  const rangeStart = totalComunicados === 0 ? 0 : pageStart + 1;
+  const rangeEnd = totalComunicados === 0 ? 0 : pageStart + comunicadosRecentes.length;
+  const comunicadosMetaLabel = totalComunicados > 0
+    ? `<span class="text-[9px] text-neutral-600 font-bold">PÁG ${currentComunicadosPage + 1}/${comunicadosTotalPages}</span>`
+    : '';
+  const comunicadosFooterLabel = totalComunicados === 0
+    ? 'Sem comunicados publicados'
+    : `Mostrando ${rangeStart}-${rangeEnd} de ${totalComunicados}`;
+
+  const prevBtnClass = canGoPrev
+    ? 'border border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-500 bg-neutral-900/80'
+    : 'border border-neutral-900 text-neutral-700 bg-neutral-950/80 cursor-not-allowed';
+  const nextBtnClass = canGoNext
+    ? 'border border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-500 bg-neutral-900/80'
+    : 'border border-neutral-900 text-neutral-700 bg-neutral-950/80 cursor-not-allowed';
+
+  const comunicadosNavHTML = totalComunicados > HOME_COMUNICADOS_PAGE_SIZE
+    ? `<div class="flex items-center gap-1.5">
+        <button onclick="setDashComunicadosPage(${currentComunicadosPage - 1})" ${canGoPrev ? '' : 'disabled'}
+          class="${prevBtnClass} p-1.5 transition-all" aria-label="Ver comunicados mais recentes">
+          <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+        </button>
+        <button onclick="setDashComunicadosPage(${currentComunicadosPage + 1})" ${canGoNext ? '' : 'disabled'}
+          class="${nextBtnClass} p-1.5 transition-all" aria-label="Ver comunicados anteriores">
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>`
     : '';
 
-  const AVATAR_COLORS = ['bg-blue-600','bg-purple-600','bg-orange-600','bg-green-600','bg-pink-600','bg-cyan-600'];
-  const avatarColor = (nome) => AVATAR_COLORS[nome.charCodeAt(0) % AVATAR_COLORS.length];
-
-  let tabelaHTML = '';
-  if (recentes.length === 0) {
-    tabelaHTML = `
-      <tr><td colspan="4" class="py-14 text-center">
-        <div class="flex flex-col items-center gap-3">
-          <i data-lucide="file-plus" class="w-9 h-9 text-neutral-800"></i>
-          <span class="text-neutral-600 font-bold uppercase tracking-widest text-[10px]">Nenhuma proposta ainda</span>
-          <button onclick="setTab('clientes')" class="text-orange-500 text-[10px] font-black uppercase tracking-widest hover:underline mt-1">Ir para clientes →</button>
+  let comunicadosHTML = '';
+  if (comunicadosRecentes.length === 0) {
+    comunicadosHTML = `
+      <div class="py-10 px-4 text-center min-h-[198px] flex items-center justify-center">
+        <div class="flex flex-col items-center gap-2.5">
+          <i data-lucide="megaphone-off" class="w-8 h-8 text-neutral-800"></i>
+          <span class="text-neutral-600 font-bold uppercase tracking-widest text-[10px]">Nenhum comunicado publicado</span>
+          <span class="text-[10px] text-neutral-700">Cadastre novidades para preencher este mural.</span>
         </div>
-      </td></tr>`;
+      </div>`;
   } else {
-    tabelaHTML = recentes.map(p => {
-      const nome  = escapeHTML(p.cliente_nome);
-      const inits = nome.substring(0, 2).toUpperCase();
-      const color = avatarColor(escapeHTML(p.cliente_nome));
+    comunicadosHTML = comunicadosRecentes.map(item => {
+      const titulo = escapeHTML(item.title || 'Comunicado sem titulo');
+      const resumo = escapeHTML(item.summary || '');
+      const tipo = escapeHTML(String(item.type || 'comunicado').toUpperCase());
+      const dataRaw = item.publishedAt || item.createdAt || '';
+      const dataFmt = dataRaw ? formatDate(dataRaw) : '-';
+      const dataAttr = escapeHTML(String(dataRaw));
+      const imagem = escapeHTML(item.coverImageUrl || 'assets/img/logo.png');
+      const autor = item.authorName
+        ? `<span class="text-[8px] text-neutral-600 font-bold">Por ${escapeHTML(item.authorName)}</span>`
+        : '';
+
       return `
-        <tr class="border-b border-neutral-900 table-row-hover border-l-2 border-l-transparent group">
-          <td class="py-3 pl-4">
-            <div class="flex items-center gap-3">
-              <div class="w-7 h-7 ${color} rounded-full flex items-center justify-center text-white font-black text-[10px] shrink-0 select-none">${inits}</div>
-              <span class="font-bold text-white uppercase text-xs truncate max-w-[110px]">${nome}</span>
+        <article class="group flex items-start gap-3 p-3 hover:bg-neutral-900/30 transition-all border-b border-neutral-900/80 last:border-b-0 min-h-[98px]">
+          <div class="w-24 h-16 bg-neutral-900 border border-neutral-800 overflow-hidden shrink-0">
+            <img src="${imagem}" alt="${titulo}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='assets/img/logo-light.png';this.onerror=null;">
+          </div>
+          <div class="min-w-0 flex-1 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[8px] px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 font-black uppercase tracking-widest">${tipo}</span>
+              <time datetime="${dataAttr}" class="text-[9px] text-neutral-600 font-bold shrink-0">${dataFmt}</time>
             </div>
-          </td>
-          <td class="py-3 text-neutral-600 hidden sm:table-cell text-[10px] font-mono">
-            ${escapeHTML(String(p.kit_power))} kWp · ${escapeHTML(p.kit_brand)}
-          </td>
-          <td class="py-3 font-black text-green-400 text-sm tabular-nums">${formatCurrency(p.kit_price)}</td>
-          <td class="py-3 pr-4 text-right">
-            <button onclick="copiarLinkExistente('${p.id}', this)"
-              aria-label="Copiar link da proposta de ${nome}"
-              class="opacity-0 group-hover:opacity-100 text-blue-400 hover:text-white transition-all
-                bg-blue-500/10 hover:bg-blue-600 px-3 py-1 flex items-center gap-1.5 ml-auto
-                text-[9px] font-black uppercase tracking-widest border border-blue-500/20
-                hover:border-blue-500">
-              <i data-lucide="link" class="w-3 h-3"></i> Copiar
-            </button>
-          </td>
-        </tr>`;
+            <h4 class="text-xs font-black text-white uppercase tracking-wide leading-tight overflow-hidden" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${titulo}</h4>
+            <p class="text-[10px] text-neutral-400 leading-snug overflow-hidden" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${resumo}</p>
+            ${autor}
+          </div>
+        </article>`;
     }).join('');
   }
 
   container.innerHTML = `
-    <!-- ════════════════════════════════════════
-         HERO HEADER — saudação + relógio
-         ════════════════════════════════════════ -->
+    <!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+         HERO HEADER Ã¢â‚¬â€ saudaÃƒÂ§ÃƒÂ£o + relÃƒÂ³gio
+         Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
     <div class="dash-hero stagger-1 relative overflow-hidden border border-neutral-800/60 p-6 md:p-8 group" style="background: linear-gradient(135deg, #0f0f0f 0%, #080808 100%);">
       <div class="absolute inset-0 bg-grid opacity-50 pointer-events-none"></div>
       <div class="absolute -right-16 -top-16 w-64 h-64 bg-orange-600/5 rounded-full blur-[80px] group-hover:bg-orange-600/8 transition-all duration-1000 pointer-events-none"></div>
@@ -139,12 +181,12 @@ function renderDashboard(container) {
               ? `, <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-300">${escapeHTML(firstName)}</span>.`
               : '.'}
           </h2>
-          <p class="text-neutral-500 text-sm font-medium mt-2.5">Aqui está o resumo da sua carteira.</p>
+          <p class="text-neutral-500 text-sm font-medium mt-2.5">Aqui estÃƒÂ¡ o resumo da sua carteira.</p>
           ${state.isAdmin
             ? `<div class="flex items-center gap-2 mt-3">
                 <span class="text-[8px] px-2 py-1 border ${state.adminViewAll ? 'border-purple-500/40 bg-purple-500/10 text-purple-400' : 'border-orange-500/40 bg-orange-500/10 text-orange-400'} font-black uppercase tracking-widest flex items-center gap-1.5">
                   <i data-lucide="${state.adminViewAll ? 'layers' : 'user'}" class="w-3 h-3"></i>
-                  ${state.adminViewAll ? 'VISÃO CONSOLIDADA — TODAS AS FRANQUIAS' : 'VISÃO: MINHA FRANQUIA — ' + escapeHTML(state.franquiaNome)}
+                  ${state.adminViewAll ? 'VISÃƒÆ’O CONSOLIDADA Ã¢â‚¬â€ TODAS AS FRANQUIAS' : 'VISÃƒÆ’O: MINHA FRANQUIA Ã¢â‚¬â€ ' + escapeHTML(state.franquiaNome)}
                 </span>
               </div>`
             : state.franquiaNome
@@ -158,17 +200,17 @@ function renderDashboard(container) {
         </div>
         <div class="flex flex-col items-start md:items-end gap-1 shrink-0">
           <div id="dashboard-clock" class="text-4xl md:text-5xl font-black text-white live-clock tabular-nums leading-none">00:00:00</div>
-          <span class="text-[9px] text-neutral-700 font-bold uppercase tracking-[0.3em]">Horário local</span>
+          <span class="text-[9px] text-neutral-700 font-bold uppercase tracking-[0.3em]">HorÃƒÂ¡rio local</span>
         </div>
       </div>
     </div>
 
-    <!-- ════════════════════════════════════════
-         FILTRO DE PERÍODO (Métricas de venda)
-         ════════════════════════════════════════ -->
+    <!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+         FILTRO DE PERÃƒÂODO (MÃƒÂ©tricas de venda)
+         Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
     <div class="flex flex-wrap items-center justify-between gap-2 px-1">
       <span class="text-[8px] text-neutral-700 font-black uppercase tracking-widest flex items-center gap-1.5">
-        <i data-lucide="calendar" class="w-3 h-3"></i> Métricas de venda
+        <i data-lucide="calendar" class="w-3 h-3"></i> MÃƒÂ©tricas de venda
       </span>
       <div class="flex flex-wrap gap-1 items-center">
         <button onclick="setDashPeriod('all')"
@@ -181,9 +223,9 @@ function renderDashboard(container) {
       </div>
     </div>
 
-    <!-- ════════════════════════════════════════
-         CARDS DE MÉTRICAS
-         ════════════════════════════════════════ -->
+    <!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+         CARDS DE MÃƒâ€°TRICAS
+         Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
 
       <!-- Clientes -->
@@ -220,7 +262,7 @@ function renderDashboard(container) {
         </div>
         <div class="relative z-10">
           <div class="text-3xl md:text-5xl font-black text-white tabular-nums leading-none" data-count="${propostasReais}">0</div>
-          <div class="text-[8px] md:text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1">orçamentos gerados</div>
+          <div class="text-[8px] md:text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1">orÃƒÂ§amentos gerados</div>
         </div>
         <div class="relative z-10 space-y-1.5">
           <div class="flex justify-between text-[8px] text-neutral-700 font-bold uppercase tracking-widest">
@@ -236,7 +278,7 @@ function renderDashboard(container) {
       <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 160ms">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-green-500 opacity-[0.05] rounded-full blur-2xl group-hover:opacity-[0.1] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
-          <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">Negócios Fechados</span>
+          <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">NegÃƒÂ³cios Fechados</span>
           <div class="p-1.5 md:p-2 bg-green-500/10 border border-green-500/20 group-hover:border-green-500/40 transition-colors shrink-0">
             <i data-lucide="trophy" class="w-3 h-3 md:w-3.5 md:h-3.5 text-green-400"></i>
           </div>
@@ -247,7 +289,7 @@ function renderDashboard(container) {
         </div>
         <div class="relative z-10 space-y-1.5">
           <div class="flex justify-between text-[8px] text-neutral-700 font-bold uppercase tracking-widest">
-            <span>Conversão</span><span class="text-green-400">${taxaConversao}%</span>
+            <span>ConversÃƒÂ£o</span><span class="text-green-400">${taxaConversao}%</span>
           </div>
           <div class="w-full h-px bg-neutral-900 rounded-full">
             <div class="h-full bg-gradient-to-r from-green-600 to-green-400 bar-animated rounded-full" style="width: ${taxaConversao}%"></div>
@@ -255,18 +297,18 @@ function renderDashboard(container) {
         </div>
       </div>
 
-      <!-- Ticket Médio -->
+      <!-- Ticket MÃƒÂ©dio -->
       <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 240ms">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-blue-400 opacity-[0.04] rounded-full blur-2xl group-hover:opacity-[0.08] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
-          <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">Ticket Médio</span>
+          <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">Ticket MÃƒÂ©dio</span>
           <div class="p-1.5 md:p-2 bg-blue-400/10 border border-blue-400/20 group-hover:border-blue-400/40 transition-colors shrink-0">
             <i data-lucide="trending-up" class="w-3 h-3 md:w-3.5 md:h-3.5 text-blue-400"></i>
           </div>
         </div>
         <div class="relative z-10 min-w-0">
           <div class="text-xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 tabular-nums leading-none pb-0.5 break-all" data-count="${ticketMedio}" data-count-currency="true">R$ 0</div>
-          <div class="text-[8px] md:text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1">${qtdVendas > 0 ? `${qtdVendas} venda${qtdVendas > 1 ? 's' : ''} no período` : 'nenhuma venda registrada'}</div>
+          <div class="text-[8px] md:text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1">${qtdVendas > 0 ? `${qtdVendas} venda${qtdVendas > 1 ? 's' : ''} no perÃƒÂ­odo` : 'nenhuma venda registrada'}</div>
         </div>
         <div class="relative z-10 space-y-1.5">
           <div class="flex justify-between text-[8px] text-neutral-700 font-bold uppercase tracking-widest gap-1 min-w-0">
@@ -279,9 +321,9 @@ function renderDashboard(container) {
       </div>
     </div>
 
-    <!-- ════════════════════════════════════════
+    <!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
          PIPELINE DE VENDAS
-         ════════════════════════════════════════ -->
+         Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
     <div class="dash-pipeline stagger-3 relative overflow-hidden border border-neutral-800/60 p-6 md:p-7" style="background: linear-gradient(135deg, #0e0e0e 0%, #080808 100%);">
       <div class="absolute right-0 top-0 w-48 h-48 bg-purple-600/4 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -293,7 +335,7 @@ function renderDashboard(container) {
           <h3 class="text-[10px] font-black text-white uppercase tracking-widest">Pipeline de Vendas</h3>
         </div>
         <div class="text-[9px] text-neutral-600 font-bold">
-          Conversão global: <span class="text-purple-400 font-black">${taxaConversao}%</span>
+          ConversÃƒÂ£o global: <span class="text-purple-400 font-black">${taxaConversao}%</span>
         </div>
       </div>
 
@@ -333,17 +375,17 @@ function renderDashboard(container) {
             </div>` : ''}
         </div>
 
-        <!-- EM NEGOCIAÇÃO -->
+        <!-- EM NEGOCIAÃƒâ€¡ÃƒÆ’O -->
         <div class="flex flex-col gap-2.5">
           <div class="flex items-center justify-between">
-            <span class="text-[9px] font-black uppercase tracking-widest text-orange-400 hidden md:block">Negociação</span>
+            <span class="text-[9px] font-black uppercase tracking-widest text-orange-400 hidden md:block">NegociaÃƒÂ§ÃƒÂ£o</span>
             <span class="text-[9px] font-black uppercase tracking-widest text-orange-400 md:hidden">Neg.</span>
-            <span class="text-[9px] text-neutral-700 font-bold tabular-nums">${fPct('EM NEGOCIAÇÃO')}%</span>
+            <span class="text-[9px] text-neutral-700 font-bold tabular-nums">${fPct('EM NEGOCIAÃƒâ€¡ÃƒÆ’O')}%</span>
           </div>
           <div class="h-1 bg-neutral-900 rounded-none overflow-hidden">
-            <div class="h-full bg-gradient-to-r from-orange-700 to-orange-400 funnel-bar rounded-none" style="width: ${fWidth('EM NEGOCIAÇÃO')}%; animation-delay: 360ms;"></div>
+            <div class="h-full bg-gradient-to-r from-orange-700 to-orange-400 funnel-bar rounded-none" style="width: ${fWidth('EM NEGOCIAÃƒâ€¡ÃƒÆ’O')}%; animation-delay: 360ms;"></div>
           </div>
-          <div class="text-2xl md:text-3xl font-black text-white tabular-nums leading-none">${funil['EM NEGOCIAÇÃO']}</div>
+          <div class="text-2xl md:text-3xl font-black text-white tabular-nums leading-none">${funil['EM NEGOCIAÃƒâ€¡ÃƒÆ’O']}</div>
           <div class="text-[8px] text-neutral-700 font-bold uppercase tracking-widest leading-tight">em andamento</div>
           ${convFech > 0 ? `
             <div class="hidden md:flex items-center gap-1 text-[8px] text-orange-500/60 font-bold">
@@ -361,7 +403,7 @@ function renderDashboard(container) {
             <div class="h-full bg-gradient-to-r from-green-700 to-green-400 funnel-bar rounded-none" style="width: ${fWidth('FECHADO')}%; animation-delay: 540ms;"></div>
           </div>
           <div class="text-2xl md:text-3xl font-black text-green-400 tabular-nums leading-none neon-green">${funil['FECHADO']}</div>
-          <div class="text-[8px] text-neutral-700 font-bold uppercase tracking-widest leading-tight">concluídos</div>
+          <div class="text-[8px] text-neutral-700 font-bold uppercase tracking-widest leading-tight">concluÃƒÂ­dos</div>
           <div class="hidden md:flex items-center gap-1 text-[8px] text-blue-500/60 font-bold">
             <i data-lucide="trending-up" class="w-2.5 h-2.5 shrink-0"></i>${qtdVendas > 0 ? 'ticket ' + formatCurrency(ticketMedio) : 'sem vendas'}
           </div>
@@ -369,52 +411,44 @@ function renderDashboard(container) {
       </div>
     </div>
 
-    <!-- ════════════════════════════════════════
-         TABELA DE PROPOSTAS + LATERAL
-         ════════════════════════════════════════ -->
+    <!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+         COMUNICADOS + LATERAL
+         Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 stagger-4">
 
-      <!-- Tabela -->
-      <div class="dash-proposals-panel col-span-1 lg:col-span-2 border border-neutral-800/60 flex flex-col" style="background: linear-gradient(180deg, #0d0d0d 0%, #080808 100%);">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-neutral-800/50">
+      <!-- Comunicados -->
+      <div class="dash-comunicados-panel col-span-1 lg:col-span-2 border border-neutral-800/60 flex flex-col" style="background: linear-gradient(180deg, #0d0d0d 0%, #080808 100%);">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-800/50">
           <h3 class="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
             <div class="p-1.5 bg-orange-500/10 border border-orange-500/20">
-              <i data-lucide="history" class="w-3 h-3 text-orange-400"></i>
+              <i data-lucide="megaphone" class="w-3 h-3 text-orange-400"></i>
             </div>
-            Últimas Propostas
+            Comunicados
           </h3>
-          ${totalPropostasLabel}
+          ${comunicadosMetaLabel}
         </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-neutral-500 min-w-[400px]">
-            <thead>
-              <tr class="border-b border-neutral-900">
-                <th class="px-4 py-3 text-[8px] font-black uppercase tracking-widest text-neutral-700">Cliente</th>
-                <th class="py-3 text-[8px] font-black uppercase tracking-widest text-neutral-700 hidden sm:table-cell">Kit</th>
-                <th class="py-3 text-[8px] font-black uppercase tracking-widest text-neutral-700">Valor</th>
-                <th class="py-3 pr-4 text-[8px] font-black uppercase tracking-widest text-neutral-700 text-right">Ação</th>
-              </tr>
-            </thead>
-            <tbody>${tabelaHTML}</tbody>
-          </table>
+        <div class="flex flex-col min-h-[198px]">${comunicadosHTML}</div>
+        <div class="px-4 py-2.5 border-t border-neutral-900/70 flex items-center justify-between gap-3">
+          <span class="text-[9px] text-neutral-600 font-bold uppercase tracking-widest">${comunicadosFooterLabel}</span>
+          ${comunicadosNavHTML}
         </div>
       </div>
 
       <!-- Coluna lateral -->
       <div class="flex flex-col gap-3">
 
-        <!-- Materiais Úteis -->
+        <!-- Materiais ÃƒÅ¡teis -->
         <div class="dash-materials-panel border border-neutral-800/60 p-5 flex flex-col gap-3" style="background: #0d0d0d;">
           <h3 class="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
             <div class="p-1.5 bg-blue-500/10 border border-blue-500/20">
               <i data-lucide="folder-down" class="w-3 h-3 text-blue-400"></i>
             </div>
-            Materiais Úteis
+            Materiais ÃƒÅ¡teis
           </h3>
           <a href="#" class="flex items-center justify-between p-3 border border-neutral-800/50 hover:border-red-500/40 hover:bg-red-500/4 transition-all group">
             <div class="flex items-center gap-2.5">
               <div class="p-1.5 bg-red-500/10 shrink-0"><i data-lucide="file-text" class="w-3.5 h-3.5 text-red-400"></i></div>
-              <span class="text-[10px] font-bold text-neutral-400 group-hover:text-white uppercase tracking-wider transition-colors">Apresentação Ágil</span>
+              <span class="text-[10px] font-bold text-neutral-400 group-hover:text-white uppercase tracking-wider transition-colors">ApresentaÃƒÂ§ÃƒÂ£o ÃƒÂgil</span>
             </div>
             <i data-lucide="download" class="w-3 h-3 text-neutral-700 group-hover:text-red-400 shrink-0 transition-colors"></i>
           </a>
@@ -434,13 +468,13 @@ function renderDashboard(container) {
           </a>
         </div>
 
-        <!-- CTA Ação Rápida -->
+        <!-- CTA AÃƒÂ§ÃƒÂ£o RÃƒÂ¡pida -->
         <div class="dash-quick-panel relative overflow-hidden border border-orange-500/15 p-5 flex flex-col gap-4"
           style="background: linear-gradient(135deg, rgba(234,88,12,0.06) 0%, #080808 60%);">
           <div class="absolute inset-0 bg-grid-sm opacity-30 pointer-events-none"></div>
           <div class="relative z-10">
-            <div class="text-[8px] font-black text-orange-400/50 uppercase tracking-[0.3em] mb-2">Ação Rápida</div>
-            <p class="text-sm font-bold text-neutral-300 leading-snug">Tem um cliente em mente?<br>Crie o orçamento agora.</p>
+            <div class="text-[8px] font-black text-orange-400/50 uppercase tracking-[0.3em] mb-2">AÃƒÂ§ÃƒÂ£o RÃƒÂ¡pida</div>
+            <p class="text-sm font-bold text-neutral-300 leading-snug">Tem um cliente em mente?<br>Crie o orÃƒÂ§amento agora.</p>
           </div>
           <button onclick="setTab('clientes')"
             class="relative z-10 flex items-center gap-2 bg-gradient-to-r from-orange-600 to-yellow-500
@@ -460,8 +494,17 @@ function renderDashboard(container) {
   startDashboardClock();
 }
 
-// --- Filtro de período do dashboard ---
+
+function setDashComunicadosPage(page) {
+  const nextPage = Number(page);
+  if (!Number.isFinite(nextPage)) return;
+  state.dashComunicadosPage = Math.max(0, Math.floor(nextPage));
+  renderContent();
+}
+// --- Filtro de perÃƒÂ­odo do dashboard ---
 function setDashPeriod(period) {
   state.dashPeriod = period;
   renderContent();
 }
+
+

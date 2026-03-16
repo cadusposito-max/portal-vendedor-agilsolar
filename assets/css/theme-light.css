@@ -1,4 +1,4 @@
-﻿/* ==========================================
+/* ==========================================
    LIGHT THEME — Ágil Solar Portal
    Dark → White  |  Orange+Glow → Blue+Glow
    ========================================== */
@@ -104,7 +104,7 @@ body.theme-light header.sticky {
 }
 body.theme-light .dash-hero,
 body.theme-light .dash-pipeline,
-body.theme-light .dash-proposals-panel,
+body.theme-light .dash-comunicados-panel,
 body.theme-light .dash-materials-panel,
 body.theme-light .dash-quick-panel,
 body.theme-light .tab-content {
@@ -623,3 +623,6 @@ body.theme-light .proposal-inline-cta.is-secondary {
   color: #1e293b !important;
   box-shadow: none !important;
 }
+
+
+
