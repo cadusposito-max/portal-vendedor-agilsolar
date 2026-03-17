@@ -1,8 +1,8 @@
-// ==========================================
+﻿// ==========================================
 // PAINEL ADMINISTRATIVO
 // ==========================================
 
-// --- Modal dinâmico do admin ---
+// --- Modal dinÃ¢mico do admin ---
 function ensureAdminModal() {
   if (document.getElementById('admin-modal-overlay')) return;
   const div = document.createElement('div');
@@ -60,13 +60,13 @@ async function submitAdminModal(e) {
   btn.disabled = false;
 }
 
-// ─── Painel Principal ────────────────────────────────────────
+// â”€â”€â”€ Painel Principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderAdminPanel(container) {
   container.className = 'flex flex-col gap-5';
 
   if (!state.adminSection) state.adminSection = 'produtos';
 
-  // Gestor só acessa KITS (da própria franquia) e VENDEDORES (para ver a equipe)
+  // Gestor sÃ³ acessa KITS (da prÃ³pria franquia) e VENDEDORES (para ver a equipe)
   const allSections = [
     { id: 'produtos',      label: 'KITS',            icon: 'zap' },
     { id: 'financiadoras', label: 'FINANCIADORAS',   icon: 'landmark',   adminOnly: true },
@@ -146,14 +146,14 @@ async function renderAdminKitsSection(container) {
     .eq('ativo', true)
     .order('created_at', { ascending: true });
 
-  // Gestor só enxerga a própria franquia no seletor de kits
+  // Gestor sÃ³ enxerga a prÃ³pria franquia no seletor de kits
   if (state.isGestor && state.franquiaId) {
     franquiasQuery.eq('id', state.franquiaId);
   }
 
   const { data: franquias = [] } = await franquiasQuery;
 
-  // Para gestor, travar sempre na própria franquia
+  // Para gestor, travar sempre na prÃ³pria franquia
   if (state.isGestor) {
     state.adminKitsFranquia = state.franquiaId;
   } else if (!state.adminKitsFranquia || !franquias.find(f => f.id === state.adminKitsFranquia)) {
@@ -171,14 +171,14 @@ async function renderAdminKitsSection(container) {
     </button>`;
   }).join('');
 
-  // Gestor: esconder o seletor de franquia (só existe a dele)
+  // Gestor: esconder o seletor de franquia (sÃ³ existe a dele)
   const showFranquiaTabs = state.isAdmin && franquias.length > 0;
 
   container.innerHTML = `
     <div class="flex flex-col gap-4">
       ${showFranquiaTabs ? `
       <div class="bg-purple-950/20 border border-purple-600/20 p-3 flex flex-wrap items-center gap-2">
-        <span class="text-purple-400 font-black uppercase tracking-widest text-[9px] shrink-0">PREÇOS DA UNIDADE:</span>
+        <span class="text-purple-400 font-black uppercase tracking-widest text-[9px] shrink-0">PREÃ‡OS DA UNIDADE:</span>
         ${tabsHTML}
       </div>` : ''}
       <div id="admin-kits-grid"></div>
@@ -196,7 +196,7 @@ async function setAdminKitsFranquia(franquiaId) {
   if (content) renderAdminKitsSection(content);
 }
 
-// ─── Helpers compartilhados ───────────────────────────────────
+// â”€â”€â”€ Helpers compartilhados â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const _inputCls  = 'w-full bg-black border border-neutral-700 focus:border-red-500 px-4 py-3 text-white font-bold transition-all';
 const _labelCls  = 'text-[10px] text-red-400 font-black uppercase tracking-widest block mb-1';
 const _selectCls = 'w-full bg-black border border-neutral-700 focus:border-red-500 px-4 py-3 text-white font-bold uppercase';
@@ -228,7 +228,7 @@ function _addBtn(label, onclick) {
 }
 
 async function deleteAdminItem(table, id) {
-  showConfirmModal('Tem certeza? Esta ação não pode ser desfeita.', async () => {
+  showConfirmModal('Tem certeza? Esta aÃ§Ã£o nÃ£o pode ser desfeita.', async () => {
     const { error } = await supabaseClient.from(table).delete().eq('id', id);
     if (error) { showToast('ERRO: ' + error.message); return; }
     showToast('ITEM REMOVIDO');
@@ -240,7 +240,7 @@ async function deleteAdminItem(table, id) {
   });
 }
 
-// ─── Financiadoras ────────────────────────────────────────────
+// â”€â”€â”€ Financiadoras â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function renderAdminFinanciadoras(container) {
   container.innerHTML = `<div class="flex items-center justify-center py-12 text-neutral-600">
     <i data-lucide="loader-2" class="w-6 h-6 animate-spin mr-2"></i><span class="font-bold uppercase text-[10px] tracking-widest">Carregando...</span>
@@ -261,10 +261,10 @@ async function renderAdminFinanciadoras(container) {
     ? `<p class="text-neutral-600 text-sm font-bold text-center py-10">Nenhuma financiadora cadastrada.</p>`
     : items.map(item => `
       <div class="flex items-center gap-3 bg-neutral-900/60 border border-neutral-800 p-4 hover:border-neutral-700 transition-all">
-        <div class="shrink-0 w-9 h-9 flex items-center justify-center text-xl border border-neutral-700 bg-neutral-950">${escapeHTML(item.icone_texto || '🏦')}</div>
+        <div class="shrink-0 w-9 h-9 flex items-center justify-center text-xl border border-neutral-700 bg-neutral-950">${escapeHTML(item.icone_texto || 'ðŸ¦')}</div>
         <div class="flex-1 min-w-0">
           <p class="text-white font-black text-sm uppercase truncate">${escapeHTML(item.nome)}</p>
-          <p class="text-neutral-500 text-[10px] font-bold">${escapeHTML(item.taxa_texto || '—')} · ${escapeHTML(item.prazo_texto || '—')} · Ordem: ${item.ordem}</p>
+          <p class="text-neutral-500 text-[10px] font-bold">${escapeHTML(item.taxa_texto || 'â€”')} Â· ${escapeHTML(item.prazo_texto || 'â€”')} Â· Ordem: ${item.ordem}</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           ${_statusBadge(item.ativo)}
@@ -293,9 +293,9 @@ function openAdminFinanciadoraForm(id) {
       <div><label class="${_labelCls}">Taxa (texto)</label>
         <input id="af-taxa" class="${_inputCls}" placeholder="A partir de 1,5% a.m."></div>
       <div><label class="${_labelCls}">Prazo (texto)</label>
-        <input id="af-prazo" class="${_inputCls}" placeholder="Até 60 meses"></div>
-      <div><label class="${_labelCls}">Ícone (emoji)</label>
-        <input id="af-icone" class="${_inputCls} text-2xl" placeholder="🏦" maxlength="4"></div>
+        <input id="af-prazo" class="${_inputCls}" placeholder="AtÃ© 60 meses"></div>
+      <div><label class="${_labelCls}">Ãcone (emoji)</label>
+        <input id="af-icone" class="${_inputCls} text-2xl" placeholder="ðŸ¦" maxlength="4"></div>
       <div><label class="${_labelCls}">Ordem</label>
         <input type="number" id="af-ordem" class="${_inputCls} font-mono" value="0"></div>
       <div class="col-span-2"><label class="${_labelCls}">Cor CSS (Tailwind gradient)</label>
@@ -344,7 +344,7 @@ function openAdminFinanciadoraForm(id) {
   }
 }
 
-// ─── Componentes ──────────────────────────────────────────────
+// â”€â”€â”€ Componentes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function renderAdminComponentes(container) {
   container.innerHTML = `<div class="flex items-center justify-center py-12 text-neutral-600">
     <i data-lucide="loader-2" class="w-6 h-6 animate-spin mr-2"></i><span class="font-bold uppercase text-[10px] tracking-widest">Carregando...</span>
@@ -363,7 +363,7 @@ async function renderAdminComponentes(container) {
   }
 
   const grupos = [
-    { tipo: 'modulo',   label: 'MÓDULOS' },
+    { tipo: 'modulo',   label: 'MÃ“DULOS' },
     { tipo: 'inversor', label: 'INVERSORES' },
   ];
 
@@ -375,8 +375,8 @@ async function renderAdminComponentes(container) {
         <div class="flex-1 min-w-0">
           <p class="text-white font-bold text-sm truncate">${escapeHTML(item.nome)}</p>
           <p class="text-neutral-500 text-[10px] font-bold">
-            ${item.potencia_wp ? item.potencia_wp + ' Wp' : '—'}
-            · R$ ${Number(item.preco_unitario).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            ${item.potencia_wp ? item.potencia_wp + ' Wp' : 'â€”'}
+            Â· R$ ${Number(item.preco_unitario).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
@@ -411,14 +411,14 @@ function openAdminComponenteForm(id) {
     <div class="grid grid-cols-2 gap-4">
       <div><label class="${_labelCls}">Tipo *</label>
         <select required id="ac-tipo" class="${_selectCls}">
-          <option value="modulo">MÓDULO</option>
+          <option value="modulo">MÃ“DULO</option>
           <option value="inversor">INVERSOR</option>
         </select></div>
-      <div><label class="${_labelCls}">Potência (Wp)</label>
+      <div><label class="${_labelCls}">PotÃªncia (Wp)</label>
         <input type="number" step="0.1" id="ac-potencia" class="${_inputCls} font-mono" placeholder="550"></div>
       <div class="col-span-2"><label class="${_labelCls}">Nome *</label>
-        <input required id="ac-nome" class="${_inputCls}" placeholder="Modelo / Descrição completa"></div>
-      <div class="col-span-2"><label class="${_labelCls}">Preço Unitário (R$) *</label>
+        <input required id="ac-nome" class="${_inputCls}" placeholder="Modelo / DescriÃ§Ã£o completa"></div>
+      <div class="col-span-2"><label class="${_labelCls}">PreÃ§o UnitÃ¡rio (R$) *</label>
         <input required type="number" step="0.01" id="ac-preco"
           class="w-full bg-black border border-green-900 focus:border-green-500 text-green-400 px-4 py-3 font-mono font-bold transition-all"
           placeholder="0.00"></div>
@@ -459,7 +459,7 @@ function openAdminComponenteForm(id) {
   }
 }
 
-// ─── Custos Extras ────────────────────────────────────────────
+// â”€â”€â”€ Custos Extras â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function renderAdminCustos(container) {
   container.innerHTML = `<div class="flex items-center justify-center py-12 text-neutral-600">
     <i data-lucide="loader-2" class="w-6 h-6 animate-spin mr-2"></i><span class="font-bold uppercase text-[10px] tracking-widest">Carregando...</span>
@@ -486,8 +486,8 @@ async function renderAdminCustos(container) {
             ${item.tipo_calculo === 'percentual'
               ? item.valor + '%'
               : 'R$ ' + Number(item.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            · Ordem: ${item.ordem}
-            ${item.descricao ? ' · ' + escapeHTML(item.descricao) : ''}
+            Â· Ordem: ${item.ordem}
+            ${item.descricao ? ' Â· ' + escapeHTML(item.descricao) : ''}
           </p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
@@ -506,7 +506,7 @@ async function renderAdminCustos(container) {
   lucide.createIcons();
 }
 
-// ─── Vendedores ───────────────────────────────────────────────
+// â”€â”€â”€ Vendedores â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function renderAdminVendedores(container) {
   container.innerHTML = `<div class="flex items-center justify-center py-12 text-neutral-600">
     <i data-lucide="loader-2" class="w-6 h-6 animate-spin mr-2"></i><span class="font-bold uppercase text-[10px] tracking-widest">Carregando...</span>
@@ -531,14 +531,14 @@ async function renderAdminVendedores(container) {
           ${escapeHTML((item.email || '?').charAt(0).toUpperCase())}
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-white font-bold text-sm truncate">${escapeHTML(item.email || '—')}</p>
+          <p class="text-white font-bold text-sm truncate">${escapeHTML(item.email || 'â€”')}</p>
           <p class="text-neutral-500 text-[10px] font-bold">
             ${item.total_logins || 0} login(s)
-            ${item.ultimo_acesso ? ' · Último acesso: ' + formatDate(item.ultimo_acesso) : ''}
+            ${item.ultimo_acesso ? ' Â· Ãšltimo acesso: ' + formatDate(item.ultimo_acesso) : ''}
           </p>
         </div>
         <div class="shrink-0 flex items-center gap-2">
-          <span class="text-neutral-500 text-[10px] font-black uppercase tracking-widest">Comissão:</span>
+          <span class="text-neutral-500 text-[10px] font-black uppercase tracking-widest">ComissÃ£o:</span>
           <input type="number" min="0" max="100" step="0.5"
             value="${item.comissao_pct ?? 5}"
             onchange="saveVendedorComissao('${escapeHTML(item.email)}', this.value)"
@@ -558,7 +558,7 @@ async function renderAdminVendedores(container) {
 async function saveVendedorComissao(email, valor) {
   const pct = parseFloat(valor);
   if (isNaN(pct) || pct < 0 || pct > 100) {
-    showToast('Valor inválido. Use entre 0 e 100.');
+    showToast('Valor invÃ¡lido. Use entre 0 e 100.');
     return;
   }
   const { error } = await supabaseClient
@@ -568,8 +568,8 @@ async function saveVendedorComissao(email, valor) {
   if (error) {
     showToast('ERRO: ' + error.message);
   } else {
-    showToast(`Comissão de ${escapeHTML(email.split('@')[0])} atualizada para ${pct}%`);
-    // Atualiza state em tempo real se for a própria comissão
+    showToast(`ComissÃ£o de ${escapeHTML(email.split('@')[0])} atualizada para ${pct}%`);
+    // Atualiza state em tempo real se for a prÃ³pria comissÃ£o
     if (state.currentUser && email === state.currentUser.email) {
       state.comissaoPct = pct;
     }
@@ -676,15 +676,15 @@ async function renderAdminUsuarios(container) {
       <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-neutral-900/60 border border-neutral-800 p-4 hover:border-neutral-700 transition-all">
         <div class="flex-1 min-w-0">
           <div class="flex flex-wrap items-center gap-2">
-            <p class="text-white font-bold text-sm truncate">${escapeHTML(item.nome || item.email || '—')}</p>
+            <p class="text-white font-bold text-sm truncate">${escapeHTML(item.nome || item.email || 'â€”')}</p>
             ${_roleBadge(item.role)}
             ${_statusBadge(item.ativo !== false)}
             ${_chatAccessBadge(item.chat_enabled === true)}
           </div>
-          <p class="text-neutral-500 text-[10px] font-bold truncate">${escapeHTML(item.email || '—')}</p>
+          <p class="text-neutral-500 text-[10px] font-bold truncate">${escapeHTML(item.email || 'â€”')}</p>
           <p class="text-neutral-600 text-[10px] font-bold">
             ${escapeHTML(item.franquia_nome || 'Sem franquia')}
-            ${item.last_sign_in_at ? ' • Último acesso: ' + formatDate(item.last_sign_in_at) : ''}
+            ${item.last_sign_in_at ? ' â€¢ Ãšltimo acesso: ' + formatDate(item.last_sign_in_at) : ''}
           </p>
           ${(item.role || 'vendedor').toLowerCase() === 'vendedor'
             ? `<p class="text-neutral-600 text-[10px] font-bold">Gestor vinculado: ${escapeHTML(item.gestor_nome || 'Nao vinculado')}</p>`
@@ -898,15 +898,30 @@ async function openAdminUsuarioForm(userId) {
     } else {
       const email = document.getElementById('au-email').value.trim().toLowerCase();
       const password = document.getElementById('au-password').value;
-      const { data: newUserId, error } = await supabaseClient.rpc('admin_create_user', {
-        p_email: email,
-        p_password: password,
+
+      let newUserId = null;
+      try {
+        const created = await createAdminUserWithConfirmedEmail({
+          email,
+          password,
+          nome: payload.p_nome,
+          role: payload.p_role,
+          franquia_id: payload.p_franquia_id,
+          ativo: payload.p_ativo,
+        });
+        newUserId = created.user_id;
+      } catch (error) {
+        showToast('ERRO: ' + (error.message || 'Nao foi possivel criar usuario.'));
+        return;
+      }
+
+      const { error: syncError } = await supabaseClient.rpc('admin_update_user', {
+        p_user_id: newUserId,
         ...payload,
       });
-      if (error) { showToast('ERRO: ' + error.message); return; }
-
-      if (!newUserId) {
-        showToast('ERRO: Usuario criado sem retorno de ID para configurar chat.');
+      if (syncError) {
+        closeAdminModal();
+        showToast('USUARIO CRIADO, MAS PERFIL NAO FOI SINCRONIZADO: ' + syncError.message);
         return;
       }
 
@@ -988,7 +1003,7 @@ async function toggleAdminUsuarioAtivo(userId, nextActive) {
   });
 }
 
-// ─── Franquias ────────────────────────────────────────────────
+// â”€â”€â”€ Franquias â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function renderAdminFranquias(container) {
   container.innerHTML = `<div class="flex items-center justify-center py-12 text-neutral-600">
     <i data-lucide="loader-2" class="w-6 h-6 animate-spin mr-2"></i><span class="font-bold uppercase text-[10px] tracking-widest">Carregando...</span>
@@ -1011,13 +1026,13 @@ async function renderAdminFranquias(container) {
       <div class="flex items-center gap-3 bg-neutral-900/60 border border-neutral-800 p-4 hover:border-neutral-700 transition-all">
         <div class="flex-1 min-w-0">
           <p class="text-white font-black text-sm uppercase truncate">${escapeHTML(item.nome)}</p>
-          <p class="text-neutral-500 text-[10px] font-bold">${escapeHTML(item.cidade || '—')}</p>
+          <p class="text-neutral-500 text-[10px] font-bold">${escapeHTML(item.cidade || 'â€”')}</p>
         </div>
         <div class="flex items-center gap-2 shrink-0 flex-wrap">
           ${_statusBadge(item.ativo)}
           <button onclick="renderAdminPrecosFranquia('${item.id}', '${escapeHTML(item.nome).replace(/'/g, "\\'")}')"
             class="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600 hover:text-white hover:border-purple-600 font-black uppercase text-[8px] tracking-widest transition-all">
-            <i data-lucide="tag" class="w-3 h-3"></i> PREÇOS
+            <i data-lucide="tag" class="w-3 h-3"></i> PREÃ‡OS
           </button>
           ${_editBtn(`openAdminFranquiaForm('${item.id}')`)}          
         </div>
@@ -1037,9 +1052,9 @@ function openAdminFranquiaForm(id) {
     <input type="hidden" id="afr-id" value="${id || ''}">
     <div class="grid grid-cols-2 gap-4">
       <div class="col-span-2"><label class="${_labelCls}">Nome *</label>
-        <input required id="afr-nome" class="${_inputCls} uppercase" placeholder="EX: ÁGIL SOLAR SJC"></div>
+        <input required id="afr-nome" class="${_inputCls} uppercase" placeholder="EX: ÃGIL SOLAR SJC"></div>
       <div class="col-span-2"><label class="${_labelCls}">Cidade</label>
-        <input id="afr-cidade" class="${_inputCls}" placeholder="São José dos Campos"></div>
+        <input id="afr-cidade" class="${_inputCls}" placeholder="SÃ£o JosÃ© dos Campos"></div>
       <label class="col-span-2 flex items-center gap-3 cursor-pointer">
         <input type="checkbox" id="afr-ativo" checked class="w-4 h-4 accent-red-500">
         <span class="text-white font-bold text-sm uppercase">Ativa</span>
@@ -1059,7 +1074,7 @@ function openAdminFranquiaForm(id) {
 
     if (error) { showToast('ERRO: ' + error.message); return; }
 
-    // Nova franquia: copia os preços da Matriz automaticamente como ponto de partida
+    // Nova franquia: copia os preÃ§os da Matriz automaticamente como ponto de partida
     if (!existingId && savedFranquia) {
       const { data: matrizFranquia } = await supabaseClient
         .from('franquias').select('id').ilike('nome', '%Matriz%').single();
@@ -1079,7 +1094,7 @@ function openAdminFranquiaForm(id) {
     }
 
     closeAdminModal();
-    showToast(existingId ? 'FRANQUIA ATUALIZADA' : 'FRANQUIA CRIADA — preços copiados da Matriz');
+    showToast(existingId ? 'FRANQUIA ATUALIZADA' : 'FRANQUIA CRIADA â€” preÃ§os copiados da Matriz');
     const c = document.getElementById('admin-section-content');
     if (c) renderAdminFranquias(c);
   });
@@ -1099,7 +1114,7 @@ async function renderAdminPrecosFranquia(franquiaId, franquiaNome) {
   if (!container) return;
 
   container.innerHTML = `<div class="flex items-center justify-center py-12 text-neutral-600">
-    <i data-lucide="loader-2" class="w-6 h-6 animate-spin mr-2"></i><span class="font-bold uppercase text-[10px] tracking-widest">Carregando preços...</span>
+    <i data-lucide="loader-2" class="w-6 h-6 animate-spin mr-2"></i><span class="font-bold uppercase text-[10px] tracking-widest">Carregando preÃ§os...</span>
   </div>`;
   lucide.createIcons();
 
@@ -1118,16 +1133,16 @@ async function renderAdminPrecosFranquia(franquiaId, franquiaNome) {
       <div class="metric-card ${stagger} flex flex-col sm:flex-row items-start sm:items-center gap-3 border border-neutral-800 p-4 hover:border-purple-500/25 transition-all">
         <div class="flex-1 min-w-0">
           <p class="text-white font-black text-sm uppercase truncate">${escapeHTML(p.name)}</p>
-          <p class="text-neutral-500 text-[10px] font-bold">${escapeHTML(p.brand || '—')} · ${p.power} kWp</p>
+          <p class="text-neutral-500 text-[10px] font-bold">${escapeHTML(p.brand || 'â€”')} Â· ${p.power} kWp</p>
         </div>
         <div class="flex items-center gap-2 shrink-0 flex-wrap">
           <div class="flex flex-col items-start">
-            <span class="text-[8px] text-neutral-600 font-black uppercase tracking-widest mb-1">PREÇO PROMO</span>
+            <span class="text-[8px] text-neutral-600 font-black uppercase tracking-widest mb-1">PREÃ‡O PROMO</span>
             <input type="number" step="0.01" id="price-${p.id}" value="${preco.price}"
               class="w-32 bg-black border border-neutral-700 focus:border-orange-500 px-3 py-2 text-orange-400 font-mono font-bold text-sm transition-all">
           </div>
           <div class="flex flex-col items-start">
-            <span class="text-[8px] text-neutral-600 font-black uppercase tracking-widest mb-1">PREÇO LISTA</span>
+            <span class="text-[8px] text-neutral-600 font-black uppercase tracking-widest mb-1">PREÃ‡O LISTA</span>
             <input type="number" step="0.01" id="listprice-${p.id}" value="${preco.list_price}"
               class="w-32 bg-black border border-neutral-700 focus:border-neutral-500 px-3 py-2 text-neutral-400 font-mono font-bold text-sm transition-all">
           </div>
@@ -1147,13 +1162,13 @@ async function renderAdminPrecosFranquia(franquiaId, franquiaNome) {
         <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> VOLTAR
       </button>
       <div>
-        <p class="text-purple-400 text-[9px] font-black uppercase tracking-widest">EDITANDO PREÇOS</p>
+        <p class="text-purple-400 text-[9px] font-black uppercase tracking-widest">EDITANDO PREÃ‡OS</p>
         <p class="text-white font-black text-base uppercase leading-tight">${escapeHTML(franquiaNome)}</p>
       </div>
     </div>
     <div class="bg-amber-950/20 border border-amber-700/30 p-3 flex items-start gap-2 mb-4">
       <i data-lucide="info" class="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5"></i>
-      <p class="text-amber-300/80 text-[10px] font-bold">Altere os valores e clique SALVAR em cada linha. O vendedor dessa franquia verá os novos preços imediatamente.</p>
+      <p class="text-amber-300/80 text-[10px] font-bold">Altere os valores e clique SALVAR em cada linha. O vendedor dessa franquia verÃ¡ os novos preÃ§os imediatamente.</p>
     </div>
     <div class="flex flex-col gap-2">${rows}</div>`;
   lucide.createIcons();
@@ -1199,14 +1214,14 @@ async function savePrecoFranquia(produtoId, franquiaId, btnKey) {
   }
 }
 
-// ─── Custos Extras ────────────────────────────────────────────
+// â”€â”€â”€ Custos Extras â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function openAdminCustoForm(id) {
   const fieldsHTML = `
     <input type="hidden" id="ace-id" value="${id || ''}">
     <div class="grid grid-cols-2 gap-4">
       <div class="col-span-2"><label class="${_labelCls}">Nome *</label>
-        <input required id="ace-nome" class="${_inputCls} uppercase" placeholder="EX: TAXA DE INSTALAÇÃO"></div>
-      <div><label class="${_labelCls}">Tipo de Cálculo *</label>
+        <input required id="ace-nome" class="${_inputCls} uppercase" placeholder="EX: TAXA DE INSTALAÃ‡ÃƒO"></div>
+      <div><label class="${_labelCls}">Tipo de CÃ¡lculo *</label>
         <select required id="ace-tipo" class="${_selectCls}">
           <option value="fixo">FIXO (R$)</option>
           <option value="percentual">PERCENTUAL (%)</option>
@@ -1215,7 +1230,7 @@ function openAdminCustoForm(id) {
         <input required type="number" step="0.01" id="ace-valor" class="${_inputCls} font-mono" placeholder="0.00"></div>
       <div><label class="${_labelCls}">Ordem</label>
         <input type="number" id="ace-ordem" class="${_inputCls} font-mono" value="0"></div>
-      <div><label class="${_labelCls}">Descrição</label>
+      <div><label class="${_labelCls}">DescriÃ§Ã£o</label>
         <input id="ace-descricao" class="${_inputCls}" placeholder="Opcional"></div>
       <label class="col-span-2 flex items-center gap-3 cursor-pointer">
         <input type="checkbox" id="ace-ativo" checked class="w-4 h-4 accent-red-500">
@@ -1626,3 +1641,4 @@ async function deleteAdminComunicado(id) {
     }
   );
 }
+

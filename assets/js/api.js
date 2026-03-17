@@ -1,4 +1,4 @@
-// ==========================================
+﻿// ==========================================
 // BUSCA DE DADOS (Supabase)
 // ==========================================
 
@@ -37,18 +37,66 @@ function resolveProductPrices(produto) {
   return { price, list_price: listPrice };
 }
 
+async function createAdminUserWithConfirmedEmail(params = {}) {
+  if (!supabaseClient?.functions || typeof supabaseClient.functions.invoke !== 'function') {
+    throw new Error('Supabase Functions indisponivel no cliente.');
+  }
+
+  // Garante que o token JWT mais recente da sessão é enviado explicitamente,
+  // evitando 401 causado pelo SDK não anexar o header automaticamente.
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+  const accessToken = sessionData?.session?.access_token;
+  if (!accessToken) {
+    throw new Error('Sessao expirada. Faca login novamente.');
+  }
+
+  const payload = {
+    email: String(params.email || '').trim().toLowerCase(),
+    password: String(params.password || ''),
+    nome: params.nome == null ? null : (String(params.nome).trim() || null),
+    role: String(params.role || 'vendedor').toLowerCase(),
+    franquia_id: params.franquia_id || null,
+    ativo: params.ativo !== false,
+  };
+
+  const { data, error } = await supabaseClient.functions.invoke('admin-create-user', {
+    body: payload,
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (error) {
+    let message = error.message || 'Falha ao criar usuario no backend.';
+    const response = error.context;
+    if (response) {
+      try {
+        const body = await response.clone().json();
+        if (body && body.error) message = String(body.error);
+      } catch (_) {
+        // Mantem mensagem padrao quando corpo nao for JSON
+      }
+    }
+    throw new Error(message);
+  }
+
+  if (!data || !data.user_id) {
+    throw new Error('Usuario criado sem retorno de identificador.');
+  }
+
+  return data;
+}
+
 async function fetchProducts() {
   if (!state.currentUser) return;
 
-  // Admin: carrega produtos com preços da Matriz (referência)
-  // Vendedor: carrega produtos com preço da própria franquia via JOIN
+  // Admin: carrega produtos com preÃ§os da Matriz (referÃªncia)
+  // Vendedor: carrega produtos com preÃ§o da prÃ³pria franquia via JOIN
   if (state.isAdmin) {
-    // Para admin, sempre prioriza preços por franquia:
-    // 1) franquia selecionada no painel admin; 2) própria franquia do usuário.
+    // Para admin, sempre prioriza preÃ§os por franquia:
+    // 1) franquia selecionada no painel admin; 2) prÃ³pria franquia do usuÃ¡rio.
     const targetFranquiaId = state.adminKitsFranquia || state.franquiaId || null;
 
     if (targetFranquiaId) {
-      // Admin com franquia alvo: carrega preços daquela franquia
+      // Admin com franquia alvo: carrega preÃ§os daquela franquia
       const { data, error } = await supabaseClient
         .from('produtos')
         .select(`
@@ -64,7 +112,7 @@ async function fetchProducts() {
         }));
       }
     } else {
-      // Fallback de segurança quando não houver franquia vinculada no JWT.
+      // Fallback de seguranÃ§a quando nÃ£o houver franquia vinculada no JWT.
       const { data, error } = await supabaseClient
         .from('produtos')
         .select('*')
@@ -72,7 +120,7 @@ async function fetchProducts() {
       if (!error) state.data = (data || []).map(enrichProductForUI);
     }
   } else {
-    // JOIN com precos_franquia para retornar o preço correto da franquia do vendedor
+    // JOIN com precos_franquia para retornar o preÃ§o correto da franquia do vendedor
     const { data, error } = await supabaseClient
       .from('produtos')
       .select(`
@@ -99,8 +147,8 @@ async function fetchClientes() {
     .select('*')
     .order('created_at', { ascending: false });
 
-  // Gestor com gestorViewAll: vê todos da franquia (RLS restringe). Admin com adminViewAll: idem.
-  // Gestor sem gestorViewAll ou vendedor: filtra pelo próprio email.
+  // Gestor com gestorViewAll: vÃª todos da franquia (RLS restringe). Admin com adminViewAll: idem.
+  // Gestor sem gestorViewAll ou vendedor: filtra pelo prÃ³prio email.
   const fetchAll = (state.isGestor && Boolean(state.gestorViewAll)) || (state.isAdmin && Boolean(state.adminViewAll));
   if (!fetchAll) query.eq('vendedor_email', state.currentUser.email);
 
@@ -156,7 +204,7 @@ async function fetchComponentes() {
     .order('tipo')
     .order('nome');
   if (!error) state.componentes = data || [];
-  // Tabela pode não existir ainda — falha silenciosa
+  // Tabela pode nÃ£o existir ainda â€” falha silenciosa
 }
 
 async function fetchComunicados(options = {}) {
@@ -171,3 +219,13 @@ async function fetchComunicados(options = {}) {
     if (!silent) showToast('Nao foi possivel carregar comunicados.');
   }
 }
+
+
+
+
+
+
+
+
+
+
