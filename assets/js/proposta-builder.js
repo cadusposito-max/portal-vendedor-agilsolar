@@ -439,7 +439,7 @@ async function handleEquipamentosProposalSubmit(event) {
   try {
     const vendedorMeta = state.currentUser.user_metadata || {};
     const vendedorNome = vendedorMeta.full_name || vendedorMeta.name || state.currentUser.email.split('@')[0];
-    const vendedorTel  = vendedorMeta.phone || state.currentUser.phone || '';
+    const vendedorTel  = state.profile?.telefone || vendedorMeta.phone || state.currentUser.phone || '';
     const descricao    = (draft.descricao || '').trim() || 'Proposta Personalizada';
 
     const { data, error } = await supabaseClient.from('propostas').insert([{
@@ -648,7 +648,7 @@ async function copyProposalLink(kit, event) {
   try {
     const vendedorMeta  = state.currentUser.user_metadata || {};
     const vendedorNome  = vendedorMeta.full_name || vendedorMeta.name || state.currentUser.email.split('@')[0];
-    const vendedorTel   = vendedorMeta.phone || state.currentUser.phone || '';
+    const vendedorTel   = state.profile?.telefone || vendedorMeta.phone || state.currentUser.phone || '';
 
     const { data, error } = await supabaseClient.from('propostas').insert([{
       vendedor_email:    state.currentUser.email,
@@ -718,7 +718,7 @@ function handleProposalLinkOpen(link, popupRef) {
 
     if (navigator.share) {
       navigator.share({
-        title: 'Proposta Ágil Solar',
+        title: 'Proposta Ãgil Solar',
         text: 'Segue o link da proposta:',
         url: link,
       }).catch(() => {});
@@ -782,7 +782,7 @@ function openFechaVenda(clientId) {
   const select = document.getElementById('fv-kit-select');
   select.innerHTML = '<option value="">» SELECIONE O KIT «</option>';
 
-  // Adiciona kits do catálogo + propostas do cliente como opções
+  // Adiciona kits do catálogo + propostas do cliente como opçÃµes
   const clientPropostas = state.propostas.filter(
     p => p.cliente_nome && p.cliente_nome.toUpperCase() === client.nome.toUpperCase()
   );
@@ -794,7 +794,7 @@ function openFechaVenda(clientId) {
     clientPropostas.forEach(p => {
       const opt = document.createElement('option');
       opt.value = JSON.stringify({ nome: p.kit_nome, preco: p.kit_price, power: p.kit_power, brand: p.kit_brand });
-      opt.textContent = `${p.kit_nome} → ${formatCurrency(p.kit_price)}`;
+      opt.textContent = `${p.kit_nome} â†’ ${formatCurrency(p.kit_price)}`;
       group.appendChild(opt);
     });
     select.appendChild(group);
@@ -805,7 +805,7 @@ function openFechaVenda(clientId) {
   state.data.forEach(k => {
     const opt = document.createElement('option');
     opt.value = JSON.stringify({ nome: k.name, preco: k.price, power: k.power, brand: k.brand });
-    opt.textContent = `${k.name} → ${formatCurrency(k.price)}`;
+    opt.textContent = `${k.name} â†’ ${formatCurrency(k.price)}`;
     groupAll.appendChild(opt);
   });
   select.appendChild(groupAll);
@@ -899,7 +899,7 @@ async function confirmarFechaVenda() {
 
     closeFechaVenda();
     showSalesCelebration();
-    showToast(`🎉 VENDA FECHADA! ${kit.nome}`);
+    showToast(`ðŸŽ‰ VENDA FECHADA! ${kit.nome}`);
     renderContent();
 
   } catch (err) {

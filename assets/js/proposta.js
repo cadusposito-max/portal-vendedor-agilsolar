@@ -214,6 +214,19 @@ async function carregarProposta() {
 
     if (error || !data) { showError(); return; }
 
+    // Se a proposta não tem telefone salvo, busca em outra proposta do mesmo vendedor
+    if (!data.vendedor_telefone && data.vendedor_email) {
+      const { data: outra } = await supabaseClient
+        .from('propostas')
+        .select('vendedor_telefone')
+        .eq('vendedor_email', data.vendedor_email)
+        .not('vendedor_telefone', 'is', null)
+        .neq('vendedor_telefone', '')
+        .limit(1)
+        .maybeSingle();
+      if (outra?.vendedor_telefone) data.vendedor_telefone = outra.vendedor_telefone;
+    }
+
     renderData(data);
     const priceForParcelas = (data.proposal_mode === 'PERSONALIZADA' || data.proposal_mode === 'EQUIPAMENTOS')
       ? (data.custom_total_price || data.kit_price || 0)
@@ -336,7 +349,8 @@ function renderData(data) {
     document.getElementById('env-trees').innerText    = '+' + arvoresPlantadas;
     document.getElementById('eco-payback').innerText  = textoPayback;
     if (ecoCurrentBillEl) ecoCurrentBillEl.innerText = formatter.format(valorFaturaIdeal);
-    if (ecoPostBillEl) ecoPostBillEl.innerText = formatter.format(contaPosSistema);
+    if (ecoPostBillEl) ecoPostBillEl.innerText = formatter.format(contaPosSistema);
+
   }
   if (paymentCardBestEl) paymentCardBestEl.innerText = melhorPagamento;
 

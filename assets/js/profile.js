@@ -235,6 +235,15 @@ async function _saveDados() {
     return;
   }
 
+  // Atualiza propostas antigas desse vendedor que estejam sem telefone
+  if (telefone && state.currentUser?.email) {
+    await supabaseClient
+      .from('propostas')
+      .update({ vendedor_telefone: telefone })
+      .eq('vendedor_email', state.currentUser.email)
+      .or('vendedor_telefone.is.null,vendedor_telefone.eq.');
+  }
+
   state.profile.nome       = nome;
   state.profile.telefone   = telefone;
   state.profile.avatar_url = avatar_url;
