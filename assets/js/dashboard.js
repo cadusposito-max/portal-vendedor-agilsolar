@@ -9,7 +9,7 @@ function renderDashboard(container) {
   const totalClientes  = state.clientes.length;
   const propostasReais = state.propostas.length;
 
-  const funil = { 'NOVO': 0, 'PROPOSTA ENVIADA': 0, 'EM NEGOCIAÃƒâ€¡ÃƒÆ’O': 0, 'FECHADO': 0 };
+  const funil = { 'NOVO': 0, 'PROPOSTA ENVIADA': 0, 'EM NEGOCIAÇÃO': 0, 'FECHADO': 0 };
   state.clientes.forEach(c => {
     const s = c.status || 'NOVO';
     if (funil[s] !== undefined) funil[s]++;
@@ -18,7 +18,7 @@ function renderDashboard(container) {
 
   const vendasFechadas = funil['FECHADO'];
 
-  // --- PerÃƒÂ­odo das mÃƒÂ©tricas de venda ---
+  // --- Período das métricas de venda ---
   const nowDash      = new Date();
   const dashCurrMonth = `${nowDash.getFullYear()}-${String(nowDash.getMonth() + 1).padStart(2, '0')}`;
   if (!state.dashPeriod) state.dashPeriod = dashCurrMonth;
@@ -38,7 +38,7 @@ function renderDashboard(container) {
         return m === state.dashPeriod;
       });
 
-  // BotÃƒÂµes de perÃƒÂ­odo prÃƒÂ©-calculados
+  // Botões de período pré-calculados
   const _dashGeralAtivo = state.dashPeriod === 'all';
   const _dashBtns = availMonthsDash.map(m => {
     const ativo   = state.dashPeriod === m;
@@ -46,7 +46,7 @@ function renderDashboard(container) {
     const cls = ativo
       ? (ehAtual ? 'bg-orange-600 text-black border-orange-500 shadow-[0_0_8px_rgba(234,88,12,0.4)]' : 'bg-neutral-700 text-white border-neutral-600')
       : 'bg-transparent border-neutral-800 text-neutral-600 hover:text-neutral-300 hover:border-neutral-700';
-    const label = formatMonthLabel(m) + (ehAtual ? ' Ã¢â€”Â' : '');
+    const label = formatMonthLabel(m) + (ehAtual ? ' ●' : '');
     return `<button onclick="setDashPeriod('${m}')" class="${cls} border px-2.5 py-1 font-black uppercase text-[8px] tracking-widest transition-all whitespace-nowrap">${label}</button>`;
   }).join('');
 
@@ -58,15 +58,15 @@ function renderDashboard(container) {
   // Percentuais do funil (relativo ao total de clientes)
   const maxF   = totalClientes || 1;
   const fPct   = k => Math.round((funil[k] / maxF) * 100);
-  const fWidth = k => Math.max(fPct(k), 2); // mÃƒÂ­nimo visual de 2%
+  const fWidth = k => Math.max(fPct(k), 2); // mínimo visual de 2%
 
-  // Taxa de avanÃƒÂ§o entre etapas
+  // Taxa de avanço entre etapas
   const toNum = (a, b) => funil[a] > 0 ? Math.round((funil[b] / funil[a]) * 100) : 0;
   const convProp = toNum('NOVO',             'PROPOSTA ENVIADA');
-  const convNeg  = toNum('PROPOSTA ENVIADA', 'EM NEGOCIAÃƒâ€¡ÃƒÆ’O');
-  const convFech = toNum('EM NEGOCIAÃƒâ€¡ÃƒÆ’O',    'FECHADO');
+  const convNeg  = toNum('PROPOSTA ENVIADA', 'EM NEGOCIAÇÃO');
+  const convFech = toNum('EM NEGOCIAÇÃO',    'FECHADO');
 
-  // SaudaÃƒÂ§ÃƒÂ£o
+  // Saudação
   const greeting  = getGreeting();
   const firstName = getFirstName();
   const hoje      = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -145,9 +145,10 @@ function renderDashboard(container) {
       const autor = item.authorName
         ? `<span class="text-[8px] text-neutral-600 font-bold">Por ${escapeHTML(item.authorName)}</span>`
         : '';
+      const encodedId = encodeURIComponent(String(item.id || ''));
 
       return `
-        <article class="group flex items-start gap-3 p-3 hover:bg-neutral-900/30 transition-all border-b border-neutral-900/80 last:border-b-0 min-h-[98px]">
+        <article role="button" tabindex="0" onclick="openDashComunicadoModalById('${encodedId}')" onkeydown="handleDashComunicadoCardKey(event, '${encodedId}')" aria-label="Abrir comunicado: ${titulo}" class="group flex items-start gap-3 p-3 hover:bg-neutral-900/30 transition-all border-b border-neutral-900/80 last:border-b-0 min-h-[98px] cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-orange-400/80">
           <div class="w-24 h-16 bg-neutral-900 border border-neutral-800 overflow-hidden shrink-0">
             <img src="${imagem}" alt="${titulo}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='assets/img/logo-light.png';this.onerror=null;">
           </div>
@@ -165,9 +166,9 @@ function renderDashboard(container) {
   }
 
   container.innerHTML = `
-    <!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
-         HERO HEADER Ã¢â‚¬â€ saudaÃƒÂ§ÃƒÂ£o + relÃƒÂ³gio
-         Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
+    <!-- ════════════════════════════════════════
+         HERO HEADER — saudação + relógio
+         ════════════════════════════════════════ -->
     <div class="dash-hero stagger-1 relative overflow-hidden border border-neutral-800/60 p-6 md:p-8 group" style="background: linear-gradient(135deg, #0f0f0f 0%, #080808 100%);">
       <div class="absolute inset-0 bg-grid opacity-50 pointer-events-none"></div>
       <div class="absolute -right-16 -top-16 w-64 h-64 bg-orange-600/5 rounded-full blur-[80px] group-hover:bg-orange-600/8 transition-all duration-1000 pointer-events-none"></div>
@@ -181,12 +182,12 @@ function renderDashboard(container) {
               ? `, <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-300">${escapeHTML(firstName)}</span>.`
               : '.'}
           </h2>
-          <p class="text-neutral-500 text-sm font-medium mt-2.5">Aqui estÃƒÂ¡ o resumo da sua carteira.</p>
+          <p class="text-neutral-500 text-sm font-medium mt-2.5">Aqui está o resumo da sua carteira.</p>
           ${state.isAdmin
             ? `<div class="flex items-center gap-2 mt-3">
                 <span class="text-[8px] px-2 py-1 border ${state.adminViewAll ? 'border-purple-500/40 bg-purple-500/10 text-purple-400' : 'border-orange-500/40 bg-orange-500/10 text-orange-400'} font-black uppercase tracking-widest flex items-center gap-1.5">
                   <i data-lucide="${state.adminViewAll ? 'layers' : 'user'}" class="w-3 h-3"></i>
-                  ${state.adminViewAll ? 'VISÃƒÆ’O CONSOLIDADA Ã¢â‚¬â€ TODAS AS FRANQUIAS' : 'VISÃƒÆ’O: MINHA FRANQUIA Ã¢â‚¬â€ ' + escapeHTML(state.franquiaNome)}
+                  ${state.adminViewAll ? 'VISÃO CONSOLIDADA — TODAS AS FRANQUIAS' : 'VISÃO: MINHA FRANQUIA — ' + escapeHTML(state.franquiaNome)}
                 </span>
               </div>`
             : state.franquiaNome
@@ -200,17 +201,17 @@ function renderDashboard(container) {
         </div>
         <div class="flex flex-col items-start md:items-end gap-1 shrink-0">
           <div id="dashboard-clock" class="text-4xl md:text-5xl font-black text-white live-clock tabular-nums leading-none">00:00:00</div>
-          <span class="text-[9px] text-neutral-700 font-bold uppercase tracking-[0.3em]">HorÃƒÂ¡rio local</span>
+          <span class="text-[9px] text-neutral-700 font-bold uppercase tracking-[0.3em]">Horário local</span>
         </div>
       </div>
     </div>
 
-    <!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
-         FILTRO DE PERÃƒÂODO (MÃƒÂ©tricas de venda)
-         Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
+    <!-- ════════════════════════════════════════
+         FILTRO DE PERÍODO (Métricas de venda)
+         ════════════════════════════════════════ -->
     <div class="flex flex-wrap items-center justify-between gap-2 px-1">
       <span class="text-[8px] text-neutral-700 font-black uppercase tracking-widest flex items-center gap-1.5">
-        <i data-lucide="calendar" class="w-3 h-3"></i> MÃƒÂ©tricas de venda
+        <i data-lucide="calendar" class="w-3 h-3"></i> Métricas de venda
       </span>
       <div class="flex flex-wrap gap-1 items-center">
         <button onclick="setDashPeriod('all')"
@@ -223,9 +224,9 @@ function renderDashboard(container) {
       </div>
     </div>
 
-    <!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
-         CARDS DE MÃƒâ€°TRICAS
-         Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
+    <!-- ════════════════════════════════════════
+         CARDS DE MÉTRICAS
+         ════════════════════════════════════════ -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
 
       <!-- Clientes -->
@@ -262,7 +263,7 @@ function renderDashboard(container) {
         </div>
         <div class="relative z-10">
           <div class="text-3xl md:text-5xl font-black text-white tabular-nums leading-none" data-count="${propostasReais}">0</div>
-          <div class="text-[8px] md:text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1">orÃƒÂ§amentos gerados</div>
+          <div class="text-[8px] md:text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1">orçamentos gerados</div>
         </div>
         <div class="relative z-10 space-y-1.5">
           <div class="flex justify-between text-[8px] text-neutral-700 font-bold uppercase tracking-widest">
@@ -278,7 +279,7 @@ function renderDashboard(container) {
       <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 160ms">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-green-500 opacity-[0.05] rounded-full blur-2xl group-hover:opacity-[0.1] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
-          <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">NegÃƒÂ³cios Fechados</span>
+          <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">Negócios Fechados</span>
           <div class="p-1.5 md:p-2 bg-green-500/10 border border-green-500/20 group-hover:border-green-500/40 transition-colors shrink-0">
             <i data-lucide="trophy" class="w-3 h-3 md:w-3.5 md:h-3.5 text-green-400"></i>
           </div>
@@ -289,7 +290,7 @@ function renderDashboard(container) {
         </div>
         <div class="relative z-10 space-y-1.5">
           <div class="flex justify-between text-[8px] text-neutral-700 font-bold uppercase tracking-widest">
-            <span>ConversÃƒÂ£o</span><span class="text-green-400">${taxaConversao}%</span>
+            <span>Conversão</span><span class="text-green-400">${taxaConversao}%</span>
           </div>
           <div class="w-full h-px bg-neutral-900 rounded-full">
             <div class="h-full bg-gradient-to-r from-green-600 to-green-400 bar-animated rounded-full" style="width: ${taxaConversao}%"></div>
@@ -297,18 +298,18 @@ function renderDashboard(container) {
         </div>
       </div>
 
-      <!-- Ticket MÃƒÂ©dio -->
+      <!-- Ticket Médio -->
       <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 240ms">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-blue-400 opacity-[0.04] rounded-full blur-2xl group-hover:opacity-[0.08] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
-          <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">Ticket MÃƒÂ©dio</span>
+          <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">Ticket Médio</span>
           <div class="p-1.5 md:p-2 bg-blue-400/10 border border-blue-400/20 group-hover:border-blue-400/40 transition-colors shrink-0">
             <i data-lucide="trending-up" class="w-3 h-3 md:w-3.5 md:h-3.5 text-blue-400"></i>
           </div>
         </div>
         <div class="relative z-10 min-w-0">
           <div class="text-xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 tabular-nums leading-none pb-0.5 break-all" data-count="${ticketMedio}" data-count-currency="true">R$ 0</div>
-          <div class="text-[8px] md:text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1">${qtdVendas > 0 ? `${qtdVendas} venda${qtdVendas > 1 ? 's' : ''} no perÃƒÂ­odo` : 'nenhuma venda registrada'}</div>
+          <div class="text-[8px] md:text-[9px] text-neutral-600 font-bold uppercase tracking-widest mt-1">${qtdVendas > 0 ? `${qtdVendas} venda${qtdVendas > 1 ? 's' : ''} no período` : 'nenhuma venda registrada'}</div>
         </div>
         <div class="relative z-10 space-y-1.5">
           <div class="flex justify-between text-[8px] text-neutral-700 font-bold uppercase tracking-widest gap-1 min-w-0">
@@ -321,9 +322,9 @@ function renderDashboard(container) {
       </div>
     </div>
 
-    <!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    <!-- ════════════════════════════════════════
          PIPELINE DE VENDAS
-         Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
+         ════════════════════════════════════════ -->
     <div class="dash-pipeline stagger-3 relative overflow-hidden border border-neutral-800/60 p-6 md:p-7" style="background: linear-gradient(135deg, #0e0e0e 0%, #080808 100%);">
       <div class="absolute right-0 top-0 w-48 h-48 bg-purple-600/4 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -335,7 +336,7 @@ function renderDashboard(container) {
           <h3 class="text-[10px] font-black text-white uppercase tracking-widest">Pipeline de Vendas</h3>
         </div>
         <div class="text-[9px] text-neutral-600 font-bold">
-          ConversÃƒÂ£o global: <span class="text-purple-400 font-black">${taxaConversao}%</span>
+          Conversão global: <span class="text-purple-400 font-black">${taxaConversao}%</span>
         </div>
       </div>
 
@@ -375,17 +376,17 @@ function renderDashboard(container) {
             </div>` : ''}
         </div>
 
-        <!-- EM NEGOCIAÃƒâ€¡ÃƒÆ’O -->
+        <!-- EM NEGOCIAÇÃO -->
         <div class="flex flex-col gap-2.5">
           <div class="flex items-center justify-between">
-            <span class="text-[9px] font-black uppercase tracking-widest text-orange-400 hidden md:block">NegociaÃƒÂ§ÃƒÂ£o</span>
+            <span class="text-[9px] font-black uppercase tracking-widest text-orange-400 hidden md:block">Negociação</span>
             <span class="text-[9px] font-black uppercase tracking-widest text-orange-400 md:hidden">Neg.</span>
-            <span class="text-[9px] text-neutral-700 font-bold tabular-nums">${fPct('EM NEGOCIAÃƒâ€¡ÃƒÆ’O')}%</span>
+            <span class="text-[9px] text-neutral-700 font-bold tabular-nums">${fPct('EM NEGOCIAÇÃO')}%</span>
           </div>
           <div class="h-1 bg-neutral-900 rounded-none overflow-hidden">
-            <div class="h-full bg-gradient-to-r from-orange-700 to-orange-400 funnel-bar rounded-none" style="width: ${fWidth('EM NEGOCIAÃƒâ€¡ÃƒÆ’O')}%; animation-delay: 360ms;"></div>
+            <div class="h-full bg-gradient-to-r from-orange-700 to-orange-400 funnel-bar rounded-none" style="width: ${fWidth('EM NEGOCIAÇÃO')}%; animation-delay: 360ms;"></div>
           </div>
-          <div class="text-2xl md:text-3xl font-black text-white tabular-nums leading-none">${funil['EM NEGOCIAÃƒâ€¡ÃƒÆ’O']}</div>
+          <div class="text-2xl md:text-3xl font-black text-white tabular-nums leading-none">${funil['EM NEGOCIAÇÃO']}</div>
           <div class="text-[8px] text-neutral-700 font-bold uppercase tracking-widest leading-tight">em andamento</div>
           ${convFech > 0 ? `
             <div class="hidden md:flex items-center gap-1 text-[8px] text-orange-500/60 font-bold">
@@ -403,7 +404,7 @@ function renderDashboard(container) {
             <div class="h-full bg-gradient-to-r from-green-700 to-green-400 funnel-bar rounded-none" style="width: ${fWidth('FECHADO')}%; animation-delay: 540ms;"></div>
           </div>
           <div class="text-2xl md:text-3xl font-black text-green-400 tabular-nums leading-none neon-green">${funil['FECHADO']}</div>
-          <div class="text-[8px] text-neutral-700 font-bold uppercase tracking-widest leading-tight">concluÃƒÂ­dos</div>
+          <div class="text-[8px] text-neutral-700 font-bold uppercase tracking-widest leading-tight">concluídos</div>
           <div class="hidden md:flex items-center gap-1 text-[8px] text-blue-500/60 font-bold">
             <i data-lucide="trending-up" class="w-2.5 h-2.5 shrink-0"></i>${qtdVendas > 0 ? 'ticket ' + formatCurrency(ticketMedio) : 'sem vendas'}
           </div>
@@ -411,9 +412,9 @@ function renderDashboard(container) {
       </div>
     </div>
 
-    <!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+    <!-- ════════════════════════════════════════
          COMUNICADOS + LATERAL
-         Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
+         ════════════════════════════════════════ -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 stagger-4">
 
       <!-- Comunicados -->
@@ -437,18 +438,18 @@ function renderDashboard(container) {
       <!-- Coluna lateral -->
       <div class="flex flex-col gap-3">
 
-        <!-- Materiais ÃƒÅ¡teis -->
+        <!-- Materiais Úteis -->
         <div class="dash-materials-panel border border-neutral-800/60 p-5 flex flex-col gap-3" style="background: #0d0d0d;">
           <h3 class="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
             <div class="p-1.5 bg-blue-500/10 border border-blue-500/20">
               <i data-lucide="folder-down" class="w-3 h-3 text-blue-400"></i>
             </div>
-            Materiais ÃƒÅ¡teis
+            Materiais Úteis
           </h3>
           <a href="#" class="flex items-center justify-between p-3 border border-neutral-800/50 hover:border-red-500/40 hover:bg-red-500/4 transition-all group">
             <div class="flex items-center gap-2.5">
               <div class="p-1.5 bg-red-500/10 shrink-0"><i data-lucide="file-text" class="w-3.5 h-3.5 text-red-400"></i></div>
-              <span class="text-[10px] font-bold text-neutral-400 group-hover:text-white uppercase tracking-wider transition-colors">ApresentaÃƒÂ§ÃƒÂ£o ÃƒÂgil</span>
+              <span class="text-[10px] font-bold text-neutral-400 group-hover:text-white uppercase tracking-wider transition-colors">Apresentação Ágil</span>
             </div>
             <i data-lucide="download" class="w-3 h-3 text-neutral-700 group-hover:text-red-400 shrink-0 transition-colors"></i>
           </a>
@@ -468,13 +469,13 @@ function renderDashboard(container) {
           </a>
         </div>
 
-        <!-- CTA AÃƒÂ§ÃƒÂ£o RÃƒÂ¡pida -->
+        <!-- CTA Ação Rápida -->
         <div class="dash-quick-panel relative overflow-hidden border border-orange-500/15 p-5 flex flex-col gap-4"
           style="background: linear-gradient(135deg, rgba(234,88,12,0.06) 0%, #080808 60%);">
           <div class="absolute inset-0 bg-grid-sm opacity-30 pointer-events-none"></div>
           <div class="relative z-10">
-            <div class="text-[8px] font-black text-orange-400/50 uppercase tracking-[0.3em] mb-2">AÃƒÂ§ÃƒÂ£o RÃƒÂ¡pida</div>
-            <p class="text-sm font-bold text-neutral-300 leading-snug">Tem um cliente em mente?<br>Crie o orÃƒÂ§amento agora.</p>
+            <div class="text-[8px] font-black text-orange-400/50 uppercase tracking-[0.3em] mb-2">Ação Rápida</div>
+            <p class="text-sm font-bold text-neutral-300 leading-snug">Tem um cliente em mente?<br>Crie o orçamento agora.</p>
           </div>
           <button onclick="setTab('clientes')"
             class="relative z-10 flex items-center gap-2 bg-gradient-to-r from-orange-600 to-yellow-500
@@ -488,7 +489,7 @@ function renderDashboard(container) {
       </div>
     </div>
   `;
-
+  ensureDashComunicadoModal();
   lucide.createIcons();
   animateCounters();
   startDashboardClock();
@@ -501,10 +502,156 @@ function setDashComunicadosPage(page) {
   state.dashComunicadosPage = Math.max(0, Math.floor(nextPage));
   renderContent();
 }
-// --- Filtro de perÃƒÂ­odo do dashboard ---
+// --- Filtro de período do dashboard ---
 function setDashPeriod(period) {
   state.dashPeriod = period;
   renderContent();
 }
 
 
+
+let _dashComunicadoLastFocusedEl = null;
+let _dashComunicadoEscHandlerBound = false;
+
+function ensureDashComunicadoModal() {
+  if (document.getElementById('dash-comunicado-modal-overlay')) return;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'dash-comunicado-modal-overlay';
+  overlay.className = 'fixed inset-0 z-[160] bg-black/85 backdrop-blur-sm p-4 hidden';
+  overlay.setAttribute('aria-hidden', 'true');
+
+  overlay.innerHTML = `
+    <div class="w-full h-full flex items-center justify-center">
+      <div id="dash-comunicado-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="dash-comunicado-modal-title"
+        class="w-full max-w-4xl max-h-[92vh] overflow-hidden border border-neutral-700 bg-[#090909] shadow-[0_20px_80px_rgba(0,0,0,0.6)]">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-neutral-800 bg-black/60">
+          <p class="text-[10px] text-neutral-500 font-black uppercase tracking-[0.2em]">Comunicado</p>
+          <button id="dash-comunicado-close-btn" type="button" onclick="closeDashComunicadoModal()"
+            class="p-2 border border-neutral-700 bg-neutral-900 text-neutral-400 hover:text-white hover:border-neutral-500 transition-all"
+            aria-label="Fechar comunicado">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div id="dash-comunicado-modal-content" class="overflow-y-auto max-h-[calc(92vh-65px)]"></div>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay) closeDashComunicadoModal();
+  });
+
+  if (!_dashComunicadoEscHandlerBound) {
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeDashComunicadoModal();
+    });
+    _dashComunicadoEscHandlerBound = true;
+  }
+
+  lucide.createIcons();
+}
+
+function handleDashComunicadoCardKey(event, encodedId) {
+  if (!event) return;
+  const key = event.key;
+  if (key !== 'Enter' && key !== ' ') return;
+  event.preventDefault();
+  openDashComunicadoModalById(encodedId);
+}
+
+function openDashComunicadoModalById(encodedId) {
+  ensureDashComunicadoModal();
+
+  const service = window.comunicadosService;
+  if (!service) {
+    showToast('Servico de comunicados indisponivel.');
+    return;
+  }
+
+  const id = decodeURIComponent(String(encodedId || ''));
+  let comunicado = typeof service.getById === 'function' ? service.getById(id) : null;
+
+  if (!comunicado && typeof service.listPublished === 'function') {
+    comunicado = service.listPublished().find(item => String(item.id || '') === id) || null;
+  }
+
+  if (!comunicado) {
+    showToast('Comunicado nao encontrado.');
+    return;
+  }
+
+  const overlay = document.getElementById('dash-comunicado-modal-overlay');
+  const content = document.getElementById('dash-comunicado-modal-content');
+  const closeBtn = document.getElementById('dash-comunicado-close-btn');
+  if (!overlay || !content) return;
+
+  const titulo = escapeHTML(comunicado.title || 'Comunicado');
+  const tipo = escapeHTML(String(comunicado.type || 'comunicado').toUpperCase());
+  const dataRaw = comunicado.publishedAt || comunicado.createdAt || '';
+  const dataFmt = dataRaw ? formatDate(dataRaw) : '-';
+  const autor = comunicado.authorName
+    ? `<span class="text-neutral-500 text-[11px] font-bold">Por ${escapeHTML(comunicado.authorName)}</span>`
+    : '';
+  const resumo = comunicado.summary
+    ? `<p class="text-neutral-400 text-sm leading-relaxed">${escapeHTML(comunicado.summary)}</p>`
+    : '';
+  const conteudo = escapeHTML(comunicado.content || comunicado.summary || '');
+  const imagem = escapeHTML(comunicado.coverImageUrl || 'assets/img/logo.png');
+
+  content.innerHTML = `
+    <div class="border-b border-neutral-800 bg-black/40">
+      <img src="${imagem}" alt="${titulo}" class="w-full h-56 md:h-72 object-cover" onerror="this.src='assets/img/logo-light.png';this.onerror=null;">
+    </div>
+    <div class="p-5 md:p-7 space-y-5">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="px-2.5 py-1 bg-blue-500/10 border border-blue-500/25 text-blue-300 text-[10px] font-black uppercase tracking-widest">${tipo}</span>
+        <span class="text-neutral-500 text-[11px] font-bold">${escapeHTML(dataFmt)}</span>
+        ${autor}
+      </div>
+      <h3 id="dash-comunicado-modal-title" class="text-white font-black uppercase tracking-tight text-xl md:text-2xl leading-tight">${titulo}</h3>
+      ${resumo}
+      <div class="border border-neutral-800 bg-neutral-950/50 p-4 md:p-5">
+        <div class="text-neutral-300 text-sm md:text-[15px] leading-relaxed whitespace-pre-line">${conteudo}</div>
+      </div>
+    </div>`;
+
+  if (typeof state !== 'undefined') {
+    state.dashComunicadoModalOpen = true;
+    state.dashComunicadoModalId = comunicado.id || null;
+  }
+
+  _dashComunicadoLastFocusedEl = document.activeElement;
+  overlay.classList.remove('hidden');
+  overlay.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('overflow-hidden');
+
+  if (closeBtn && typeof closeBtn.focus === 'function') {
+    closeBtn.focus();
+  }
+
+  const scroller = document.getElementById('dash-comunicado-modal-content');
+  if (scroller) scroller.scrollTop = 0;
+
+  lucide.createIcons();
+}
+
+function closeDashComunicadoModal() {
+  const overlay = document.getElementById('dash-comunicado-modal-overlay');
+  if (!overlay || overlay.classList.contains('hidden')) return;
+
+  overlay.classList.add('hidden');
+  overlay.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('overflow-hidden');
+
+  if (typeof state !== 'undefined') {
+    state.dashComunicadoModalOpen = false;
+    state.dashComunicadoModalId = null;
+  }
+
+  if (_dashComunicadoLastFocusedEl && typeof _dashComunicadoLastFocusedEl.focus === 'function') {
+    _dashComunicadoLastFocusedEl.focus();
+  }
+  _dashComunicadoLastFocusedEl = null;
+}

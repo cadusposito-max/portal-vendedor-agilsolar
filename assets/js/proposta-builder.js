@@ -693,7 +693,7 @@ async function copyProposalLink(kit, event) {
     }, 3000);
 
   } catch (err) {
-    console.error('Erro na geraÃ§Ã£o da proposta personalizada:', err);
+    console.error('Erro na geração da proposta personalizada:', err);
     alert('Erro ao gerar a proposta. Tente novamente.');
     if (popupRef) popupRef.close();
     btnCopiar.innerHTML = originalText;
@@ -718,7 +718,7 @@ function handleProposalLinkOpen(link, popupRef) {
 
     if (navigator.share) {
       navigator.share({
-        title: 'Proposta Ãgil Solar',
+        title: 'Proposta Ágil Solar',
         text: 'Segue o link da proposta:',
         url: link,
       }).catch(() => {});
@@ -763,13 +763,13 @@ function tryOpenExternalBrowser(link) {
 let _fechaVendaClientId = null;
 
 function openFechaVenda(clientId) {
-  // Pode ser chamado dos cards (clientId presente) ou do botÃ£o dentro do modal de proposta
+  // Pode ser chamado dos cards (clientId presente) ou do botão dentro do modal de proposta
   const client = clientId
     ? state.clientes.find(c => String(c.id) === String(clientId))
     : state.pbActiveClient;
 
   if (!client) {
-    showToast('Cliente nÃ£o encontrado. Atualize a pÃ¡gina.');
+    showToast('Cliente não encontrado. Atualize a página.');
     return;
   }
 
@@ -778,34 +778,34 @@ function openFechaVenda(clientId) {
   document.getElementById('fv-error').classList.add('hidden');
   document.getElementById('fv-kit-info').classList.add('hidden');
 
-  // Popula o select com os kits do catÃ¡logo
+  // Popula o select com os kits do catálogo
   const select = document.getElementById('fv-kit-select');
-  select.innerHTML = '<option value="">Â» SELECIONE O KIT Â«</option>';
+  select.innerHTML = '<option value="">» SELECIONE O KIT «</option>';
 
-  // Adiciona kits do catÃ¡logo + propostas do cliente como opÃ§Ãµes
+  // Adiciona kits do catálogo + propostas do cliente como opções
   const clientPropostas = state.propostas.filter(
     p => p.cliente_nome && p.cliente_nome.toUpperCase() === client.nome.toUpperCase()
   );
 
-  // Se tem propostas, exibe sÃ³ elas; caso contrÃ¡rio exibe todos os kits
+  // Se tem propostas, exibe só elas; caso contrário exibe todos os kits
   if (clientPropostas.length > 0) {
     const group = document.createElement('optgroup');
     group.label = 'Propostas Enviadas para este Cliente';
     clientPropostas.forEach(p => {
       const opt = document.createElement('option');
       opt.value = JSON.stringify({ nome: p.kit_nome, preco: p.kit_price, power: p.kit_power, brand: p.kit_brand });
-      opt.textContent = `${p.kit_nome} â†’ ${formatCurrency(p.kit_price)}`;
+      opt.textContent = `${p.kit_nome} → ${formatCurrency(p.kit_price)}`;
       group.appendChild(opt);
     });
     select.appendChild(group);
   }
 
   const groupAll = document.createElement('optgroup');
-  groupAll.label = clientPropostas.length > 0 ? 'Todos os Kits do CatÃ¡logo' : 'Kits do CatÃ¡logo';
+  groupAll.label = clientPropostas.length > 0 ? 'Todos os Kits do Catálogo' : 'Kits do Catálogo';
   state.data.forEach(k => {
     const opt = document.createElement('option');
     opt.value = JSON.stringify({ nome: k.name, preco: k.price, power: k.power, brand: k.brand });
-    opt.textContent = `${k.name} â†’ ${formatCurrency(k.price)}`;
+    opt.textContent = `${k.name} → ${formatCurrency(k.price)}`;
     groupAll.appendChild(opt);
   });
   select.appendChild(groupAll);
@@ -854,7 +854,7 @@ async function confirmarFechaVenda() {
 
   const client = state.clientes.find(c => c.id === _fechaVendaClientId);
   if (!client || !state.currentUser) {
-    errEl.innerText = 'SessÃ£o expirada. Recarregue a pÃ¡gina.';
+    errEl.innerText = 'Sessão expirada. Recarregue a página.';
     errEl.classList.remove('hidden');
     return;
   }
@@ -882,9 +882,9 @@ async function confirmarFechaVenda() {
     }]);
 
     if (insertError) {
-      // Erro mais legÃ­vel para tabela nÃ£o existente
+      // Erro mais legível para tabela não existente
       const msg = insertError.code === '42P01'
-        ? 'Tabela "vendas" nÃ£o encontrada no Supabase. Execute o SQL de criaÃ§Ã£o.'
+        ? 'Tabela "vendas" não encontrada no Supabase. Execute o SQL de criação.'
         : (insertError.message || 'Erro ao inserir venda.');
       throw new Error(msg);
     }
@@ -899,7 +899,7 @@ async function confirmarFechaVenda() {
 
     closeFechaVenda();
     showSalesCelebration();
-    showToast(`ðŸŽ‰ VENDA FECHADA! ${kit.nome}`);
+    showToast(`🎉 VENDA FECHADA! ${kit.nome}`);
     renderContent();
 
   } catch (err) {
@@ -907,7 +907,7 @@ async function confirmarFechaVenda() {
     errEl.innerText = err.message || 'Erro ao registrar. Tente novamente.';
     errEl.classList.remove('hidden');
   } finally {
-    // Garante que o botÃ£o SEMPRE volta ao estado original
+    // Garante que o botão SEMPRE volta ao estado original
     btn.innerHTML = originalHTML;
     btn.disabled  = false;
     lucide.createIcons();

@@ -392,7 +392,7 @@ function _chatRenderMessages(scrollToEnd = false) {
   box.innerHTML = items.map(msg => {
     const isMe = Boolean(msg.is_me);
     const safeBody = escapeHTML(msg.body || '').replace(/\n/g, '<br>');
-    const sender = escapeHTML(msg.sender_nome || 'Usu·rio');
+    const sender = escapeHTML(msg.sender_nome || 'Usu√°rio');
     const time = _chatFormatMessageTime(msg.created_at);
     return `
       <div class="chat-msg-row ${isMe ? 'is-me' : 'is-other'}">
@@ -615,7 +615,7 @@ function _chatRenderDirectory() {
   empty.classList.add('hidden');
 
   list.innerHTML = rows.map(row => {
-    const nome = row.nome || row.email || 'Usu·rio';
+    const nome = row.nome || row.email || 'Usu√°rio';
     const inicial = nome.charAt(0).toUpperCase();
     const role = (row.role || 'vendedor').toUpperCase();
     return `
@@ -623,7 +623,7 @@ function _chatRenderDirectory() {
         <span class="chat-directory-avatar">${escapeHTML(inicial)}</span>
         <span class="chat-directory-main">
           <span class="chat-directory-name">${escapeHTML(nome)}</span>
-          <span class="chat-directory-meta">${escapeHTML(row.email || '')} ∑ ${escapeHTML(role)}</span>
+          <span class="chat-directory-meta">${escapeHTML(row.email || '')} ‚Ä¢ ${escapeHTML(role)}</span>
         </span>
       </button>
     `;

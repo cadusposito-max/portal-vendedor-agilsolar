@@ -1,5 +1,5 @@
 ﻿/* ==========================================
-   ESTILOS GLOBAIS â€” Ãgil Solar Portal
+   ESTILOS GLOBAIS — Ágil Solar Portal
    ========================================== */
 
 body {
@@ -8,7 +8,7 @@ body {
 }
 
 /* ==========================================
-   LOGO â€” glow only in dark mode
+   LOGO — glow only in dark mode
    ========================================== */
 img[data-theme-logo="true"] {
   filter: drop-shadow(0 0 22px rgba(249,115,22,0.4));
@@ -67,7 +67,7 @@ img[data-theme-logo="true"] {
 }
 
 /* ==========================================
-   METRIC CARDS â€” Premium glassmorphism
+   METRIC CARDS — Premium glassmorphism
    ========================================== */
 .metric-card {
   background: linear-gradient(145deg, #111111 0%, #0c0c0c 60%, #080808 100%);
@@ -80,7 +80,7 @@ img[data-theme-logo="true"] {
 }
 
 /* ==========================================
-   SHINE SWEEP â€” light pass on hover
+   SHINE SWEEP — light pass on hover
    ========================================== */
 .shine-effect {
   position: relative;
@@ -159,7 +159,7 @@ img[data-theme-logo="true"] {
 }
 
 /* ==========================================
-   TABLE ROW â€” premium hover
+   TABLE ROW — premium hover
    ========================================== */
 .table-row-hover {
   transition: background 0.2s ease, border-left-color 0.2s ease;
@@ -220,7 +220,7 @@ img[data-theme-logo="true"] {
 }
 
 /* ==========================================
-   TAB â€” active underline indicator
+   TAB — active underline indicator
    ========================================== */
 .tab-active-underline {
   position: relative;
@@ -268,7 +268,7 @@ img[data-theme-logo="true"] {
 }
 
 /* ==========================================
-   HOVER LIFT â€” generic
+   HOVER LIFT — generic
    ========================================== */
 .hover-lift {
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
@@ -278,7 +278,7 @@ img[data-theme-logo="true"] {
 }
 
 /* ==========================================
-   PERFORMANCE â€” mobile/reduced motion
+   PERFORMANCE — mobile/reduced motion
    ========================================== */
 @media (prefers-reduced-motion: reduce), (max-width: 768px) {
   .stagger-1,

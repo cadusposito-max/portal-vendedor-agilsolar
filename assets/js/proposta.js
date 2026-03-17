@@ -1,5 +1,5 @@
 ﻿// ==========================================
-// LÃ“GICA DA PÃGINA DE PROPOSTA (proposta.html)
+// LÓGICA DA PÁGINA DE PROPOSTA (proposta.html)
 // ==========================================
 
 const VIDEOS_YOUTUBE = [
@@ -80,7 +80,7 @@ function initProposalQuickActions() {
 }
 
 // ==========================================
-// VALIDADE DA PROPOSTA â€” 72h from created_at
+// VALIDADE DA PROPOSTA — 72h from created_at
 // ==========================================
 function startCountdown(createdAt) {
   const EXPIRY_HOURS = 72;
@@ -99,7 +99,7 @@ function startCountdown(createdAt) {
 }
 
 // ==========================================
-// CARROSSEL DE VÃDEOS
+// CARROSSEL DE VÍDEOS
 // ==========================================
 let videoAtual = 0;
 const playerContainer = document.getElementById('video-wrapper');
@@ -236,7 +236,7 @@ function renderData(data) {
   const displayName  = isCustomMode ? 'Proposta Personalizada' : (data.kit_nome || '');
   const displayBrand = isCustomMode ? '' : (data.kit_brand || '');
 
-  // GeraÃ§Ã£o: usa valor salvo no banco (imutÃ¡vel, calculado com HSP da franquia na criaÃ§Ã£o)
+  // Geração: usa valor salvo no banco (imutável, calculado com HSP da franquia na criação)
   // Fallback para propostas antigas sem geracao_estimada salva
   const estGeneration = data.geracao_estimada
     ? Number(data.geracao_estimada)
@@ -256,8 +256,8 @@ function renderData(data) {
   let textoPayback = '';
   if (anosPayback > 0)                    textoPayback += `${anosPayback} ano${anosPayback > 1 ? 's' : ''}`;
   if (anosPayback > 0 && mesesRestantes > 0) textoPayback += ' e ';
-  if (mesesRestantes > 0)                 textoPayback += `${mesesRestantes} ${mesesRestantes > 1 ? 'meses' : 'mÃªs'}`;
-  if (textoPayback === '')                textoPayback = 'Menos de 1 mÃªs';
+  if (mesesRestantes > 0)                 textoPayback += `${mesesRestantes} ${mesesRestantes > 1 ? 'meses' : 'mês'}`;
+  if (textoPayback === '')                textoPayback = 'Menos de 1 mês';
 
   const taxa18x = TAXAS_CARTAO[MAX_PARCELAS] || 0;
   const totalCartao18x = displayPrice > 0 ? displayPrice / (1 - (taxa18x / 100)) : 0;
@@ -290,7 +290,7 @@ function renderData(data) {
   if (heroSystemNameEl) heroSystemNameEl.innerText = displayName;
   if (heroSystemMetaEl) heroSystemMetaEl.innerText = heroSystemMeta;
 
-  // Para EQUIPAMENTOS: oculta potÃªncia e geraÃ§Ã£o apenas se nÃ£o houver dados de sistema
+  // Para EQUIPAMENTOS: oculta potência e geração apenas se não houver dados de sistema
   const powerGenGrid = document.querySelector('#kit-power')?.closest('.grid');
   const idealBillRow = document.querySelector('#kit-ideal-bill')?.closest('.mb-8');
   if (isCustomMode && displayPower <= 0) {
@@ -298,7 +298,7 @@ function renderData(data) {
     if (idealBillRow) idealBillRow.classList.add('hidden');
   } else {
     document.getElementById('kit-power').innerText      = displayPower + ' kWp';
-    document.getElementById('kit-generation').innerText = estGeneration.toFixed(0) + ' kWh/mÃªs';
+    document.getElementById('kit-generation').innerText = estGeneration.toFixed(0) + ' kWh/mês';
     if (idealBillRow) document.getElementById('kit-ideal-bill').innerText = formatter.format(valorFaturaIdeal);
   }
 
@@ -320,7 +320,7 @@ function renderData(data) {
     <span class="text-xl align-top text-neutral-500 mr-1">R$</span>${priceParts[0].replace('R$', '').trim()}<span class="text-xl align-top text-neutral-500">,${priceParts[1]}</span>
   `;
 
-  // Oculta seÃ§Ã£o ambiental e de economia/ROI para EQUIPAMENTOS sem dados de potÃªncia
+  // Oculta seção ambiental e de economia/ROI para EQUIPAMENTOS sem dados de potência
   const ecoSection = document.querySelector('#eco-month')?.closest('.bg-neutral-900.border');
   const envSection = document.querySelector('#env-trees')?.closest('.flex.flex-col.md\\:flex-row');
   const ecoCurrentBillEl = document.getElementById('eco-current-bill');
@@ -347,11 +347,11 @@ function renderData(data) {
   const vendorNome = data.vendedor_nome || (data.vendedor_email ? data.vendedor_email.split('@')[0] : 'Consultor');
   const vendorTel  = data.vendedor_telefone || '';
   const waMsg      = encodeURIComponent(
-    `OlÃ¡ ${vendorNome.split(' ')[0]}! Vi a proposta "${displayName}" (${formatter.format(displayPrice)}) e quero saber mais. Pode me ajudar? Meu nome Ã© ${clientePrimeiroNome}.`
+    `Olá ${vendorNome.split(' ')[0]}! Vi a proposta "${displayName}" (${formatter.format(displayPrice)}) e quero saber mais. Pode me ajudar? Meu nome é ${clientePrimeiroNome}.`
   );
   const waLink = vendorTel
     ? `https://wa.me/55${vendorTel.replace(/\D/g, '')}?text=${waMsg}`
-    : (data.vendedor_email ? `mailto:${data.vendedor_email}?subject=Interesse na proposta solar&body=OlÃ¡, tenho interesse na proposta enviada.` : '#');
+    : (data.vendedor_email ? `mailto:${data.vendedor_email}?subject=Interesse na proposta solar&body=Olá, tenho interesse na proposta enviada.` : '#');
 
   const finalCta    = document.getElementById('final-cta-btn');
   const heroCta     = document.getElementById('hero-cta-btn');

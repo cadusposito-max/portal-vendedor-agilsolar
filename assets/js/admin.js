@@ -74,8 +74,13 @@ function renderAdminPanel(container) {
     { id: 'custos',        label: 'CUSTOS EXTRAS',   icon: 'circle-plus', adminOnly: true },
     { id: 'usuarios',      label: 'USUARIOS',        icon: 'user-cog',   adminOnly: true },
     { id: 'vendedores',    label: 'VENDEDORES',       icon: 'users' },
+    { id: 'comunicados',   label: 'COMUNICADOS',      icon: 'megaphone',  adminOnly: true },
   ];
   const sections = allSections.filter(s => !s.adminOnly || state.isAdmin);
+
+  if (!sections.some(s => s.id === state.adminSection)) {
+    state.adminSection = sections[0]?.id || 'produtos';
+  }
 
   const tabsHTML = sections.map(s => {
     const active = state.adminSection === s.id;
@@ -118,6 +123,7 @@ function renderAdminPanel(container) {
     else if (state.adminSection === 'custos')      renderAdminCustos(content);
     else if (state.adminSection === 'usuarios')    renderAdminUsuarios(content);
     else if (state.adminSection === 'vendedores')  renderAdminVendedores(content);
+    else if (state.adminSection === 'comunicados') renderAdminComunicados(content);
     else if (state.adminSection === 'franquias')   renderAdminFranquias(content);
   }
 }
@@ -678,7 +684,7 @@ async function renderAdminUsuarios(container) {
           <p class="text-neutral-500 text-[10px] font-bold truncate">${escapeHTML(item.email || '—')}</p>
           <p class="text-neutral-600 text-[10px] font-bold">
             ${escapeHTML(item.franquia_nome || 'Sem franquia')}
-            ${item.last_sign_in_at ? ' � Ultimo acesso: ' + formatDate(item.last_sign_in_at) : ''}
+            ${item.last_sign_in_at ? ' • Último acesso: ' + formatDate(item.last_sign_in_at) : ''}
           </p>
           ${(item.role || 'vendedor').toLowerCase() === 'vendedor'
             ? `<p class="text-neutral-600 text-[10px] font-bold">Gestor vinculado: ${escapeHTML(item.gestor_nome || 'Nao vinculado')}</p>`
@@ -1257,3 +1263,366 @@ function openAdminCustoForm(id) {
 
 
 
+
+function adminComunicadoSlugify(text) {
+  return String(text || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+function adminComunicadoIsoToLocalInput(isoValue) {
+  if (!isoValue) return '';
+  const date = new Date(isoValue);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const pad = n => String(n).padStart(2, '0');
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function adminComunicadoLocalInputToIso(localValue) {
+  const value = String(localValue || '').trim();
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString();
+}
+
+function adminComunicadoStatusBadge(item) {
+  const isPublished = item && item.status === 'published';
+  return `<span class="px-2 py-0.5 text-[8px] font-black uppercase border shrink-0 ${isPublished
+    ? 'text-green-400 border-green-800 bg-green-900/20'
+    : 'text-amber-300 border-amber-700 bg-amber-900/20'}">${isPublished ? 'PUBLICADO' : 'RASCUNHO'}</span>`;
+}
+
+function adminComunicadoTypeBadge(type) {
+  const safe = String(type || 'comunicado').toUpperCase();
+  return `<span class="px-2 py-0.5 text-[8px] font-black uppercase border border-blue-700 bg-blue-900/20 text-blue-300">${escapeHTML(safe)}</span>`;
+}
+
+function setAdminComunicadosSearch(value) {
+  state.adminComunicadosSearch = String(value || '');
+  const container = document.getElementById('admin-section-content');
+  if (container) renderAdminComunicados(container, { skipRefresh: true });
+}
+
+function setAdminComunicadosStatus(value) {
+  const normalized = value === 'published' || value === 'draft' ? value : 'all';
+  state.adminComunicadosStatus = normalized;
+  const container = document.getElementById('admin-section-content');
+  if (container) renderAdminComunicados(container, { skipRefresh: true });
+}
+
+async function renderAdminComunicados(container, options = {}) {
+  if (!state.isAdmin) {
+    container.innerHTML = `<div class="border border-red-600/40 bg-red-950/20 p-4 text-red-300 text-sm font-bold">Acesso restrito ao administrador.</div>`;
+    return;
+  }
+
+  container.innerHTML = `<div class="flex items-center justify-center py-10 text-neutral-600"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mr-2"></i><span class="font-bold uppercase text-[10px] tracking-widest">Carregando comunicados...</span></div>`;
+  lucide.createIcons();
+
+  const service = window.comunicadosService;
+  if (!service) {
+    container.innerHTML = `<div class="border border-red-600/40 bg-red-950/20 p-4 text-red-300 text-sm font-bold">Servico de comunicados indisponivel.</div>`;
+    return;
+  }
+
+  if (!options.skipRefresh) {
+    try {
+      await service.refresh({ allowFallback: true });
+    } catch (error) {
+      console.error('Erro ao atualizar comunicados:', error);
+    }
+  }
+
+  const searchRaw = String(state.adminComunicadosSearch || '').trim().toLowerCase();
+  const statusFilter = state.adminComunicadosStatus === 'published' || state.adminComunicadosStatus === 'draft'
+    ? state.adminComunicadosStatus
+    : 'all';
+
+  const allItems = service.listAll();
+  const filtered = allItems.filter(item => {
+    if (statusFilter !== 'all' && item.status !== statusFilter) return false;
+    if (!searchRaw) return true;
+
+    const blob = [
+      item.title,
+      item.slug,
+      item.summary,
+      item.authorName,
+      item.type,
+    ].join(' ').toLowerCase();
+
+    return blob.includes(searchRaw);
+  });
+
+  const usingFallback = typeof service.isFallbackData === 'function' && service.isFallbackData();
+  const fallbackErr = typeof service.getLastError === 'function' ? service.getLastError() : null;
+  const fallbackInfo = usingFallback
+    ? `<div class="mb-4 border border-amber-700/40 bg-amber-950/20 p-3 text-amber-200 text-[11px] font-bold">
+        MODO LOCAL: comunicados nao estao vindo do Supabase. Execute a migracao da tabela "comunicados" para persistencia real.
+        ${fallbackErr ? `<div class="mt-1 text-amber-300/70 text-[10px] normal-case">${escapeHTML(fallbackErr.message || String(fallbackErr))}</div>` : ''}
+      </div>`
+    : '';
+
+  const rows = filtered.length === 0
+    ? `<p class="text-neutral-600 text-sm font-bold text-center py-10 border border-neutral-800 bg-neutral-900/30">Nenhum comunicado encontrado.</p>`
+    : filtered.map(item => {
+        const safeId = String(item.id || '').replace(/'/g, "\\'");
+        const isPublished = item.status === 'published';
+        const publishBtnClass = isPublished
+          ? 'bg-amber-900/30 border-amber-700/40 text-amber-300 hover:bg-amber-700 hover:text-black'
+          : 'bg-green-900/30 border-green-700/40 text-green-300 hover:bg-green-700 hover:text-black';
+        const publishBtnLabel = isPublished ? 'DESPUBLICAR' : 'PUBLICAR';
+        const summary = item.summary ? escapeHTML(item.summary) : 'Sem resumo';
+        const author = item.authorName ? escapeHTML(item.authorName) : '-';
+        const dateLabel = item.publishedAt ? formatDate(item.publishedAt) : 'Nao publicado';
+
+        return `
+          <div class="border border-neutral-800 bg-neutral-900/50 p-4 hover:border-neutral-700 transition-all">
+            <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-2">
+                  ${adminComunicadoStatusBadge(item)}
+                  ${adminComunicadoTypeBadge(item.type)}
+                </div>
+                <p class="text-white font-black text-sm uppercase tracking-wide leading-tight">${escapeHTML(item.title || 'Sem titulo')}</p>
+                <p class="text-neutral-400 text-[11px] mt-1 leading-relaxed">${summary}</p>
+                <div class="mt-2 text-[10px] text-neutral-500 font-bold uppercase tracking-wider flex flex-wrap gap-x-4 gap-y-1">
+                  <span>Slug: ${escapeHTML(item.slug || '-')}</span>
+                  <span>Autor: ${author}</span>
+                  <span>Publicacao: ${escapeHTML(dateLabel)}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <button onclick="toggleAdminComunicadoPublish('${safeId}', ${isPublished ? 'false' : 'true'})"
+                  class="px-3 py-1.5 border font-black uppercase text-[8px] tracking-widest transition-all ${publishBtnClass}">${publishBtnLabel}</button>
+                ${_editBtn(`openAdminComunicadoForm('${safeId}')`)}
+                ${_deleteBtn(`deleteAdminComunicado('${safeId}')`)}
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+
+  const totalPublished = allItems.filter(item => item.status === 'published').length;
+
+  container.innerHTML = `
+    ${fallbackInfo}
+    <div class="flex flex-col gap-4">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <div class="text-neutral-500 text-[10px] font-black uppercase tracking-widest">
+          ${allItems.length} comunicado(s) cadastrados  |  ${totalPublished} publicado(s)
+        </div>
+        ${_addBtn('NOVO COMUNICADO', 'openAdminComunicadoForm()')}
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <div class="lg:col-span-2">
+          <label class="${_labelCls}">Busca</label>
+          <input
+            value="${escapeHTML(state.adminComunicadosSearch || '')}"
+            oninput="setAdminComunicadosSearch(this.value)"
+            placeholder="Titulo, slug, autor..."
+            class="${_inputCls}" />
+        </div>
+        <div>
+          <label class="${_labelCls}">Status</label>
+          <select onchange="setAdminComunicadosStatus(this.value)" class="${_selectCls}">
+            <option value="all" ${statusFilter === 'all' ? 'selected' : ''}>TODOS</option>
+            <option value="draft" ${statusFilter === 'draft' ? 'selected' : ''}>RASCUNHO</option>
+            <option value="published" ${statusFilter === 'published' ? 'selected' : ''}>PUBLICADO</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">${rows}</div>
+    </div>`;
+
+  lucide.createIcons();
+}
+
+function openAdminComunicadoForm(id) {
+  const service = window.comunicadosService;
+  if (!service) {
+    showToast('Servico de comunicados indisponivel.');
+    return;
+  }
+
+  const current = id ? service.getById(id) : service.createDraft();
+  if (!current) {
+    showToast('Comunicado nao encontrado.');
+    return;
+  }
+
+  const defaultAuthor = current.authorName
+    || (state.profile && state.profile.nome)
+    || (state.currentUser && state.currentUser.email ? state.currentUser.email.split('@')[0] : '');
+
+  const availableTypes = Array.isArray(service.COMUNICADO_TYPES) && service.COMUNICADO_TYPES.length > 0
+    ? service.COMUNICADO_TYPES
+    : ['comunicado', 'novidade', 'parceria', 'aviso'];
+
+  const typeOptions = availableTypes.map(type => (
+    `<option value="${type}" ${(current.type || 'comunicado') === type ? 'selected' : ''}>${escapeHTML(type.toUpperCase())}</option>`
+  )).join('');
+
+  const statusValue = current.status === 'published' ? 'published' : 'draft';
+  const publishedLocal = adminComunicadoIsoToLocalInput(current.publishedAt);
+
+  const fieldsHTML = `
+    <input type="hidden" id="acm-id" value="${escapeHTML(current.id || '')}">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="col-span-2">
+        <label class="${_labelCls}">Titulo *</label>
+        <input required id="acm-title" class="${_inputCls}" maxlength="160" value="${escapeHTML(current.title || '')}"
+          oninput="if (!document.getElementById('acm-slug').dataset.manual) document.getElementById('acm-slug').value = adminComunicadoSlugify(this.value)"
+          placeholder="Ex: Atualizacao comercial da semana">
+      </div>
+      <div class="col-span-2">
+        <label class="${_labelCls}">Slug *</label>
+        <input required id="acm-slug" class="${_inputCls} lowercase" maxlength="180" value="${escapeHTML(current.slug || '')}"
+          oninput="this.dataset.manual='1'"
+          placeholder="atualizacao-comercial-semana">
+      </div>
+      <div class="col-span-2">
+        <label class="${_labelCls}">Resumo</label>
+        <textarea id="acm-summary" rows="3" class="${_inputCls} resize-y" placeholder="Resumo curto para o bloco da home">${escapeHTML(current.summary || '')}</textarea>
+      </div>
+      <div class="col-span-2">
+        <label class="${_labelCls}">Conteudo</label>
+        <textarea id="acm-content" rows="6" class="${_inputCls} resize-y" placeholder="Texto completo do comunicado">${escapeHTML(current.content || '')}</textarea>
+      </div>
+      <div class="col-span-2">
+        <label class="${_labelCls}">Imagem de Capa (URL)</label>
+        <input id="acm-cover" class="${_inputCls}" value="${escapeHTML(current.coverImageUrl || '')}" placeholder="https://...">
+      </div>
+      <div>
+        <label class="${_labelCls}">Tipo</label>
+        <select id="acm-type" class="${_selectCls}">${typeOptions}</select>
+      </div>
+      <div>
+        <label class="${_labelCls}">Autor</label>
+        <input id="acm-author" class="${_inputCls}" maxlength="120" value="${escapeHTML(defaultAuthor || '')}" placeholder="Nome do autor">
+      </div>
+      <div>
+        <label class="${_labelCls}">Status</label>
+        <select id="acm-status" class="${_selectCls}">
+          <option value="draft" ${statusValue === 'draft' ? 'selected' : ''}>RASCUNHO</option>
+          <option value="published" ${statusValue === 'published' ? 'selected' : ''}>PUBLICADO</option>
+        </select>
+      </div>
+      <div>
+        <label class="${_labelCls}">Data de Publicacao</label>
+        <input type="datetime-local" id="acm-published-at" class="${_inputCls}" value="${escapeHTML(publishedLocal)}">
+      </div>
+    </div>`;
+
+  openAdminModal(id ? 'EDITAR COMUNICADO' : 'NOVO COMUNICADO', fieldsHTML, async () => {
+    const existingId = document.getElementById('acm-id').value.trim();
+    const title = document.getElementById('acm-title').value.trim();
+    const rawSlug = document.getElementById('acm-slug').value.trim();
+
+    if (!title) {
+      showToast('TITULO OBRIGATORIO');
+      return;
+    }
+
+    const slug = adminComunicadoSlugify(rawSlug || title);
+    if (!slug) {
+      showToast('SLUG INVALIDO');
+      return;
+    }
+
+    const status = document.getElementById('acm-status').value === 'published' ? 'published' : 'draft';
+    let publishedAt = adminComunicadoLocalInputToIso(document.getElementById('acm-published-at').value);
+    if (status === 'published' && !publishedAt) publishedAt = new Date().toISOString();
+
+    const payload = {
+      id: existingId || undefined,
+      title,
+      slug,
+      summary: document.getElementById('acm-summary').value.trim(),
+      content: document.getElementById('acm-content').value.trim(),
+      coverImageUrl: document.getElementById('acm-cover').value.trim(),
+      type: document.getElementById('acm-type').value,
+      authorName: document.getElementById('acm-author').value.trim(),
+      status,
+      isPublished: status === 'published',
+      publishedAt: status === 'published' ? publishedAt : null,
+    };
+
+    try {
+      await service.save(payload);
+      closeAdminModal();
+      showToast(existingId ? 'COMUNICADO ATUALIZADO' : 'COMUNICADO CRIADO');
+      const section = document.getElementById('admin-section-content');
+      if (section) await renderAdminComunicados(section, { skipRefresh: true });
+    } catch (error) {
+      console.error('Erro ao salvar comunicado:', error);
+      showToast('ERRO: ' + (error.message || 'Nao foi possivel salvar comunicado.'));
+    }
+  });
+}
+
+async function toggleAdminComunicadoPublish(id, shouldPublish) {
+  const service = window.comunicadosService;
+  if (!service) {
+    showToast('Servico de comunicados indisponivel.');
+    return;
+  }
+
+  const item = service.getById(id);
+  if (!item) {
+    showToast('Comunicado nao encontrado.');
+    return;
+  }
+
+  const actionLabel = shouldPublish ? 'PUBLICAR' : 'DESPUBLICAR';
+  showConfirmModal(
+    `${actionLabel} este comunicado?`,
+    async () => {
+      try {
+        await service.setPublished(id, !!shouldPublish);
+        showToast(shouldPublish ? 'COMUNICADO PUBLICADO' : 'COMUNICADO VOLTOU PARA RASCUNHO');
+        const section = document.getElementById('admin-section-content');
+        if (section) await renderAdminComunicados(section, { skipRefresh: true });
+      } catch (error) {
+        console.error('Erro ao atualizar status do comunicado:', error);
+        showToast('ERRO: ' + (error.message || 'Nao foi possivel atualizar status.'));
+      }
+    },
+    actionLabel,
+    !shouldPublish
+  );
+}
+
+async function deleteAdminComunicado(id) {
+  const service = window.comunicadosService;
+  if (!service) {
+    showToast('Servico de comunicados indisponivel.');
+    return;
+  }
+
+  showConfirmModal(
+    'Tem certeza? Esta acao nao pode ser desfeita.',
+    async () => {
+      try {
+        await service.remove(id);
+        showToast('COMUNICADO REMOVIDO');
+        const section = document.getElementById('admin-section-content');
+        if (section) await renderAdminComunicados(section, { skipRefresh: true });
+      } catch (error) {
+        console.error('Erro ao remover comunicado:', error);
+        showToast('ERRO: ' + (error.message || 'Nao foi possivel remover comunicado.'));
+      }
+    }
+  );
+}

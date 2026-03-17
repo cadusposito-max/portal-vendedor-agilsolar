@@ -158,3 +158,16 @@ async function fetchComponentes() {
   if (!error) state.componentes = data || [];
   // Tabela pode não existir ainda — falha silenciosa
 }
+
+async function fetchComunicados(options = {}) {
+  const silent = options.silent !== false;
+  const service = window.comunicadosService;
+  if (!service || typeof service.refresh !== 'function') return;
+
+  try {
+    await service.refresh({ allowFallback: true });
+  } catch (error) {
+    console.error('Erro ao carregar comunicados:', error);
+    if (!silent) showToast('Nao foi possivel carregar comunicados.');
+  }
+}
