@@ -1,11 +1,11 @@
-// ==========================================
+﻿// ==========================================
 // RENDERIZADOR: CLIENTES
 // ==========================================
 
 function renderClientesList(container) {
   container.className = 'flex flex-col gap-4';
 
-  const STATUS_OPTS = ['TODOS', 'NOVO', 'PROPOSTA ENVIADA', 'EM NEGOCIAÇÃO', 'FECHADO'];
+  const STATUS_OPTS = ['TODOS', 'NOVO', 'PROPOSTA ENVIADA', 'EM NEGOCIAÃ‡ÃƒO', 'FECHADO'];
   const SORT_OPTS   = [{ v: 'recent', l: 'MAIS RECENTES' }, { v: 'alpha', l: 'A-Z' }];
 
   // Filtra por busca
@@ -77,11 +77,11 @@ function renderClientesList(container) {
     'from-green-600 to-emerald-400', 'from-blue-600 to-blue-400',
     'from-purple-600 to-purple-400', 'from-pink-600 to-pink-400',
   ];
-  const STATUS_SEQ = ['NOVO', 'PROPOSTA ENVIADA', 'EM NEGOCIAÇÃO', 'FECHADO'];
+  const STATUS_SEQ = ['NOVO', 'PROPOSTA ENVIADA', 'EM NEGOCIAÃ‡ÃƒO', 'FECHADO'];
   const STATUS_STYLE = {
     'NOVO':             { bg: 'bg-orange-500/10', text: 'text-orange-400',  border: 'border-orange-500/30'  },
     'PROPOSTA ENVIADA': { bg: 'bg-blue-500/10',   text: 'text-blue-400',    border: 'border-blue-500/30'    },
-    'EM NEGOCIAÇÃO':    { bg: 'bg-yellow-500/10',  text: 'text-yellow-400',  border: 'border-yellow-500/30'  },
+    'EM NEGOCIAÃ‡ÃƒO':    { bg: 'bg-yellow-500/10',  text: 'text-yellow-400',  border: 'border-yellow-500/30'  },
     'FECHADO':          { bg: 'bg-green-500/10',   text: 'text-green-400',   border: 'border-green-500/30'   },
   };
   const STAGGER = ['stagger-1','stagger-2','stagger-3','stagger-4','stagger-5','stagger-6'];
@@ -96,7 +96,7 @@ function renderClientesList(container) {
       <div class="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <p class="text-orange-500 text-[10px] font-black uppercase tracking-[0.3em] mb-1 flex items-center gap-2">
-            <i data-lucide="users" class="w-3.5 h-3.5"></i> CRM — CARTEIRA DE CLIENTES
+            <i data-lucide="users" class="w-3.5 h-3.5"></i> CRM â€” CARTEIRA DE CLIENTES
           </p>
           <h2 class="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter leading-none">
             Meus Clientes&nbsp;<span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400">${state.clientes.length}</span>
@@ -116,7 +116,7 @@ function renderClientesList(container) {
       </div>
     </div>
 
-    <!-- Filtros e ordenação -->
+    <!-- Filtros e ordenaÃ§Ã£o -->
     <div class="flex flex-col sm:flex-row gap-2 pb-2">
       <div class="flex flex-wrap gap-1" role="group" aria-label="Filtrar por status">${filterHTML}</div>
       <div class="flex gap-1 ml-auto shrink-0" role="group" aria-label="Ordenar">${sortHTML}</div>
@@ -142,7 +142,7 @@ function renderClientesList(container) {
     const initial    = c.nome.charAt(0).toUpperCase();
     const stagger    = STAGGER[Math.min(i, 5)];
     const waNum      = c.telefone.replace(/\D/g, '');
-    const waLink     = `https://wa.me/55${waNum}?text=${encodeURIComponent('Olá ' + c.nome.split(' ')[0] + ', tudo bem? Gostaria de conversar sobre energia solar!')}`;
+    const waLink     = `https://wa.me/55${waNum}?text=${encodeURIComponent('OlÃ¡ ' + c.nome.split(' ')[0] + ', tudo bem? Gostaria de conversar sobre energia solar!')}`;
 
     const pipelineBar = STATUS_SEQ.map((s, idx) => {
       const done   = idx <= stageIdx;
@@ -170,7 +170,7 @@ function renderClientesList(container) {
             <button
               onclick="handleCycleClientStatus('${c.id}', '${escapeHTML(cStatus)}')"
               class="text-[8px] px-2 py-0.5 uppercase font-black tracking-widest border transition-all ${sc.bg} ${sc.text} ${sc.border} hover:brightness-125 shrink-0"
-              title="Clique para avançar o status" aria-label="Status: ${escapeHTML(cStatus)}">
+              title="Clique para avanÃ§ar o status" aria-label="Status: ${escapeHTML(cStatus)}">
               ${escapeHTML(cStatus)}
             </button>
           </div>
@@ -199,10 +199,10 @@ function renderClientesList(container) {
           <i data-lucide="message-circle" class="w-3.5 h-3.5 stroke-[2.5px]"></i>
           <span class="hidden sm:inline">WhatsApp</span>
         </a>
-        <button onclick="openProposalBuilder('${c.id}')" aria-label="Nova proposta para ${escapeHTML(c.nome)}"
+        <button onclick="openProposalBuilder('${c.id}')" aria-label="Expandir cliente para ${escapeHTML(c.nome)}"
           class="flex-1 bg-neutral-800/50 border border-neutral-700/50 hover:border-orange-500/50 hover:bg-orange-500/8 hover:text-orange-400 text-neutral-400 px-4 py-2 font-black uppercase tracking-wider transition-all active:scale-95 flex gap-2 items-center justify-center text-[9px]">
           <i data-lucide="file-text" class="w-3.5 h-3.5 stroke-[3px]"></i>
-          NOVA PROPOSTA
+          EXPANDIR CLIENTE
         </button>
         <button onclick="openFechaVenda('${c.id}')" aria-label="Fechar venda para ${escapeHTML(c.nome)}"
           class="bg-green-600 border border-green-500 hover:bg-green-700 hover:border-green-400 text-white px-3 py-2 font-black uppercase tracking-wider transition-all active:scale-95 flex gap-1.5 items-center justify-center text-[9px] shrink-0">
@@ -218,7 +218,7 @@ function renderClientesList(container) {
   lucide.createIcons();
 }
 
-// --- Filtros e ordenação ---
+// --- Filtros e ordenaÃ§Ã£o ---
 function setClienteFilter(filter) {
   state.clienteFilter = filter;
   renderContent();
@@ -229,16 +229,16 @@ function setClienteSort(sort) {
   renderContent();
 }
 
-// --- Ciclo de status com confirmação ao "regredir" ---
+// --- Ciclo de status com confirmaÃ§Ã£o ao "regredir" ---
 function handleCycleClientStatus(id, currentStatus) {
-  const seq = ['NOVO', 'PROPOSTA ENVIADA', 'EM NEGOCIAÇÃO', 'FECHADO'];
+  const seq = ['NOVO', 'PROPOSTA ENVIADA', 'EM NEGOCIAÃ‡ÃƒO', 'FECHADO'];
   const nextIdx  = (seq.indexOf(currentStatus) + 1) % seq.length;
   const newStatus = seq[nextIdx];
 
   if (nextIdx === 0) {
-    // Voltar para NOVO é ação "destrutiva" — pede confirmação
+    // Voltar para NOVO Ã© aÃ§Ã£o "destrutiva" â€” pede confirmaÃ§Ã£o
     showConfirmModal(
-      `Rebaixar o status de volta para "NOVO"? O progresso atual será perdido.`,
+      `Rebaixar o status de volta para "NOVO"? O progresso atual serÃ¡ perdido.`,
       () => cycleClientStatus(id, currentStatus)
     );
   } else {
@@ -247,7 +247,7 @@ function handleCycleClientStatus(id, currentStatus) {
 }
 
 async function cycleClientStatus(id, currentStatus) {
-  const seq = ['NOVO', 'PROPOSTA ENVIADA', 'EM NEGOCIAÇÃO', 'FECHADO'];
+  const seq = ['NOVO', 'PROPOSTA ENVIADA', 'EM NEGOCIAÃ‡ÃƒO', 'FECHADO'];
   let nextIdx = seq.indexOf(currentStatus) + 1;
   if (nextIdx >= seq.length) nextIdx = 0;
   const newStatus = seq[nextIdx];
@@ -283,7 +283,7 @@ function exportClientesXLSX() {
     created_at: formatDate(c.created_at),
   }));
   exportToXLSX(rows, columns, `clientes_${new Date().toISOString().split('T')[0]}`);
-  showToast('EXPORTAÇÃO XLSX CONCLUÍDA!');
+  showToast('EXPORTAÃ‡ÃƒO XLSX CONCLUÃDA!');
 }
 
 function openClientModal() {
@@ -309,7 +309,7 @@ function formatarTelefone(event) {
 
 document.getElementById('client-form').addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (!state.currentUser) return alert('Faça login primeiro!');
+  if (!state.currentUser) return alert('FaÃ§a login primeiro!');
 
   const btnSave = document.getElementById('btn-save-client');
   btnSave.innerText = 'SALVANDO...';
@@ -346,3 +346,5 @@ document.getElementById('client-form').addEventListener('submit', async (e) => {
   renderContent();
   btnSave.innerText = 'SALVAR CLIENTE';
 });
+
+
