@@ -380,3 +380,137 @@ function showSalesCelebration() {
   }
   draw();
 }
+
+// ==========================================
+// AVISO DE NOVA VERSAO PUBLICADA
+// ==========================================
+const VERSION_CHECK_CONFIG = {
+  url: '/version.json',
+  intervalMs: 60 * 1000,
+};
+
+let _versionCheckStarted = false;
+let _initialLoadedVersion = '';
+let _detectedNewVersion = '';
+const _dismissedVersionNotices = new Set();
+
+function _normalizeVersionValue(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+async function _fetchPublishedVersion() {
+  try {
+    const response = await fetch(`${VERSION_CHECK_CONFIG.url}?ts=${Date.now()}`, {
+      cache: 'no-store',
+    });
+    if (!response.ok) return '';
+    const payload = await response.json();
+    return _normalizeVersionValue(payload?.version);
+  } catch (_) {
+    // Falha silenciosa para nao gerar ruido para o usuario.
+    return '';
+  }
+}
+
+function _ensureVersionUpdateNotice() {
+  let notice = document.getElementById('version-update-notice');
+  if (notice) return notice;
+
+  notice = document.createElement('section');
+  notice.id = 'version-update-notice';
+  notice.className = 'fixed right-4 bottom-4 z-[10000] w-[min(92vw,380px)] bg-neutral-950/95 border border-orange-500/50 shadow-[0_0_30px_rgba(249,115,22,0.25)] backdrop-blur-sm p-4 transition-all duration-300 translate-y-4 opacity-0 pointer-events-none hidden';
+  notice.innerHTML = `
+    <div class="flex items-start gap-3">
+      <div class="mt-0.5 bg-orange-500/15 border border-orange-500/30 p-2 shrink-0">
+        <i data-lucide="refresh-cw" class="w-4 h-4 text-orange-400"></i>
+      </div>
+      <div class="min-w-0">
+        <h3 class="text-white font-black uppercase tracking-wide text-xs">Nova atualização disponível</h3>
+        <p class="text-neutral-300 text-xs leading-relaxed mt-1">Recarregue a página para usar a versão mais recente.</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 mt-4">
+      <button id="version-update-now-btn" type="button" class="flex-1 py-2.5 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black font-black uppercase tracking-widest text-[10px] transition-all">Atualizar agora</button>
+      <button id="version-update-later-btn" type="button" class="px-3 py-2.5 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-white font-black uppercase tracking-widest text-[10px] transition-all">Depois</button>
+    </div>
+  `;
+  document.body.appendChild(notice);
+
+  const btnUpdateNow = notice.querySelector('#version-update-now-btn');
+  const btnLater = notice.querySelector('#version-update-later-btn');
+
+  if (btnUpdateNow) {
+    btnUpdateNow.addEventListener('click', () => {
+      btnUpdateNow.setAttribute('disabled', 'true');
+      btnUpdateNow.textContent = 'Atualizando...';
+      window.location.reload();
+    });
+  }
+
+  if (btnLater) {
+    btnLater.addEventListener('click', () => {
+      if (_detectedNewVersion) _dismissedVersionNotices.add(_detectedNewVersion);
+      _hideVersionUpdateNotice();
+    });
+  }
+
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+
+  return notice;
+}
+
+function _showVersionUpdateNotice(remoteVersion) {
+  const notice = _ensureVersionUpdateNotice();
+  _detectedNewVersion = remoteVersion;
+  notice.classList.remove('hidden', 'translate-y-4', 'opacity-0', 'pointer-events-none');
+  notice.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
+}
+
+function _hideVersionUpdateNotice() {
+  const notice = document.getElementById('version-update-notice');
+  if (!notice) return;
+
+  notice.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
+  notice.classList.add('translate-y-4', 'opacity-0', 'pointer-events-none');
+  setTimeout(() => {
+    if (
+      notice.classList.contains('translate-y-4') &&
+      notice.classList.contains('opacity-0')
+    ) {
+      notice.classList.add('hidden');
+    }
+  }, 320);
+}
+
+async function checkForPublishedVersionUpdate() {
+  const remoteVersion = await _fetchPublishedVersion();
+  if (!remoteVersion) return;
+
+  if (!_initialLoadedVersion) {
+    _initialLoadedVersion = remoteVersion;
+    return;
+  }
+
+  if (remoteVersion === _initialLoadedVersion) return;
+  if (_dismissedVersionNotices.has(remoteVersion)) return;
+
+  _showVersionUpdateNotice(remoteVersion);
+}
+
+async function initPublishedVersionWatcher() {
+  if (_versionCheckStarted) return;
+  _versionCheckStarted = true;
+
+  const initialVersion = await _fetchPublishedVersion();
+  if (initialVersion) _initialLoadedVersion = initialVersion;
+
+  setInterval(checkForPublishedVersionUpdate, VERSION_CHECK_CONFIG.intervalMs);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPublishedVersionWatcher, { once: true });
+} else {
+  initPublishedVersionWatcher();
+}
