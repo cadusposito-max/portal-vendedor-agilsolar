@@ -139,10 +139,11 @@ function _chatInitials(item) {
 function _chatAvatarHtml(item, avatarClass) {
   const cls = avatarClass || 'chat-conv-avatar';
   const name = _chatGetSafeTitle(item);
-  const avatarUrl = item?.kind === 'direct' ? (item?.other_avatar_url || '').trim() : '';
+  const rawAvatarUrl = item?.kind === 'direct' ? (item?.other_avatar_url || '').trim() : '';
+  const avatarUrl = rawAvatarUrl ? safeImageUrl(rawAvatarUrl, 'assets/img/logo-light.png') : '';
 
   if (avatarUrl) {
-    return '<span class="' + cls + ' has-image"><img src="' + escapeHTML(avatarUrl) + '" alt="' + escapeHTML(name) + '"></span>';
+    return '<span class="' + cls + ' has-image"><img src="' + avatarUrl + '" alt="' + escapeHTML(name) + '" onerror="this.src=\'assets/img/logo-light.png\';this.onerror=null;"></span>';
   }
 
   return '<span class="' + cls + '">' + escapeHTML(_chatInitials(item)) + '</span>';

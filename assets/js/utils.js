@@ -67,8 +67,9 @@ function applyThemeLogos() {
     const darkSrc = img.getAttribute('data-logo-dark');
     const lightSrc = img.getAttribute('data-logo-light');
     const targetSrc = mode === 'light' ? lightSrc : darkSrc;
-    if (targetSrc && img.getAttribute('src') !== targetSrc) {
-      img.setAttribute('src', targetSrc);
+    const safeTargetSrc = safeImageUrl(targetSrc, null);
+    if (safeTargetSrc && img.getAttribute('src') !== safeTargetSrc) {
+      img.setAttribute('src', safeTargetSrc);
     }
   });
 }
@@ -97,6 +98,44 @@ function escapeHTML(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+const DEFAULT_SAFE_IMAGE_FALLBACK = 'assets/img/logo-light.png';
+
+function _normalizeSafeImageUrl(rawUrl, { allowDataUrl = false, allowBlobUrl = false } = {}) {
+  if (typeof rawUrl !== 'string') return '';
+
+  const value = rawUrl.trim();
+  if (!value) return '';
+  if (/[\x00-\x1F\x7F]/.test(value)) return '';
+
+  const lower = value.toLowerCase();
+  if (allowDataUrl && lower.startsWith('data:image/')) return value;
+  if (allowBlobUrl && lower.startsWith('blob:')) return value;
+
+  if (lower.startsWith('javascript:') || lower.startsWith('vbscript:') || lower.startsWith('data:')) {
+    return '';
+  }
+
+  try {
+    const parsed = new URL(value, window.location.origin);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return '';
+    if (parsed.username || parsed.password) return '';
+    return parsed.href;
+  } catch (_) {
+    // URL invalida em input dinamico: fallback silencioso intencional.
+    return '';
+  }
+}
+
+function safeImageUrl(rawUrl, fallbackUrl = DEFAULT_SAFE_IMAGE_FALLBACK, options = {}) {
+  const safeUrl = _normalizeSafeImageUrl(rawUrl, options);
+  if (safeUrl) return safeUrl;
+
+  if (fallbackUrl === null) return '';
+
+  const safeFallback = _normalizeSafeImageUrl(fallbackUrl);
+  return safeFallback || DEFAULT_SAFE_IMAGE_FALLBACK;
 }
 
 function formatCurrency(val) {
@@ -130,16 +169,27 @@ let _toastQueue   = [];
 let _toastShowing = false;
 
 function showToast(msg) {
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toast-msg');
+  if (!toast || !toastMsg) return;
+
   _toastQueue.push(msg);
   if (!_toastShowing) _processToastQueue();
 }
 
 function _processToastQueue() {
   if (_toastQueue.length === 0) { _toastShowing = false; return; }
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toast-msg');
+  if (!toast || !toastMsg) {
+    _toastQueue = [];
+    _toastShowing = false;
+    return;
+  }
+
   _toastShowing = true;
   const msg   = _toastQueue.shift();
-  const toast = document.getElementById('toast');
-  document.getElementById('toast-msg').innerText = msg;
+  toastMsg.innerText = msg;
   toast.classList.remove('translate-y-full', 'opacity-0');
   setTimeout(() => {
     toast.classList.add('translate-y-full', 'opacity-0');
@@ -267,7 +317,10 @@ function calcularGeracaoEstimada(potencia_kWp, categoria) {
 
 function copiarTextoBlindado(texto) {
   if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(texto).catch(() => fallbackCopiar(texto));
+    navigator.clipboard.writeText(texto).catch((error) => {
+      console.warn('[copiarTextoBlindado] Clipboard API falhou, usando fallback.', error);
+      fallbackCopiar(texto);
+    });
   } else {
     fallbackCopiar(texto);
   }
@@ -282,7 +335,9 @@ function fallbackCopiar(texto) {
   document.body.appendChild(textArea);
   textArea.focus();
   textArea.select();
-  try { document.execCommand('copy'); } catch (err) {}
+  try { document.execCommand('copy'); } catch (err) {
+    console.warn('[fallbackCopiar] Falha ao copiar via document.execCommand.', err);
+  }
   document.body.removeChild(textArea);
 }
 
@@ -319,6 +374,8 @@ function exportToXLSX(rows, columns, filename) {
 // ==========================================
 // CELEBRAÃ‡ÃƒO DE VENDA (confetti + som)
 // ==========================================
+let _salesCelebrationAudioWarned = false;
+
 function showSalesCelebration() {
   // â€” Som: sino de notificaÃ§Ã£o elegante â€”
   try {
@@ -336,7 +393,12 @@ function showSalesCelebration() {
       gain.gain.exponentialRampToValueAtTime(0.001, t + 1.4);
       osc.start(t); osc.stop(t + 1.45);
     });
-  } catch (_) {}
+  } catch (error) {
+    if (!_salesCelebrationAudioWarned) {
+      console.warn('[showSalesCelebration] Nao foi possivel tocar audio de celebracao.', error);
+      _salesCelebrationAudioWarned = true;
+    }
+  }
 
   // â€” Confetti canvas â€”
   const canvas = document.getElementById('confetti-canvas');
@@ -386,12 +448,15 @@ function showSalesCelebration() {
 // ==========================================
 const VERSION_CHECK_CONFIG = {
   url: '/version.json',
-  intervalMs: 5000,
+  intervalMs: 60000,
 };
 
 let _versionCheckStarted = false;
+let _versionCheckIntervalId = null;
+let _versionVisibilityHandlerBound = false;
 let _initialLoadedVersion = '';
 let _detectedNewVersion = '';
+let _versionFetchErrorWarned = false;
 const _dismissedVersionNotices = new Set();
 
 function _normalizeVersionValue(value) {
@@ -405,184 +470,20 @@ async function _fetchPublishedVersion() {
     });
     if (!response.ok) return '';
     const payload = await response.json();
+    _versionFetchErrorWarned = false;
     return _normalizeVersionValue(payload?.version);
-  } catch (_) {
-    // Falha silenciosa para nao gerar ruido para o usuario.
+  } catch (error) {
+    if (!_versionFetchErrorWarned) {
+      console.warn('[version-watcher] Falha ao consultar version.json. Tentando novamente no proximo ciclo.', error);
+      _versionFetchErrorWarned = true;
+    }
     return '';
   }
-}
-
-function _ensureVersionUpdateNoticeStyles() {
-  if (document.getElementById('version-update-notice-styles')) return;
-
-  const style = document.createElement('style');
-  style.id = 'version-update-notice-styles';
-  style.textContent = `
-    #version-update-notice,
-    #version-update-notice * {
-      box-sizing: border-box;
-    }
-
-    #version-update-notice {
-      position: fixed;
-      left: 24px;
-      right: auto;
-      bottom: 24px;
-      width: clamp(360px, 31vw, 420px);
-      max-width: calc(100vw - 48px);
-      z-index: 10000;
-      border: 1px solid rgba(249, 115, 22, 0.55);
-      border-radius: 14px;
-      background: rgba(10, 10, 10, 0.96);
-      box-shadow: 0 12px 36px rgba(249, 115, 22, 0.24);
-      backdrop-filter: blur(8px);
-      padding: 16px;
-      opacity: 0;
-      transform: translateY(12px);
-      pointer-events: none;
-      transition: opacity 0.25s ease, transform 0.25s ease;
-      color: #ffffff;
-    }
-
-    #version-update-notice.is-visible {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-
-    #version-update-notice .version-update-header {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-    }
-
-    #version-update-notice .version-update-icon-wrap {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 34px;
-      height: 34px;
-      border: 1px solid rgba(249, 115, 22, 0.35);
-      background: rgba(249, 115, 22, 0.12);
-      flex-shrink: 0;
-      border-radius: 10px;
-    }
-
-    #version-update-notice .version-update-icon {
-      width: 18px;
-      height: 18px;
-      color: #fb923c;
-      stroke-width: 2.4;
-    }
-
-    #version-update-notice .version-update-copy {
-      min-width: 0;
-      flex: 1;
-    }
-
-    #version-update-notice .version-update-title {
-      margin: 0;
-      color: #ffffff;
-      font-size: 16px;
-      line-height: 1.3;
-      font-weight: 900;
-      letter-spacing: 0.01em;
-    }
-
-    #version-update-notice .version-update-text {
-      margin: 6px 0 0;
-      color: #d4d4d4;
-      font-size: 13px;
-      line-height: 1.45;
-      font-weight: 500;
-    }
-
-    #version-update-notice .version-update-actions {
-      margin-top: 14px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    #version-update-notice .version-update-btn {
-      border: 0;
-      border-radius: 10px;
-      padding: 11px 14px;
-      cursor: pointer;
-      font-weight: 900;
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      transition: filter 0.2s ease, transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-    }
-
-    #version-update-notice .version-update-btn:disabled {
-      cursor: not-allowed;
-      opacity: 0.8;
-    }
-
-    #version-update-notice .version-update-btn-primary {
-      flex: 1;
-      color: #090909;
-      background: linear-gradient(90deg, #ea580c, #facc15);
-    }
-
-    #version-update-notice .version-update-btn-primary:hover {
-      filter: brightness(1.06);
-    }
-
-    #version-update-notice .version-update-btn-secondary {
-      min-width: 104px;
-      color: #ffffff;
-      background: #262626;
-      border: 1px solid #404040;
-    }
-
-    #version-update-notice .version-update-btn-secondary:hover {
-      background: #303030;
-      border-color: #525252;
-    }
-
-    @media (max-width: 760px) {
-      #version-update-notice {
-        left: 12px;
-        right: 12px;
-        bottom: 12px;
-        width: auto;
-        max-width: none;
-        border-radius: 12px;
-        padding: 14px;
-      }
-
-      #version-update-notice .version-update-title {
-        font-size: 15px;
-      }
-
-      #version-update-notice .version-update-text {
-        font-size: 12px;
-      }
-    }
-
-    @media (max-width: 520px) {
-      #version-update-notice .version-update-actions {
-        display: grid;
-        grid-template-columns: 1fr;
-      }
-
-      #version-update-notice .version-update-btn-secondary {
-        width: 100%;
-        min-width: 0;
-      }
-    }
-  `;
-  document.head.appendChild(style);
 }
 
 function _ensureVersionUpdateNotice() {
   let notice = document.getElementById('version-update-notice');
   if (notice) return notice;
-
-  _ensureVersionUpdateNoticeStyles();
 
   notice = document.createElement('section');
   notice.id = 'version-update-notice';
@@ -648,6 +549,8 @@ function _hideVersionUpdateNotice() {
 }
 
 async function checkForPublishedVersionUpdate() {
+  if (document.visibilityState === 'hidden') return;
+
   const remoteVersion = await _fetchPublishedVersion();
   if (!remoteVersion) return;
 
@@ -662,6 +565,25 @@ async function checkForPublishedVersionUpdate() {
   _showVersionUpdateNotice(remoteVersion);
 }
 
+function _startPublishedVersionPolling() {
+  if (_versionCheckIntervalId) return;
+
+  _versionCheckIntervalId = setInterval(() => {
+    if (document.visibilityState === 'hidden') return;
+    checkForPublishedVersionUpdate();
+  }, VERSION_CHECK_CONFIG.intervalMs);
+}
+
+function _bindPublishedVersionVisibilityHandler() {
+  if (_versionVisibilityHandlerBound) return;
+  _versionVisibilityHandlerBound = true;
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    checkForPublishedVersionUpdate();
+  });
+}
+
 async function initPublishedVersionWatcher() {
   if (_versionCheckStarted) return;
   _versionCheckStarted = true;
@@ -669,7 +591,8 @@ async function initPublishedVersionWatcher() {
   const initialVersion = await _fetchPublishedVersion();
   if (initialVersion) _initialLoadedVersion = initialVersion;
 
-  setInterval(checkForPublishedVersionUpdate, VERSION_CHECK_CONFIG.intervalMs);
+  _startPublishedVersionPolling();
+  _bindPublishedVersionVisibilityHandler();
 }
 
 if (document.readyState === 'loading') {

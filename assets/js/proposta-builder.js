@@ -424,7 +424,7 @@ async function handleEquipamentosProposalSubmit(event) {
   }
 
   const client = state.pbActiveClient;
-  if (!client) return alert('Nenhum cliente em atendimento!');
+  if (!client) return showToast('Nenhum cliente em atendimento!');
 
   const submitBtn    = document.getElementById('pb-equip-submit');
   const originalText = submitBtn ? submitBtn.innerHTML : '';
@@ -490,7 +490,7 @@ async function handleEquipamentosProposalSubmit(event) {
     showToast('PROPOSTA PERSONALIZADA GERADA E LINK COPIADO!');
   } catch (err) {
     console.error('Erro ao gerar proposta personalizada:', err);
-    alert('Erro ao gerar a proposta personalizada. Tente novamente.');
+    showToast('Erro ao gerar a proposta personalizada. Tente novamente.');
     if (popupRef) popupRef.close();
     if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = originalText; lucide.createIcons(); }
   }
@@ -635,7 +635,7 @@ function copiarLinkExistente(id, btnElement) {
 
 async function copyProposalLink(kit, event) {
   const client = state.pbActiveClient;
-  if (!client) return alert('Nenhum cliente em atendimento!');
+  if (!client) return showToast('Nenhum cliente em atendimento!');
 
   const btnCopiar   = event.currentTarget;
   const originalText= btnCopiar.innerHTML;
@@ -694,7 +694,7 @@ async function copyProposalLink(kit, event) {
 
   } catch (err) {
     console.error('Erro na geração da proposta personalizada:', err);
-    alert('Erro ao gerar a proposta. Tente novamente.');
+    showToast('Erro ao gerar a proposta. Tente novamente.');
     if (popupRef) popupRef.close();
     btnCopiar.innerHTML = originalText;
     lucide.createIcons();
@@ -718,7 +718,7 @@ function handleProposalLinkOpen(link, popupRef) {
 
     if (navigator.share) {
       navigator.share({
-        title: 'Proposta Ãgil Solar',
+        title: 'Proposta Ágil Solar',
         text: 'Segue o link da proposta:',
         url: link,
       }).catch(() => {});
@@ -794,7 +794,7 @@ function openFechaVenda(clientId) {
     clientPropostas.forEach(p => {
       const opt = document.createElement('option');
       opt.value = JSON.stringify({ nome: p.kit_nome, preco: p.kit_price, power: p.kit_power, brand: p.kit_brand });
-      opt.textContent = `${p.kit_nome} â†’ ${formatCurrency(p.kit_price)}`;
+      opt.textContent = `${p.kit_nome} → ${formatCurrency(p.kit_price)}`;
       group.appendChild(opt);
     });
     select.appendChild(group);
@@ -805,7 +805,7 @@ function openFechaVenda(clientId) {
   state.data.forEach(k => {
     const opt = document.createElement('option');
     opt.value = JSON.stringify({ nome: k.name, preco: k.price, power: k.power, brand: k.brand });
-    opt.textContent = `${k.name} â†’ ${formatCurrency(k.price)}`;
+    opt.textContent = `${k.name} → ${formatCurrency(k.price)}`;
     groupAll.appendChild(opt);
   });
   select.appendChild(groupAll);
@@ -899,7 +899,7 @@ async function confirmarFechaVenda() {
 
     closeFechaVenda();
     showSalesCelebration();
-    showToast(`ðŸŽ‰ VENDA FECHADA! ${kit.nome}`);
+        showToast(`\u{1F389} VENDA FECHADA! ${kit.nome}`);
     renderContent();
 
   } catch (err) {

@@ -191,19 +191,24 @@ function setVendasPeriod(period) {
 }
 
 // --- Excluir venda (somente admin) ---
-async function deleteVenda(id) {
+function deleteVenda(id) {
   if (!state.isAdmin) return;
-  if (!confirm('Tem certeza que deseja excluir esta venda? Esta ação não pode ser desfeita.')) return;
 
-  const { error } = await supabaseClient.from('vendas').delete().eq('id', id);
-  if (error) {
-    showToast('ERRO AO EXCLUIR VENDA: ' + error.message);
-    return;
-  }
+  showConfirmModal(
+    'Tem certeza que deseja excluir esta venda? Esta ação não pode ser desfeita.',
+    async () => {
+      const { error } = await supabaseClient.from('vendas').delete().eq('id', id);
+      if (error) {
+        showToast('ERRO AO EXCLUIR VENDA: ' + error.message);
+        return;
+      }
 
-  state.vendas = (state.vendas || []).filter(v => v.id !== id);
-  showToast('VENDA EXCLUÍDA COM SUCESSO.');
-  renderContent();
+      state.vendas = (state.vendas || []).filter(v => v.id !== id);
+      showToast('VENDA EXCLUÍDA COM SUCESSO.');
+      renderContent();
+    },
+    'EXCLUIR VENDA'
+  );
 }
 
 // --- Exportar XLSX ---

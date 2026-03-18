@@ -71,8 +71,8 @@ async function createAdminUserWithConfirmedEmail(params = {}) {
       try {
         const body = await response.clone().json();
         if (body && body.error) message = String(body.error);
-      } catch (_) {
-        // Mantem mensagem padrao quando corpo nao for JSON
+      } catch (parseError) {
+        console.warn('[createAdminUserWithConfirmedEmail] Resposta de erro nao-JSON, mantendo mensagem padrao.', parseError);
       }
     }
     throw new Error(message);
@@ -197,14 +197,24 @@ async function fetchFranquia() {
   }
 }
 
+let _fetchComponentesWarned = false;
+
 async function fetchComponentes() {
   const { data, error } = await supabaseClient
     .from('v_componentes_public')
     .select('id, tipo, nome, potencia_wp')
     .order('tipo')
     .order('nome');
-  if (!error) state.componentes = data || [];
-  // Tabela pode não existir ainda â€” falha silenciosa
+  if (!error) {
+    _fetchComponentesWarned = false;
+    state.componentes = data || [];
+    return;
+  }
+
+  if (!_fetchComponentesWarned) {
+    console.warn('[fetchComponentes] v_componentes_public indisponivel. Mantendo fluxo sem componentes.', error);
+    _fetchComponentesWarned = true;
+  }
 }
 
 async function fetchComunicados(options = {}) {

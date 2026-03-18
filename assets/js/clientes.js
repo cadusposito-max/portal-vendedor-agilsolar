@@ -96,7 +96,7 @@ function renderClientesList(container) {
       <div class="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <p class="text-orange-500 text-[10px] font-black uppercase tracking-[0.3em] mb-1 flex items-center gap-2">
-            <i data-lucide="users" class="w-3.5 h-3.5"></i> CRM â€” CARTEIRA DE CLIENTES
+            <i data-lucide="users" class="w-3.5 h-3.5"></i> CRM — CARTEIRA DE CLIENTES
           </p>
           <h2 class="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter leading-none">
             Meus Clientes&nbsp;<span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400">${state.clientes.length}</span>
@@ -236,7 +236,7 @@ function handleCycleClientStatus(id, currentStatus) {
   const newStatus = seq[nextIdx];
 
   if (nextIdx === 0) {
-    // Voltar para NOVO é ação "destrutiva" â€” pede confirmação
+    // Voltar para NOVO é ação "destrutiva" — pede confirmação
     showConfirmModal(
       `Rebaixar o status de volta para "NOVO"? O progresso atual será perdido.`,
       () => cycleClientStatus(id, currentStatus)
@@ -259,7 +259,9 @@ async function cycleClientStatus(id, currentStatus) {
   try {
     await supabaseClient.from('clientes').update({ status: newStatus }).eq('id', id);
     showToast(`STATUS: ${newStatus}`);
-  } catch (e) {}
+  } catch (e) {
+    console.warn('[cycleClientStatus] Falha ao persistir status do cliente.', { id, currentStatus, newStatus, error: e });
+  }
 }
 
 // --- Exportar XLSX ---
@@ -283,7 +285,7 @@ function exportClientesXLSX() {
     created_at: formatDate(c.created_at),
   }));
   exportToXLSX(rows, columns, `clientes_${new Date().toISOString().split('T')[0]}`);
-  showToast('EXPORTAÇÃO XLSX CONCLUÃDA!');
+  showToast('EXPORTAÇÃO XLSX CONCLUÍDA!');
 }
 
 function openClientModal() {
@@ -309,7 +311,10 @@ function formatarTelefone(event) {
 
 document.getElementById('client-form').addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (!state.currentUser) return alert('Faça login primeiro!');
+  if (!state.currentUser) {
+    showToast('Faça login primeiro!');
+    return;
+  }
 
   const btnSave = document.getElementById('btn-save-client');
   btnSave.innerText = 'SALVANDO...';
@@ -329,13 +334,13 @@ document.getElementById('client-form').addEventListener('submit', async (e) => {
     const { error: error2 } = await supabaseClient.from('clientes').insert([newClient]);
     if (error2) {
       console.error('Erro ao salvar cliente:', error2);
-      alert(`Erro ao salvar cliente: ${error2.message}`);
+      showToast(`Erro ao salvar cliente: ${error2.message}`);
       btnSave.innerText = 'SALVAR CLIENTE';
       return;
     }
   } else if (error) {
     console.error('Erro ao salvar cliente:', error);
-    alert(`Erro ao salvar cliente: ${error.message}`);
+    showToast(`Erro ao salvar cliente: ${error.message}`);
     btnSave.innerText = 'SALVAR CLIENTE';
     return;
   }

@@ -141,7 +141,7 @@ function renderDashboard(container) {
       const dataRaw = item.publishedAt || item.createdAt || '';
       const dataFmt = dataRaw ? formatDate(dataRaw) : '-';
       const dataAttr = escapeHTML(String(dataRaw));
-      const imagem = escapeHTML(item.coverImageUrl || 'assets/img/logo.png');
+      const imagem = safeImageUrl(item.coverImageUrl, 'assets/img/logo.png');
       const autor = item.authorName
         ? `<span class="text-[8px] text-neutral-600 font-bold">Por ${escapeHTML(item.authorName)}</span>`
         : '';
@@ -598,7 +598,7 @@ function openDashComunicadoModalById(encodedId) {
     ? `<p class="text-neutral-400 text-sm leading-relaxed">${escapeHTML(comunicado.summary)}</p>`
     : '';
   const conteudo = escapeHTML(comunicado.content || comunicado.summary || '');
-  const imagem = escapeHTML(comunicado.coverImageUrl || 'assets/img/logo.png');
+  const imagem = safeImageUrl(comunicado.coverImageUrl, 'assets/img/logo.png');
 
   content.innerHTML = `
     <div class="border-b border-neutral-800 bg-black/40">

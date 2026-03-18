@@ -52,11 +52,15 @@ function _renderProfileBody() {
   if (_profileTab === 'senha')  el.innerHTML = _profileSenhaHTML();
   if (_profileTab === '2fa')    el.innerHTML = _profile2FAHTML();
   lucide.createIcons();
+  if (_profileTab === '2fa') _load2FAStatus();
 }
 
 function _renderProfileModal() {
   const existing = document.getElementById('profile-modal');
   if (existing) existing.remove();
+
+  const rawAvatarUrl = state.profile?.avatar_url || '';
+  const safeAvatarUrl = rawAvatarUrl ? safeImageUrl(rawAvatarUrl, 'assets/img/logo-light.png') : '';
 
   const el = document.createElement('div');
   el.id = 'profile-modal';
@@ -67,8 +71,8 @@ function _renderProfileModal() {
       <div class="flex items-center justify-between p-5 border-b border-neutral-800 shrink-0">
         <div class="flex items-center gap-3">
           <div id="profile-modal-avatar" class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-600 to-yellow-500 flex items-center justify-center text-black font-black text-sm overflow-hidden shrink-0">
-            ${state.profile?.avatar_url
-              ? `<img src="${state.profile.avatar_url}" class="w-full h-full object-cover">`
+            ${safeAvatarUrl
+              ? `<img src="${safeAvatarUrl}" class="w-full h-full object-cover" onerror="this.src='assets/img/logo-light.png';this.onerror=null;">`
               : (state.profile?.nome || state.currentUser?.email || '?').charAt(0).toUpperCase()}
           </div>
           <div>
@@ -96,7 +100,8 @@ function _renderProfileModal() {
 
 // ─── ABA: DADOS ───────────────────────────────────────────────
 function _profileDadosHTML() {
-  const avatarUrl = state.profile?.avatar_url || '';
+  const rawAvatarUrl = state.profile?.avatar_url || '';
+  const safeAvatarUrl = rawAvatarUrl ? safeImageUrl(rawAvatarUrl, 'assets/img/logo-light.png') : '';
   const initial   = (state.profile?.nome || state.currentUser?.email || '?').charAt(0).toUpperCase();
   const themePref = (typeof getThemePreference === 'function') ? getThemePreference() : 'system';
   const themeBtnClass = (id) => themePref === id
@@ -107,7 +112,7 @@ function _profileDadosHTML() {
       <!-- Avatar -->
       <div class="flex items-center gap-4">
         <div class="w-16 h-16 rounded-full bg-gradient-to-br from-orange-600 to-yellow-500 flex items-center justify-center text-black font-black text-xl overflow-hidden shrink-0 ring-2 ring-neutral-700">
-          ${avatarUrl ? `<img src="${avatarUrl}" id="avatar-preview" class="w-full h-full object-cover">` : `<span id="avatar-preview-initial">${initial}</span>`}
+          ${safeAvatarUrl ? `<img src="${safeAvatarUrl}" id="avatar-preview" class="w-full h-full object-cover" onerror="this.src='assets/img/logo-light.png';this.onerror=null;">` : `<span id="avatar-preview-initial">${initial}</span>`}
         </div>
         <div class="flex-1">
           <label class="block text-[9px] text-orange-500 font-black uppercase tracking-widest mb-2">Foto de Perfil</label>
@@ -116,7 +121,7 @@ function _profileDadosHTML() {
             <i data-lucide="upload" class="w-3.5 h-3.5"></i> ENVIAR FOTO
           </label>
           <input type="file" id="avatar-upload" accept="image/*" class="hidden" onchange="_previewAvatar(event)">
-          ${avatarUrl ? `<button onclick="_removeAvatar()" class="ml-2 inline-flex items-center gap-1.5 text-red-500 hover:text-red-400 text-[9px] font-black uppercase tracking-widest transition-colors"><i data-lucide="trash-2" class="w-3 h-3"></i>REMOVER</button>` : ''}
+          ${rawAvatarUrl ? `<button onclick="_removeAvatar()" class="ml-2 inline-flex items-center gap-1.5 text-red-500 hover:text-red-400 text-[9px] font-black uppercase tracking-widest transition-colors"><i data-lucide="trash-2" class="w-3 h-3"></i>REMOVER</button>` : ''}
           <p class="text-neutral-700 text-[9px] mt-1.5">JPG ou PNG, máx. 2MB</p>
         </div>
       </div>
@@ -188,10 +193,11 @@ function _previewAvatar(event) {
   }
   const reader = new FileReader();
   reader.onload = (e) => {
+    const previewUrl = safeImageUrl(e.target.result, 'assets/img/logo-light.png', { allowDataUrl: true });
     const avatarDiv = document.querySelector('#profile-modal-body .rounded-full');
-    if (avatarDiv) avatarDiv.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+    if (avatarDiv) avatarDiv.innerHTML = `<img src="${previewUrl}" class="w-full h-full object-cover" onerror="this.src='assets/img/logo-light.png';this.onerror=null;">`;
     const headerAvatar = document.querySelector('#profile-modal-avatar');
-    if (headerAvatar) headerAvatar.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+    if (headerAvatar) headerAvatar.innerHTML = `<img src="${previewUrl}" class="w-full h-full object-cover" onerror="this.src='assets/img/logo-light.png';this.onerror=null;">`;
   };
   reader.readAsDataURL(file);
 }
@@ -219,7 +225,7 @@ async function _saveDados() {
     }
     const { data: urlData } = supabaseClient.storage.from('avatars').getPublicUrl(path);
     // Adiciona cache-buster para forçar atualização da imagem
-    avatar_url = urlData.publicUrl + '?t=' + Date.now();
+    avatar_url = safeImageUrl(urlData.publicUrl + '?t=' + Date.now(), null);
   }
 
   const { error } = await supabaseClient.from('profiles').upsert({
@@ -421,22 +427,16 @@ async function _verify2FA(factorId) {
   _load2FAStatus();
 }
 
-async function _disable2FA(factorId) {
-  if (!confirm('Tem certeza que deseja desativar o 2FA? Seu login ficará menos seguro.')) return;
-  const { error } = await supabaseClient.auth.mfa.unenroll({ factorId });
-  if (error) { showToast('Erro: ' + error.message); return; }
-  showToast('2FA DESATIVADO.');
-  _load2FAStatus();
+function _disable2FA(factorId) {
+  showConfirmModal(
+    'Tem certeza que deseja desativar o 2FA? Seu login ficará menos seguro.',
+    async () => {
+      const { error } = await supabaseClient.auth.mfa.unenroll({ factorId });
+      if (error) { showToast('Erro: ' + error.message); return; }
+      showToast('2FA DESATIVADO.');
+      _load2FAStatus();
+    },
+    'DESATIVAR 2FA'
+  );
 }
 
-// Ao abrir a aba 2FA, carrega o status automaticamente
-const _origRenderBody = _renderProfileBody;
-function _renderProfileBody() {
-  const el = document.getElementById('profile-modal-body');
-  if (!el) return;
-  if (_profileTab === 'dados')  el.innerHTML = _profileDadosHTML();
-  if (_profileTab === 'senha')  el.innerHTML = _profileSenhaHTML();
-  if (_profileTab === '2fa')    el.innerHTML = _profile2FAHTML();
-  lucide.createIcons();
-  if (_profileTab === '2fa') _load2FAStatus();
-}

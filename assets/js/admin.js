@@ -2,7 +2,7 @@
 // PAINEL ADMINISTRATIVO
 // ==========================================
 
-// --- Modal dinÃ¢mico do admin ---
+// --- Modal dinâmico do admin ---
 function ensureAdminModal() {
   if (document.getElementById('admin-modal-overlay')) return;
   const div = document.createElement('div');
@@ -261,10 +261,10 @@ async function renderAdminFinanciadoras(container) {
     ? `<p class="text-neutral-600 text-sm font-bold text-center py-10">Nenhuma financiadora cadastrada.</p>`
     : items.map(item => `
       <div class="flex items-center gap-3 bg-neutral-900/60 border border-neutral-800 p-4 hover:border-neutral-700 transition-all">
-        <div class="shrink-0 w-9 h-9 flex items-center justify-center text-xl border border-neutral-700 bg-neutral-950">${escapeHTML(item.icone_texto || 'ðŸ¦')}</div>
+        <div class="shrink-0 w-9 h-9 flex items-center justify-center text-xl border border-neutral-700 bg-neutral-950">${escapeHTML(item.icone_texto || '\u{1F3E6}')}</div>
         <div class="flex-1 min-w-0">
           <p class="text-white font-black text-sm uppercase truncate">${escapeHTML(item.nome)}</p>
-          <p class="text-neutral-500 text-[10px] font-bold">${escapeHTML(item.taxa_texto || 'â€”')} · ${escapeHTML(item.prazo_texto || 'â€”')} · Ordem: ${item.ordem}</p>
+          <p class="text-neutral-500 text-[10px] font-bold">${escapeHTML(item.taxa_texto || '—')} · ${escapeHTML(item.prazo_texto || '—')} · Ordem: ${item.ordem}</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           ${_statusBadge(item.ativo)}
@@ -293,9 +293,8 @@ function openAdminFinanciadoraForm(id) {
       <div><label class="${_labelCls}">Taxa (texto)</label>
         <input id="af-taxa" class="${_inputCls}" placeholder="A partir de 1,5% a.m."></div>
       <div><label class="${_labelCls}">Prazo (texto)</label>
-        <input id="af-prazo" class="${_inputCls}" placeholder="Até 60 meses"></div>
-      <div><label class="${_labelCls}">Ãcone (emoji)</label>
-        <input id="af-icone" class="${_inputCls} text-2xl" placeholder="ðŸ¦" maxlength="4"></div>
+        <input id="af-prazo" class="${_inputCls}" placeholder="Até 60 meses"></div>      <div><label class="${_labelCls}">Ícone (emoji)</label>
+        <input id="af-icone" class="${_inputCls} text-2xl" placeholder="\u{1F3E6}" maxlength="4"></div>
       <div><label class="${_labelCls}">Ordem</label>
         <input type="number" id="af-ordem" class="${_inputCls} font-mono" value="0"></div>
       <div class="col-span-2"><label class="${_labelCls}">Cor CSS (Tailwind gradient)</label>
@@ -363,7 +362,7 @@ async function renderAdminComponentes(container) {
   }
 
   const grupos = [
-    { tipo: 'modulo',   label: 'MÃ“DULOS' },
+        { tipo: 'modulo',   label: 'MÓDULOS' },
     { tipo: 'inversor', label: 'INVERSORES' },
   ];
 
@@ -375,7 +374,7 @@ async function renderAdminComponentes(container) {
         <div class="flex-1 min-w-0">
           <p class="text-white font-bold text-sm truncate">${escapeHTML(item.nome)}</p>
           <p class="text-neutral-500 text-[10px] font-bold">
-            ${item.potencia_wp ? item.potencia_wp + ' Wp' : 'â€”'}
+            ${item.potencia_wp ? item.potencia_wp + ' Wp' : '—'}
             · R$ ${Number(item.preco_unitario).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
         </div>
@@ -411,7 +410,7 @@ function openAdminComponenteForm(id) {
     <div class="grid grid-cols-2 gap-4">
       <div><label class="${_labelCls}">Tipo *</label>
         <select required id="ac-tipo" class="${_selectCls}">
-          <option value="modulo">MÃ“DULO</option>
+          <option value="modulo">MÓDULO</option>
           <option value="inversor">INVERSOR</option>
         </select></div>
       <div><label class="${_labelCls}">Potência (Wp)</label>
@@ -531,7 +530,7 @@ async function renderAdminVendedores(container) {
           ${escapeHTML((item.email || '?').charAt(0).toUpperCase())}
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-white font-bold text-sm truncate">${escapeHTML(item.email || 'â€”')}</p>
+          <p class="text-white font-bold text-sm truncate">${escapeHTML(item.email || '—')}</p>
           <p class="text-neutral-500 text-[10px] font-bold">
             ${item.total_logins || 0} login(s)
             ${item.ultimo_acesso ? ' · Último acesso: ' + formatDate(item.ultimo_acesso) : ''}
@@ -676,12 +675,12 @@ async function renderAdminUsuarios(container) {
       <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-neutral-900/60 border border-neutral-800 p-4 hover:border-neutral-700 transition-all">
         <div class="flex-1 min-w-0">
           <div class="flex flex-wrap items-center gap-2">
-            <p class="text-white font-bold text-sm truncate">${escapeHTML(item.nome || item.email || 'â€”')}</p>
+            <p class="text-white font-bold text-sm truncate">${escapeHTML(item.nome || item.email || '—')}</p>
             ${_roleBadge(item.role)}
             ${_statusBadge(item.ativo !== false)}
             ${_chatAccessBadge(item.chat_enabled === true)}
           </div>
-          <p class="text-neutral-500 text-[10px] font-bold truncate">${escapeHTML(item.email || 'â€”')}</p>
+          <p class="text-neutral-500 text-[10px] font-bold truncate">${escapeHTML(item.email || '?')}</p>
           <p class="text-neutral-600 text-[10px] font-bold">
             ${escapeHTML(item.franquia_nome || 'Sem franquia')}
             ${item.last_sign_in_at ? ' • Último acesso: ' + formatDate(item.last_sign_in_at) : ''}
@@ -1026,7 +1025,7 @@ async function renderAdminFranquias(container) {
       <div class="flex items-center gap-3 bg-neutral-900/60 border border-neutral-800 p-4 hover:border-neutral-700 transition-all">
         <div class="flex-1 min-w-0">
           <p class="text-white font-black text-sm uppercase truncate">${escapeHTML(item.nome)}</p>
-          <p class="text-neutral-500 text-[10px] font-bold">${escapeHTML(item.cidade || 'â€”')}</p>
+          <p class="text-neutral-500 text-[10px] font-bold">${escapeHTML(item.cidade || '—')}</p>
         </div>
         <div class="flex items-center gap-2 shrink-0 flex-wrap">
           ${_statusBadge(item.ativo)}
@@ -1052,7 +1051,7 @@ function openAdminFranquiaForm(id) {
     <input type="hidden" id="afr-id" value="${id || ''}">
     <div class="grid grid-cols-2 gap-4">
       <div class="col-span-2"><label class="${_labelCls}">Nome *</label>
-        <input required id="afr-nome" class="${_inputCls} uppercase" placeholder="EX: ÃGIL SOLAR SJC"></div>
+        <input required id="afr-nome" class="${_inputCls} uppercase" placeholder="EX: ÁGIL SOLAR SJC"></div>
       <div class="col-span-2"><label class="${_labelCls}">Cidade</label>
         <input id="afr-cidade" class="${_inputCls}" placeholder="São José dos Campos"></div>
       <label class="col-span-2 flex items-center gap-3 cursor-pointer">
@@ -1094,7 +1093,7 @@ function openAdminFranquiaForm(id) {
     }
 
     closeAdminModal();
-    showToast(existingId ? 'FRANQUIA ATUALIZADA' : 'FRANQUIA CRIADA â€” preços copiados da Matriz');
+    showToast(existingId ? 'FRANQUIA ATUALIZADA' : 'FRANQUIA CRIADA — preços copiados da Matriz');
     const c = document.getElementById('admin-section-content');
     if (c) renderAdminFranquias(c);
   });
@@ -1133,7 +1132,7 @@ async function renderAdminPrecosFranquia(franquiaId, franquiaNome) {
       <div class="metric-card ${stagger} flex flex-col sm:flex-row items-start sm:items-center gap-3 border border-neutral-800 p-4 hover:border-purple-500/25 transition-all">
         <div class="flex-1 min-w-0">
           <p class="text-white font-black text-sm uppercase truncate">${escapeHTML(p.name)}</p>
-          <p class="text-neutral-500 text-[10px] font-bold">${escapeHTML(p.brand || 'â€”')} · ${p.power} kWp</p>
+          <p class="text-neutral-500 text-[10px] font-bold">${escapeHTML(p.brand || '—')} · ${p.power} kWp</p>
         </div>
         <div class="flex items-center gap-2 shrink-0 flex-wrap">
           <div class="flex flex-col items-start">

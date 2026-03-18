@@ -28,28 +28,106 @@ supabaseClient.auth.onAuthStateChange((event) => {
 // --- Timeout de inatividade ---
 let _inactivityTimer = null;
 
+let _authLucideCreateIconsRaf = null;
+
+function queueAuthLucideCreateIcons() {
+  if (!window.lucide || typeof window.lucide.createIcons !== 'function') return;
+  if (_authLucideCreateIconsRaf) return;
+
+  _authLucideCreateIconsRaf = window.requestAnimationFrame(() => {
+    _authLucideCreateIconsRaf = null;
+    window.lucide.createIcons();
+  });
+}
+
+function _authSetButtonWithIcon(btn, iconName, label, iconClass = 'w-5 h-5 stroke-[3px]') {
+  if (!btn) return;
+  btn.innerHTML = `<i data-lucide="${iconName}" class="${iconClass}"></i> <span data-auth-btn-label>${label}</span>`;
+  queueAuthLucideCreateIcons();
+}
+
+function _authUpdateButtonLabel(btn, label) {
+  if (!btn) return false;
+  const labelEl = btn.querySelector('[data-auth-btn-label]');
+  if (!labelEl) return false;
+  labelEl.textContent = label;
+  return true;
+}
+
+
+let _activeCheckFailureReason = null;
+
+function _isLegacyMissingActiveCheckRpcError(error) {
+  const code = String(error?.code || '');
+  if (code === 'PGRST202' || code === '42883') return true;
+
+  const detail = `${error?.message || ''} ${error?.details || ''} ${error?.hint || ''}`.toLowerCase();
+  if (!detail.includes('is_current_user_active')) return false;
+
+  return detail.includes('not found')
+    || detail.includes('does not exist')
+    || detail.includes('could not find')
+    || detail.includes('schema cache')
+    || detail.includes('no function matches');
+}
+
+function _isCurrentSessionBanned() {
+  const bannedUntilRaw = state.currentUser?.banned_until;
+  if (!bannedUntilRaw) return false;
+
+  const bannedUntilTs = Date.parse(bannedUntilRaw);
+  if (!Number.isFinite(bannedUntilTs)) return false;
+
+  return bannedUntilTs > Date.now();
+}
+
 async function ensureUserIsActive() {
+  _activeCheckFailureReason = null;
+
   try {
     const { data, error } = await supabaseClient.rpc('is_current_user_active');
-    if (error) return true; // evita bloquear login caso a migration SQL ainda nao tenha sido aplicada
-    return data !== false;
+
+    if (error) {
+      if (_isLegacyMissingActiveCheckRpcError(error)) {
+        const isInactiveLegacy = _isCurrentSessionBanned();
+        if (isInactiveLegacy) {
+          _activeCheckFailureReason = 'inactive';
+          return false;
+        }
+        return true; // compatibilidade com base legada sem migration completa
+      }
+
+      _activeCheckFailureReason = 'rpc_error';
+      return false;
+    }
+
+    const isActive = data !== false;
+    if (!isActive) _activeCheckFailureReason = 'inactive';
+    return isActive;
   } catch (_) {
-    return true;
+    _activeCheckFailureReason = 'rpc_error';
+    return false;
   }
 }
 
-async function blockInactiveSession() {
+function _getInactiveSessionMessage(reason) {
+  if (reason === 'rpc_error') {
+    return 'Nao foi possivel validar o status da conta. Tente novamente.';
+  }
+  return 'Usuario desativado. Contate o administrador.';
+}
+
+async function blockInactiveSession(reason = _activeCheckFailureReason || 'inactive') {
   await supabaseClient.auth.signOut();
   state.currentUser = null;
   document.getElementById('splash-screen').classList.add('hidden');
   document.getElementById('app-content').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
   const errorEl = document.getElementById('login-error');
-  errorEl.innerText = 'Usuario desativado. Contate o administrador.';
+  errorEl.innerText = _getInactiveSessionMessage(reason);
   errorEl.classList.remove('hidden');
   if (typeof chatTeardown === 'function') chatTeardown(true);
 }
-
 function startInactivityWatcher() {
   const MS = SESSION_TIMEOUT_HOURS * 60 * 60 * 1000;
   const reset = () => {
@@ -143,20 +221,25 @@ async function checkAuth() {
     const errorEl   = document.getElementById('login-error');
     let segundos = Math.ceil((until - Date.now()) / 1000);
     if (errorEl) { errorEl.innerText = `Muitas tentativas. Aguarde ${segundos}s.`; errorEl.classList.remove('hidden'); }
-    if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.innerHTML = `<i data-lucide="lock" class="w-5 h-5 stroke-[3px]"></i> BLOQUEADO (${segundos}s)`; }
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      _authSetButtonWithIcon(btnSubmit, 'lock', `BLOQUEADO (${segundos}s)`);
+    }
     const iv = setInterval(() => {
       segundos--;
       if (errorEl) errorEl.innerText = `Muitas tentativas. Aguarde ${segundos}s.`;
-      if (btnSubmit) btnSubmit.innerHTML = `<i data-lucide="lock" class="w-5 h-5 stroke-[3px]"></i> BLOQUEADO (${segundos}s)`;
-      if (typeof lucide !== 'undefined') lucide.createIcons();
+      if (btnSubmit && !_authUpdateButtonLabel(btnSubmit, `BLOQUEADO (${segundos}s)`)) {
+        _authSetButtonWithIcon(btnSubmit, 'lock', `BLOQUEADO (${segundos}s)`);
+      }
       if (segundos <= 0) {
         clearInterval(iv);
         _loginLockout = false;
         _bfClear();
-        if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerHTML = `<i data-lucide="log-in" class="w-5 h-5 stroke-[3px]"></i> ENTRAR NO SISTEMA`; }
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          _authSetButtonWithIcon(btnSubmit, 'log-in', 'ENTRAR NO SISTEMA');
+        }
         if (errorEl) errorEl.classList.add('hidden');
-        if (typeof lucide !== 'undefined') lucide.createIcons();
       }
     }, 1000);
   }
@@ -175,7 +258,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
   errorEl.classList.add('hidden');
   btnSubmit.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> AUTENTICANDO...`;
   btnSubmit.disabled  = true;
-  lucide.createIcons();
+  queueAuthLucideCreateIcons();
 
   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
@@ -192,19 +275,21 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
       errorEl.innerText = `Muitas tentativas. Aguarde ${segundos}s para tentar novamente.`;
       errorEl.classList.remove('hidden');
 
+      _authSetButtonWithIcon(btnSubmit, 'lock', `BLOQUEADO (${segundos}s)`);
+
       const lockInterval = setInterval(() => {
         segundos--;
         errorEl.innerText = `Muitas tentativas. Aguarde ${segundos}s para tentar novamente.`;
-        btnSubmit.innerHTML = `<i data-lucide="lock" class="w-5 h-5 stroke-[3px]"></i> BLOQUEADO (${segundos}s)`;
-        lucide.createIcons();
+        if (!_authUpdateButtonLabel(btnSubmit, `BLOQUEADO (${segundos}s)`)) {
+          _authSetButtonWithIcon(btnSubmit, 'lock', `BLOQUEADO (${segundos}s)`);
+        }
         if (segundos <= 0) {
           clearInterval(lockInterval);
           _loginLockout = false;
           _bfClear();
           btnSubmit.disabled = false;
-          btnSubmit.innerHTML = `<i data-lucide="log-in" class="w-5 h-5 stroke-[3px]"></i> ENTRAR NO SISTEMA`;
+          _authSetButtonWithIcon(btnSubmit, 'log-in', 'ENTRAR NO SISTEMA');
           errorEl.classList.add('hidden');
-          lucide.createIcons();
         }
       }, 1000);
     } else {
@@ -215,7 +300,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
       errorEl.classList.remove('hidden');
       btnSubmit.disabled = false;
       btnSubmit.innerHTML = `<i data-lucide="log-in" class="w-5 h-5 stroke-[3px]"></i> ENTRAR NO SISTEMA`;
-      lucide.createIcons();
+      queueAuthLucideCreateIcons();
     }
   } else {
     _bfClear();
@@ -238,7 +323,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
         errorEl.classList.remove('hidden');
         btnSubmit.disabled = false;
         btnSubmit.innerHTML = `<i data-lucide="log-in" class="w-5 h-5 stroke-[3px]"></i> ENTRAR NO SISTEMA`;
-        lucide.createIcons();
+        queueAuthLucideCreateIcons();
         return;
       }
       _mfaFactorId    = mfaData.totp.find(f => f.status === 'verified').id;
@@ -249,7 +334,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
       document.getElementById('mfa-login-code').focus();
       btnSubmit.disabled = false;
       btnSubmit.innerHTML = `<i data-lucide="log-in" class="w-5 h-5 stroke-[3px]"></i> ENTRAR NO SISTEMA`;
-      lucide.createIcons();
+      queueAuthLucideCreateIcons();
       return;
     }
 
@@ -270,7 +355,7 @@ async function submitMfaCode() {
 
   btn.disabled  = true;
   btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> VERIFICANDO...`;
-  lucide.createIcons();
+  queueAuthLucideCreateIcons();
 
   const { error } = await supabaseClient.auth.mfa.verify({
     factorId:    _mfaFactorId,
@@ -283,7 +368,7 @@ async function submitMfaCode() {
     errEl.classList.remove('hidden');
     btn.disabled  = false;
     btn.innerHTML = `<i data-lucide="check" class="w-5 h-5 stroke-[3px]"></i> CONFIRMAR`;
-    lucide.createIcons();
+    queueAuthLucideCreateIcons();
     return;
   }
 
@@ -349,7 +434,7 @@ function showPasswordResetForm() {
   document.getElementById('app-content').classList.add('hidden');
   const el = document.getElementById('reset-password-screen');
   if (el) el.classList.remove('hidden');
-  lucide.createIcons();
+  queueAuthLucideCreateIcons();
 }
 
 // --- Handler do formulário de nova senha ---
@@ -375,13 +460,13 @@ document.getElementById('reset-password-form').addEventListener('submit', async 
 
   btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> SALVANDO...`;
   btn.disabled  = true;
-  lucide.createIcons();
+  queueAuthLucideCreateIcons();
 
   const { error } = await supabaseClient.auth.updateUser({ password: newPass });
 
   btn.disabled  = false;
   btn.innerHTML = `<i data-lucide="check" class="w-5 h-5 stroke-[3px]"></i> <span>SALVAR NOVA SENHA</span>`;
-  lucide.createIcons();
+  queueAuthLucideCreateIcons();
 
   if (error) {
     errorEl.textContent = 'Erro ao salvar senha: ' + error.message;

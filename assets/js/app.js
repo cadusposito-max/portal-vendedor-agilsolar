@@ -24,6 +24,19 @@ function stopDashboardClock() {
   if (_clockInterval) { clearInterval(_clockInterval); _clockInterval = null; }
 }
 
+let _appLucideCreateIconsRaf = null;
+
+function queueAppLucideCreateIcons() {
+  if (!window.lucide || typeof window.lucide.createIcons !== 'function') return;
+  if (_appLucideCreateIconsRaf) return;
+
+  _appLucideCreateIconsRaf = window.requestAnimationFrame(() => {
+    _appLucideCreateIconsRaf = null;
+    window.lucide.createIcons();
+  });
+}
+
+
 function toggleMobileMenu() {
   const menu = document.getElementById('mobile-menu');
   const btn  = document.getElementById('hamburger-btn');
@@ -33,7 +46,7 @@ function toggleMobileMenu() {
   if (btn) btn.setAttribute('aria-expanded', String(!isOpen));
   if (icon) {
     icon.setAttribute('data-lucide', isOpen ? 'menu' : 'x');
-    lucide.createIcons();
+    queueAppLucideCreateIcons();
   }
 }
 
@@ -43,7 +56,7 @@ function closeMobileMenu() {
   const icon = document.getElementById('hamburger-icon');
   if (menu) menu.classList.add('hidden');
   if (btn)  btn.setAttribute('aria-expanded', 'false');
-  if (icon) { icon.setAttribute('data-lucide', 'menu'); lucide.createIcons(); }
+  if (icon) { icon.setAttribute('data-lucide', 'menu'); queueAppLucideCreateIcons(); }
 }
 
 // --- Header User Pill ---
@@ -52,7 +65,8 @@ function renderHeaderUser() {
   const email       = state.currentUser ? state.currentUser.email : '';
   const displayName = profileNome || getFirstName();
   const initial     = displayName ? displayName.charAt(0).toUpperCase() : email.charAt(0).toUpperCase();
-  const avatarUrl   = state.profile?.avatar_url || '';
+  const rawAvatarUrl = state.profile?.avatar_url || '';
+  const avatarUrl    = rawAvatarUrl ? safeImageUrl(rawAvatarUrl, 'assets/img/logo-light.png') : '';
 
   const avatarEl = document.getElementById('header-user-avatar');
   const nameEl   = document.getElementById('header-user-name');
@@ -61,7 +75,7 @@ function renderHeaderUser() {
 
   if (avatarEl) {
     if (avatarUrl) {
-      avatarEl.innerHTML = `<img src="${avatarUrl}" alt="avatar" class="w-full h-full object-cover rounded-full">`;
+      avatarEl.innerHTML = `<img src="${avatarUrl}" alt="avatar" class="w-full h-full object-cover rounded-full" onerror="this.src='assets/img/logo-light.png';this.onerror=null;">`;
     } else {
       avatarEl.textContent = initial;
     }
@@ -79,6 +93,8 @@ function renderHeaderUser() {
   const existingGestorToggle = document.getElementById('gestor-view-toggle-btn');
   if (existingGestorToggle) existingGestorToggle.remove();
 
+  let shouldRefreshHeaderIcons = false;
+
   if (state.isAdmin) {
     const adminBtn = document.getElementById('admin-toggle-btn');
     const btn = document.createElement('button');
@@ -94,7 +110,7 @@ function renderHeaderUser() {
     if (adminBtn && adminBtn.parentNode) {
       adminBtn.parentNode.insertBefore(btn, adminBtn);
     }
-    lucide.createIcons();
+    shouldRefreshHeaderIcons = true;
   }
 
   if (state.isGestor) {
@@ -112,8 +128,10 @@ function renderHeaderUser() {
     if (adminBtn && adminBtn.parentNode) {
       adminBtn.parentNode.insertBefore(btn, adminBtn);
     }
-    lucide.createIcons();
+    shouldRefreshHeaderIcons = true;
   }
+
+  if (shouldRefreshHeaderIcons) queueAppLucideCreateIcons();
 }
 
 async function toggleAdminViewMode() {
@@ -231,7 +249,7 @@ function renderTabs() {
     }).join('');
   }
 
-  lucide.createIcons();
+  queueAppLucideCreateIcons();
 }
 
 function setTab(tabId) {
@@ -298,7 +316,7 @@ function renderContent() {
     }
     renderProductsList(container);
   }
-  lucide.createIcons();
+  queueAppLucideCreateIcons();
 }
 
 // --- Event Listeners Globais ---
@@ -314,6 +332,6 @@ document.getElementById('search-input').addEventListener('input', (e) => {
 document.getElementById('client-telefone').addEventListener('input', formatarTelefone);
 
 // --- Inicialização ---
-lucide.createIcons();
+queueAppLucideCreateIcons();
 checkAuth();
 
