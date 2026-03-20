@@ -17,6 +17,147 @@ const PB_PROPOSAL_MODES = {
   PERSONALIZADA: 'PERSONALIZADA',
   EQUIPAMENTOS: 'EQUIPAMENTOS'
 };
+const _pbSellerNameCache = new Map();
+const _pbSellerPhoneCache = new Map();
+const _pbSellerNamePending = new Map();
+const _pbSellerPhonePending = new Map();
+
+function _pbNormalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function _pbEmailPrefix(email) {
+  const normalized = _pbNormalizeEmail(email);
+  if (!normalized) return 'Consultor';
+  const prefix = normalized.split('@')[0] || '';
+  return prefix || 'Consultor';
+}
+
+function _pbCurrentUserName() {
+  const meta = state.currentUser?.user_metadata || {};
+  const profileName = String(state.profile?.nome || '').trim();
+  const metaName = String(meta.full_name || meta.name || '').trim();
+  return profileName || metaName || _pbEmailPrefix(state.currentUser?.email);
+}
+
+function _pbCurrentUserPhone() {
+  const meta = state.currentUser?.user_metadata || {};
+  return String(state.profile?.telefone || meta.phone || state.currentUser?.phone || '').trim();
+}
+
+async function _pbResolveSellerNameByEmail(email) {
+  const normalizedEmail = _pbNormalizeEmail(email);
+  if (!normalizedEmail) return 'Consultor';
+
+  if (_pbSellerNameCache.has(normalizedEmail)) {
+    return _pbSellerNameCache.get(normalizedEmail) || _pbEmailPrefix(normalizedEmail);
+  }
+  if (_pbSellerNamePending.has(normalizedEmail)) {
+    return _pbSellerNamePending.get(normalizedEmail);
+  }
+
+  const pending = (async () => {
+    const currentEmail = _pbNormalizeEmail(state.currentUser?.email);
+    if (normalizedEmail === currentEmail) {
+      const currentName = _pbCurrentUserName();
+      _pbSellerNameCache.set(normalizedEmail, currentName);
+      return currentName;
+    }
+
+    let resolvedName = '';
+    try {
+      const { data, error } = await supabaseClient.rpc('chat_list_directory', {
+        p_search: normalizedEmail,
+        p_limit: 80,
+      });
+      if (error) throw error;
+
+      const rows = Array.isArray(data) ? data : [];
+      const match = rows.find((row) => _pbNormalizeEmail(row?.email) === normalizedEmail);
+      resolvedName = String(match?.nome || '').trim();
+    } catch (err) {
+      console.warn('[proposta-builder] Falha ao buscar nome do vendedor via chat_list_directory:', normalizedEmail, err);
+    }
+
+    if (!resolvedName) {
+      resolvedName = _pbEmailPrefix(normalizedEmail);
+      console.warn('[proposta-builder] Fallback de nome para vendedor:', normalizedEmail);
+    }
+
+    _pbSellerNameCache.set(normalizedEmail, resolvedName);
+    return resolvedName;
+  })().finally(() => {
+    _pbSellerNamePending.delete(normalizedEmail);
+  });
+
+  _pbSellerNamePending.set(normalizedEmail, pending);
+  return pending;
+}
+
+async function _pbResolveSellerPhoneByEmail(email) {
+  const normalizedEmail = _pbNormalizeEmail(email);
+  if (!normalizedEmail) return '';
+
+  if (_pbSellerPhoneCache.has(normalizedEmail)) {
+    return _pbSellerPhoneCache.get(normalizedEmail) || '';
+  }
+  if (_pbSellerPhonePending.has(normalizedEmail)) {
+    return _pbSellerPhonePending.get(normalizedEmail);
+  }
+
+  const pending = (async () => {
+    const currentEmail = _pbNormalizeEmail(state.currentUser?.email);
+    if (normalizedEmail === currentEmail) {
+      const currentPhone = _pbCurrentUserPhone();
+      _pbSellerPhoneCache.set(normalizedEmail, currentPhone);
+      return currentPhone;
+    }
+
+    let resolvedPhone = '';
+    try {
+      const { data, error } = await supabaseClient
+        .from('propostas')
+        .select('vendedor_telefone')
+        .eq('vendedor_email', normalizedEmail)
+        .not('vendedor_telefone', 'is', null)
+        .neq('vendedor_telefone', '')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      resolvedPhone = String(data?.vendedor_telefone || '').trim();
+    } catch (err) {
+      console.warn('[proposta-builder] Falha ao buscar telefone do vendedor em propostas:', normalizedEmail, err);
+    }
+
+    _pbSellerPhoneCache.set(normalizedEmail, resolvedPhone);
+    return resolvedPhone;
+  })().finally(() => {
+    _pbSellerPhonePending.delete(normalizedEmail);
+  });
+
+  _pbSellerPhonePending.set(normalizedEmail, pending);
+  return pending;
+}
+
+async function resolveEffectiveSellerForClient(client) {
+  const ownerEmail = _pbNormalizeEmail(client?.vendedor_email) || _pbNormalizeEmail(state.currentUser?.email);
+  const sellerEmail = ownerEmail || _pbNormalizeEmail(state.currentUser?.email);
+  if (!sellerEmail) {
+    throw new Error('Nao foi possivel identificar o vendedor responsavel pelo cliente.');
+  }
+
+  const [sellerName, sellerPhone] = await Promise.all([
+    _pbResolveSellerNameByEmail(sellerEmail),
+    _pbResolveSellerPhoneByEmail(sellerEmail),
+  ]);
+
+  return {
+    vendedor_email: sellerEmail,
+    vendedor_nome: sellerName || _pbEmailPrefix(sellerEmail),
+    vendedor_telefone: sellerPhone || '',
+  };
+}
 
 function getPBDefaultEquipDraft() {
   return {
@@ -426,6 +567,12 @@ async function handleEquipamentosProposalSubmit(event) {
   const client = state.pbActiveClient;
   if (!client) return showToast('Nenhum cliente em atendimento!');
 
+  if (!state.isAdmin) {
+    console.warn('[proposta-builder] Tentativa bloqueada de gerar proposta personalizada sem permissao admin.');
+    showToast('Apenas administrador pode gerar proposta personalizada.');
+    return;
+  }
+
   const submitBtn    = document.getElementById('pb-equip-submit');
   const originalText = submitBtn ? submitBtn.innerHTML : '';
   if (submitBtn) {
@@ -437,16 +584,14 @@ async function handleEquipamentosProposalSubmit(event) {
   const shouldUsePopup = !isStandaloneDisplayMode();
   const popupRef = shouldUsePopup ? window.open('', '_blank') : null;
   try {
-    const vendedorMeta = state.currentUser.user_metadata || {};
-    const vendedorNome = vendedorMeta.full_name || vendedorMeta.name || state.currentUser.email.split('@')[0];
-    const vendedorTel  = state.profile?.telefone || vendedorMeta.phone || state.currentUser.phone || '';
-    const descricao    = (draft.descricao || '').trim() || 'Proposta Personalizada';
+    const seller    = await resolveEffectiveSellerForClient(client);
+    const descricao = (draft.descricao || '').trim() || 'Proposta Personalizada';
 
     const { data, error } = await supabaseClient.from('propostas').insert([{
       proposal_mode:           'PERSONALIZADA',
-      vendedor_email:          state.currentUser.email,
-      vendedor_nome:           vendedorNome,
-      vendedor_telefone:       vendedorTel,
+      vendedor_email:          seller.vendedor_email,
+      vendedor_nome:           seller.vendedor_nome,
+      vendedor_telefone:       seller.vendedor_telefone,
       cliente_nome:            client.nome,
       cliente_telefone:        client.telefone,
       cliente_cidade:          client.cidade,
@@ -646,14 +791,12 @@ async function copyProposalLink(kit, event) {
   const popupRef = shouldUsePopup ? window.open('', '_blank') : null;
 
   try {
-    const vendedorMeta  = state.currentUser.user_metadata || {};
-    const vendedorNome  = vendedorMeta.full_name || vendedorMeta.name || state.currentUser.email.split('@')[0];
-    const vendedorTel   = state.profile?.telefone || vendedorMeta.phone || state.currentUser.phone || '';
+    const seller = await resolveEffectiveSellerForClient(client);
 
     const { data, error } = await supabaseClient.from('propostas').insert([{
-      vendedor_email:    state.currentUser.email,
-      vendedor_nome:     vendedorNome,
-      vendedor_telefone: vendedorTel,
+      vendedor_email:    seller.vendedor_email,
+      vendedor_nome:     seller.vendedor_nome,
+      vendedor_telefone: seller.vendedor_telefone,
       cliente_nome:      client.nome,
       cliente_telefone:  client.telefone,
       cliente_cidade:    client.cidade,
@@ -864,13 +1007,12 @@ async function confirmarFechaVenda() {
   btn.disabled  = true;
   lucide.createIcons();
 
-  const meta         = state.currentUser.user_metadata || {};
-  const vendedorNome = meta.full_name || meta.name || state.currentUser.email.split('@')[0];
-
   try {
+    const seller = await resolveEffectiveSellerForClient(client);
+
     const { error: insertError } = await supabaseClient.from('vendas').insert([{
-      vendedor_email:    state.currentUser.email,
-      vendedor_nome:     vendedorNome,
+      vendedor_email:    seller.vendedor_email,
+      vendedor_nome:     seller.vendedor_nome,
       cliente_id:        client.id,
       cliente_nome:      client.nome,
       cliente_telefone:  client.telefone || '',
@@ -913,6 +1055,11 @@ async function confirmarFechaVenda() {
     lucide.createIcons();
   }
 }
+
+
+
+
+
 
 
 
