@@ -37,6 +37,46 @@ function resolveProductPrices(produto) {
   return { price, list_price: listPrice };
 }
 
+function applyOperationalScopeToQuery(query) {
+  if (!query || !state.currentUser) return query;
+
+  if (state.isAdmin) {
+    // Admin consolidado: sem filtro adicional.
+    // Admin minha unidade: filtra por franquia, nao por email do admin.
+    if (!state.adminViewAll) {
+      if (state.franquiaId) {
+        query.eq('franquia_id', state.franquiaId);
+      } else {
+        // Fallback defensivo para base legada sem franquia no JWT.
+        query.eq('vendedor_email', state.currentUser.email);
+      }
+    }
+    return query;
+  }
+
+  if (state.isGestor) {
+    // Gestor com view-all enxerga a unidade inteira (RLS).
+    if (!state.gestorViewAll) query.eq('vendedor_email', state.currentUser.email);
+    return query;
+  }
+
+  // Vendedor sempre ve apenas propria carteira.
+  query.eq('vendedor_email', state.currentUser.email);
+  return query;
+}
+
+async function fetchFranquiasCatalog() {
+  if (!state.currentUser) return;
+  const { data, error } = await supabaseClient
+    .from('franquias')
+    .select('id, nome, cidade, ativo')
+    .order('nome', { ascending: true });
+
+  if (!error) {
+    state.franquiasCatalog = data || [];
+  }
+}
+
 async function createAdminUserWithConfirmedEmail(params = {}) {
   if (!supabaseClient?.functions || typeof supabaseClient.functions.invoke !== 'function') {
     throw new Error('Supabase Functions indisponivel no cliente.');
@@ -147,10 +187,7 @@ async function fetchClientes() {
     .select('*')
     .order('created_at', { ascending: false });
 
-  // Gestor com gestorViewAll: vê todos da franquia (RLS restringe). Admin com adminViewAll: idem.
-  // Gestor sem gestorViewAll ou vendedor: filtra pelo próprio email.
-  const fetchAll = (state.isGestor && Boolean(state.gestorViewAll)) || (state.isAdmin && Boolean(state.adminViewAll));
-  if (!fetchAll) query.eq('vendedor_email', state.currentUser.email);
+  applyOperationalScopeToQuery(query);
 
   const { data, error } = await query;
   if (!error) state.clientes = data || [];
@@ -163,8 +200,7 @@ async function fetchPropostas() {
     .select('*')
     .order('created_at', { ascending: false });
 
-  const fetchAll = (state.isGestor && Boolean(state.gestorViewAll)) || (state.isAdmin && Boolean(state.adminViewAll));
-  if (!fetchAll) query.eq('vendedor_email', state.currentUser.email);
+  applyOperationalScopeToQuery(query);
 
   const { data, error } = await query;
   if (!error) state.propostas = data || [];
@@ -177,8 +213,7 @@ async function fetchVendas() {
     .select('*')
     .order('created_at', { ascending: false });
 
-  const fetchAll = (state.isGestor && Boolean(state.gestorViewAll)) || (state.isAdmin && Boolean(state.adminViewAll));
-  if (!fetchAll) query.eq('vendedor_email', state.currentUser.email);
+  applyOperationalScopeToQuery(query);
 
   const { data, error } = await query;
   if (!error) state.vendas = data || [];
@@ -229,13 +264,3 @@ async function fetchComunicados(options = {}) {
     if (!silent) showToast('Nao foi possivel carregar comunicados.');
   }
 }
-
-
-
-
-
-
-
-
-
-

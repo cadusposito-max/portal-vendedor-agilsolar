@@ -171,6 +171,7 @@ async function checkAuth() {
       state.isAdmin     = appMeta.role === 'admin';
       state.isGestor    = appMeta.role === 'gestor';
       state.franquiaId  = appMeta.franquia_id || null;
+      state.adminPrefsLoaded = false;
       if (state.isAdmin && state.franquiaId && !state.adminKitsFranquia) {
         state.adminKitsFranquia = state.franquiaId;
       }
@@ -185,6 +186,7 @@ async function checkAuth() {
       await Promise.all([
         initSplash(),
         fetchFranquia(),
+        fetchFranquiasCatalog(),
         fetchProfile(),
         fetchProducts(),
         fetchClientes(),
@@ -395,6 +397,7 @@ async function _finishLogin(user, email) {
   state.isAdmin     = appMeta.role === 'admin';
   state.isGestor    = appMeta.role === 'gestor';
   state.franquiaId  = appMeta.franquia_id || null;
+  state.adminPrefsLoaded = false;
   if (state.isAdmin && state.franquiaId && !state.adminKitsFranquia) {
     state.adminKitsFranquia = state.franquiaId;
   }
@@ -413,6 +416,7 @@ async function _finishLogin(user, email) {
   await Promise.all([
     initSplash(),
     fetchFranquia(),
+    fetchFranquiasCatalog(),
     fetchProfile(),
     fetchProducts(),
     fetchClientes(),
@@ -563,4 +567,8 @@ async function handleLogout() {
   await supabaseClient.auth.signOut();
   window.location.reload();
 }
+
+
+
+
 
