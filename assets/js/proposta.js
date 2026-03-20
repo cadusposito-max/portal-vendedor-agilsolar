@@ -246,7 +246,7 @@ function renderData(data) {
   const isCustomMode    = isPersonalizada || isEquipamentos;
   const displayPrice = isCustomMode ? (data.custom_total_price || data.kit_price || 0) : (data.kit_price || 0);
   const displayPower = isCustomMode ? (data.custom_system_power_kwp || data.kit_power || 0) : (data.kit_power || 0);
-  const displayName  = isCustomMode ? 'Proposta Personalizada' : (data.kit_nome || '');
+  const displayName  = isCustomMode ? (data.kit_nome || 'Proposta Personalizada') : (data.kit_nome || '');
   const displayBrand = isCustomMode ? '' : (data.kit_brand || '');
 
   // Geração: usa valor salvo no banco (imutável, calculado com HSP da franquia na criação)
