@@ -17,6 +17,32 @@ const PB_PROPOSAL_MODES = {
   PERSONALIZADA: 'PERSONALIZADA',
   EQUIPAMENTOS: 'EQUIPAMENTOS'
 };
+function canUsePersonalizada() {
+  return Boolean(state.isAdmin || state.isGestor);
+}
+
+function updatePBPersonalizadaRoleBadge() {
+  const panel = document.getElementById('pb-equip-panel');
+  if (!panel) return;
+
+  const badge = document.getElementById('pb-personalizada-role-badge')
+    || panel.querySelector('.border-b span.shrink-0');
+  if (!badge) return;
+
+  const label = document.getElementById('pb-personalizada-role-badge-label');
+  if (label) {
+    label.textContent = 'ADMIN/GESTOR';
+    return;
+  }
+
+  const textNodes = Array.from(badge.childNodes).filter((node) => node.nodeType === Node.TEXT_NODE);
+  if (textNodes.length > 0) {
+    textNodes[textNodes.length - 1].textContent = ' ADMIN/GESTOR';
+    return;
+  }
+
+  badge.appendChild(document.createTextNode(' ADMIN/GESTOR'));
+}
 const _pbSellerNameCache = new Map();
 const _pbSellerPhoneCache = new Map();
 const _pbSellerNamePending = new Map();
@@ -208,6 +234,7 @@ function openProposalBuilder(clientId) {
   setPBMainTab('kits');
   updatePBTabsUI();
   setPBProposalMode(PB_PROPOSAL_MODES.PROMOCIONAL);
+  updatePBPersonalizadaRoleBadge();
 
   document.getElementById('proposal-builder-modal').classList.remove('hidden');
   lucide.createIcons();
@@ -426,7 +453,7 @@ function updatePBTabsUI() {
 function setPBProposalMode(mode) {
   const wantsPersonalizada = mode === PB_PROPOSAL_MODES.PERSONALIZADA || mode === PB_PROPOSAL_MODES.EQUIPAMENTOS;
 
-  if (wantsPersonalizada && !state.isAdmin) return;
+  if (wantsPersonalizada && !canUsePersonalizada()) return;
 
   state.pbProposalMode = wantsPersonalizada
     ? PB_PROPOSAL_MODES.PERSONALIZADA
@@ -464,7 +491,7 @@ function updatePBModeUI() {
   if (btnPromo)  btnPromo.className  = (mode === 'PROMOCIONAL') ? ACTIVE : INACTIVE;
   if (btnCustom) {
     btnCustom.className = isPersonalizada ? ACTIVE_BL : INACTIVE;
-    btnCustom.classList.toggle('hidden', !state.isAdmin);
+    btnCustom.classList.toggle('hidden', !canUsePersonalizada());
   }
 
   if (helperText) {
@@ -479,6 +506,7 @@ function updatePBModeUI() {
   if (productsContainer) productsContainer.classList.toggle('hidden', hidePromo);
   if (emptyEl && hidePromo) emptyEl.classList.add('hidden');
 
+  updatePBPersonalizadaRoleBadge();
   lucide.createIcons();
 }
 
@@ -499,7 +527,7 @@ function bindPBSearchInputEvent() {
 
 bindPBSearchInputEvent();
 // ==========================================
-// MODO: PERSONALIZADA (Admin only)
+// MODO: PERSONALIZADA (Admin/Gestor only)
 // ==========================================
 
 function syncEquipInputsFromState() {
@@ -567,9 +595,9 @@ async function handleEquipamentosProposalSubmit(event) {
   const client = state.pbActiveClient;
   if (!client) return showToast('Nenhum cliente em atendimento!');
 
-  if (!state.isAdmin) {
-    console.warn('[proposta-builder] Tentativa bloqueada de gerar proposta personalizada sem permissao admin.');
-    showToast('Apenas administrador pode gerar proposta personalizada.');
+  if (!canUsePersonalizada()) {
+    console.warn('[proposta-builder] Tentativa bloqueada de gerar proposta personalizada sem permissao (admin/gestor).');
+    showToast('Apenas administrador ou gestor pode gerar proposta personalizada.');
     return;
   }
 
